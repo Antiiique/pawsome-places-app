@@ -1,8 +1,25 @@
 import heroImage from "@/assets/hero-pet-friendly.jpg";
 import { Search, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  onSearch: (query: string) => void;
+}
+
+const HeroSection = ({ onSearch }: HeroSectionProps) => {
+  const [query, setQuery] = useState("");
+
+  const handleSearch = () => {
+    if (query.trim()) {
+      onSearch(query.trim());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSearch();
+  };
+
   return (
     <section className="relative min-h-[85vh] flex items-center overflow-hidden">
       <div className="absolute inset-0">
@@ -31,10 +48,16 @@ const HeroSection = () => {
               <input
                 type="text"
                 placeholder="Rechercher une ville ou un lieu..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="w-full py-2 bg-transparent text-foreground placeholder:text-muted-foreground outline-none text-sm"
               />
             </div>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 gap-2">
+            <Button
+              onClick={handleSearch}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 gap-2"
+            >
               <Search className="w-4 h-4" />
               Rechercher
             </Button>
@@ -44,6 +67,10 @@ const HeroSection = () => {
             {["Paris", "Barcelone", "Amsterdam", "Lisbonne"].map((city) => (
               <span
                 key={city}
+                onClick={() => {
+                  setQuery(city);
+                  onSearch(city);
+                }}
                 className="px-3 py-1.5 rounded-full bg-primary-foreground/20 text-primary-foreground text-sm font-medium backdrop-blur-sm cursor-pointer hover:bg-primary-foreground/30 transition-colors"
               >
                 {city}
