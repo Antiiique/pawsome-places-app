@@ -14,13 +14,121 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      pet_friendly_places: {
+        Row: {
+          accepts_cats: boolean
+          accepts_dogs: boolean
+          address: string | null
+          category: string
+          city: string | null
+          country: string | null
+          created_at: string
+          description: string | null
+          dogs_on_leash_only: boolean
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          opening_hours: string | null
+          outdoor_seating: boolean
+          phone: string | null
+          photo_url: string | null
+          rating: number | null
+          source: string | null
+          subcategory: string | null
+          updated_at: string
+          verified: boolean
+          website: string | null
+        }
+        Insert: {
+          accepts_cats?: boolean
+          accepts_dogs?: boolean
+          address?: string | null
+          category?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          dogs_on_leash_only?: boolean
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          opening_hours?: string | null
+          outdoor_seating?: boolean
+          phone?: string | null
+          photo_url?: string | null
+          rating?: number | null
+          source?: string | null
+          subcategory?: string | null
+          updated_at?: string
+          verified?: boolean
+          website?: string | null
+        }
+        Update: {
+          accepts_cats?: boolean
+          accepts_dogs?: boolean
+          address?: string | null
+          category?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          dogs_on_leash_only?: boolean
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          opening_hours?: string | null
+          outdoor_seating?: boolean
+          phone?: string | null
+          photo_url?: string | null
+          rating?: number | null
+          source?: string | null
+          subcategory?: string | null
+          updated_at?: string
+          verified?: boolean
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_nearby_pet_places: {
+        Args: {
+          cat_filter?: string
+          dogs_only?: boolean
+          radius_km?: number
+          user_lat: number
+          user_lon: number
+        }
+        Returns: {
+          accepts_cats: boolean
+          accepts_dogs: boolean
+          address: string
+          category: string
+          city: string
+          country: string
+          description: string
+          distance_km: number
+          dogs_on_leash_only: boolean
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          opening_hours: string
+          outdoor_seating: boolean
+          phone: string
+          photo_url: string
+          rating: number
+          subcategory: string
+          verified: boolean
+          website: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
