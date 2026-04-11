@@ -1,16 +1,8 @@
-import { useState, useCallback } from "react";
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { MapPin, Star, Phone, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
-
-const mapContainerStyle = {
-  width: "100%",
-  height: "100%",
-};
-
-const defaultCenter = { lat: 48.8566, lng: 2.3522 }; // Paris
 
 const samplePlaces = [
   {
@@ -51,32 +43,137 @@ const samplePlaces = [
   },
 ];
 
-const mapStyles = [
-  { featureType: "poi.park", elementType: "geometry.fill", stylers: [{ color: "#c8e6c9" }] },
-  { featureType: "water", elementType: "geometry.fill", stylers: [{ color: "#bbdefb" }] },
-  { featureType: "road", elementType: "geometry.fill", stylers: [{ color: "#fafafa" }] },
-];
+const categoryColors: Record<string, string> = {
+  Restaurant: "#E57373",
+  Hôtel: "#64B5F6",
+  Parc: "#81C784",
+  Transport: "#FFB74D",
+  Camping: "#A1887F",
+  Loisirs: "#BA68C8",
+};
+
+function loadGoogleMapsScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (window.google?.maps) {
+      resolve();
+      return;
+    }
+    const existing = document.querySelector('script[src*="maps.googleapis.com"]');
+    if (existing) {
+      existing.addEventListener("load", () => resolve());
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Failed to load Google Maps"));
+    document.head.appendChild(script);
+  });
+}
 
 const MapSection = () => {
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-  });
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
+  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<(typeof samplePlaces)[0] | null>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
 
-  const onLoad = useCallback((map: google.maps.Map) => {
-    setMap(map);
+  useEffect(() => {
+    loadGoogleMapsScript()
+      .then(() => setIsLoaded(true))
+      .catch(() => setLoadError(true));
   }, []);
 
-  const categoryColors: Record<string, string> = {
-    Restaurant: "#E57373",
-    Hôtel: "#64B5F6",
-    Parc: "#81C784",
-    Transport: "#FFB74D",
-    Camping: "#A1887F",
-    Loisirs: "#BA68C8",
-  };
+  useEffect(() => {
+    if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
+
+    const map = new google.maps.Map(mapRef.current, {
+      center: { lat: 48.8566, lng: 2.3522 },
+      zoom: 13,
+      disableDefaultUI: false,
+      zoomControl: true,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: true,
+      styles: [
+        { featureType: "poi.park", elementType: "geometry.fill", stylers: [{ color: "#c8e6c9" }] },
+        { featureType: "water", elementType: "geometry.fill", stylers: [{ color: "#bbdefb" }] },
+        { featureType: "road", elementType: "geometry.fill", stylers: [{ color: "#fafafa" }] },
+      ],
+    });
+
+    mapInstanceRef.current = map;
+    infoWindowRef.current = new google.maps.InfoWindow();
+
+    samplePlaces.forEach((place) => {
+      const marker = new google.maps.Marker({
+        position: place.position,
+        map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: categoryColors[place.category] || "#4CAF50",
+          fillOpacity: 1,
+          strokeColor: "#fff",
+          strokeWeight: 2,
+          scale: 10,
+        },
+        title: place.name,
+      });
+
+      marker.addListener("click", () => {
+        setSelectedPlace(place);
+        infoWindowRef.current?.setContent(`
+          <div style="max-width:240px;font-family:sans-serif">
+            <img src="${place.image}" alt="${place.name}" style="width:100%;height:112px;object-fit:cover;border-radius:8px;margin-bottom:8px" />
+            <h3 style="font-weight:700;font-size:14px;margin:0 0 4px">${place.name}</h3>
+            <p style="font-size:12px;color:#888;margin:0 0 4px">${place.address}</p>
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+              <span style="color:#f59e0b">★</span>
+              <span style="font-size:12px;font-weight:600">${place.rating}</span>
+              <span style="font-size:11px;color:#aaa">(${place.reviews} avis)</span>
+            </div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap">
+              ${place.petTypes.map((t) => `<span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:12px">🐾 ${t}</span>`).join("")}
+            </div>
+          </div>
+        `);
+        infoWindowRef.current?.open(map, marker);
+      });
+
+      markersRef.current.push(marker);
+    });
+  }, [isLoaded]);
+
+  const handleCardClick = useCallback((place: (typeof samplePlaces)[0]) => {
+    setSelectedPlace(place);
+    const map = mapInstanceRef.current;
+    if (map) {
+      map.panTo(place.position);
+      map.setZoom(15);
+    }
+    const idx = samplePlaces.findIndex((p) => p.id === place.id);
+    if (idx >= 0 && markersRef.current[idx] && infoWindowRef.current) {
+      infoWindowRef.current.setContent(`
+        <div style="max-width:240px;font-family:sans-serif">
+          <img src="${place.image}" alt="${place.name}" style="width:100%;height:112px;object-fit:cover;border-radius:8px;margin-bottom:8px" />
+          <h3 style="font-weight:700;font-size:14px;margin:0 0 4px">${place.name}</h3>
+          <p style="font-size:12px;color:#888;margin:0 0 4px">${place.address}</p>
+          <div style="display:flex;align-items:center;gap:4px">
+            <span style="color:#f59e0b">★</span>
+            <span style="font-size:12px;font-weight:600">${place.rating}</span>
+            <span style="font-size:11px;color:#aaa">(${place.reviews} avis)</span>
+          </div>
+        </div>
+      `);
+      infoWindowRef.current.open(map, markersRef.current[idx]);
+    }
+    window.scrollTo({ top: document.getElementById("explore")?.offsetTop ?? 0, behavior: "smooth" });
+  }, []);
 
   return (
     <section id="explore" className="py-16 bg-secondary/50">
@@ -102,67 +199,7 @@ const MapSection = () => {
               <MapPin className="w-12 h-12 text-primary animate-bounce" />
             </div>
           )}
-          {isLoaded && (
-            <GoogleMap
-              mapContainerStyle={mapContainerStyle}
-              center={defaultCenter}
-              zoom={13}
-              onLoad={onLoad}
-              options={{
-                styles: mapStyles,
-                disableDefaultUI: false,
-                zoomControl: true,
-                mapTypeControl: false,
-                streetViewControl: false,
-                fullscreenControl: true,
-              }}
-            >
-              {samplePlaces.map((place) => (
-                <Marker
-                  key={place.id}
-                  position={place.position}
-                  onClick={() => setSelectedPlace(place)}
-                  icon={{
-                    path: google.maps.SymbolPath.CIRCLE,
-                    fillColor: categoryColors[place.category] || "#4CAF50",
-                    fillOpacity: 1,
-                    strokeColor: "#fff",
-                    strokeWeight: 2,
-                    scale: 10,
-                  }}
-                />
-              ))}
-
-              {selectedPlace && (
-                <InfoWindow
-                  position={selectedPlace.position}
-                  onCloseClick={() => setSelectedPlace(null)}
-                >
-                  <div className="max-w-[240px] font-sans">
-                    <img
-                      src={selectedPlace.image}
-                      alt={selectedPlace.name}
-                      className="w-full h-28 object-cover rounded-md mb-2"
-                    />
-                    <h3 className="font-bold text-sm mb-0.5">{selectedPlace.name}</h3>
-                    <p className="text-xs text-gray-500 mb-1">{selectedPlace.address}</p>
-                    <div className="flex items-center gap-1 mb-1">
-                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                      <span className="text-xs font-semibold">{selectedPlace.rating}</span>
-                      <span className="text-xs text-gray-400">({selectedPlace.reviews} avis)</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {selectedPlace.petTypes.map((t) => (
-                        <span key={t} className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
-                          🐾 {t}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </InfoWindow>
-              )}
-            </GoogleMap>
-          )}
+          <div ref={mapRef} className="w-full h-full" style={{ display: isLoaded && !loadError ? "block" : "none" }} />
         </div>
 
         {/* Place Cards */}
@@ -172,12 +209,7 @@ const MapSection = () => {
               key={place.id}
               className="bg-card rounded-xl overflow-hidden card-hover animate-fade-in cursor-pointer"
               style={{ animationDelay: `${i * 120}ms` }}
-              onClick={() => {
-                setSelectedPlace(place);
-                map?.panTo(place.position);
-                map?.setZoom(15);
-                window.scrollTo({ top: document.getElementById("explore")?.offsetTop ?? 0, behavior: "smooth" });
-              }}
+              onClick={() => handleCardClick(place)}
             >
               <div className="relative h-48">
                 <img src={place.image} alt={place.name} loading="lazy" className="w-full h-full object-cover" />
