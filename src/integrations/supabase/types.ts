@@ -27,6 +27,7 @@ export type Database = {
           dogs_on_leash_only: boolean
           id: string
           latitude: number
+          location: unknown
           longitude: number
           name: string
           opening_hours: string | null
@@ -52,6 +53,7 @@ export type Database = {
           dogs_on_leash_only?: boolean
           id?: string
           latitude: number
+          location?: unknown
           longitude: number
           name: string
           opening_hours?: string | null
@@ -77,6 +79,7 @@ export type Database = {
           dogs_on_leash_only?: boolean
           id?: string
           latitude?: number
+          location?: unknown
           longitude?: number
           name?: string
           opening_hours?: string | null
