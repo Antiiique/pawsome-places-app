@@ -7,14 +7,13 @@ const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
 
 const petFriendlyKeywords = [
   "pet friendly restaurant",
-  "dog friendly restaurant",
-  "pet friendly hotel",
-  "pet friendly cafe",
   "dog friendly cafe",
+  "pet friendly hotel",
   "dog park",
+  "pet friendly amusement park",
   "pet friendly camping",
-  "pet friendly leisure",
-  "veterinary clinic",
+  "pet friendly transport",
+  "pet friendly leisure activity",
 ];
 
 const createPawMarkerIcon = (color: string): google.maps.Icon => {
@@ -37,18 +36,24 @@ const createPawMarkerIcon = (color: string): google.maps.Icon => {
 };
 
 const categoryFromTypes = (types: string[]): string => {
-  if (types.includes("restaurant") || types.includes("cafe") || types.includes("food")) return "Restaurant";
+  if (types.includes("restaurant") || types.includes("food")) return "Restaurant";
+  if (types.includes("cafe")) return "Café";
   if (types.includes("lodging")) return "Hôtel";
-  if (types.includes("park") || types.includes("campground")) return "Parc";
-  if (types.includes("veterinary_care")) return "Vétérinaire";
+  if (types.includes("park")) return "Parc";
+  if (types.includes("amusement_park")) return "Parc d'attractions";
+  if (types.includes("campground")) return "Camping";
+  if (types.includes("transit_station") || types.includes("train_station") || types.includes("bus_station") || types.includes("airport")) return "Transport";
   return "Loisirs";
 };
 
 const categoryColors: Record<string, string> = {
   Restaurant: "#E57373",
+  Café: "#FF8A65",
   Hôtel: "#64B5F6",
   Parc: "#81C784",
-  Vétérinaire: "#FFB74D",
+  "Parc d'attractions": "#FFD54F",
+  Camping: "#A5D6A7",
+  Transport: "#90CAF9",
   Loisirs: "#BA68C8",
 };
 
