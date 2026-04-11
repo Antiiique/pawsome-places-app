@@ -1,7 +1,13 @@
+/// <reference types="google.maps" />
 import { useState, useEffect, useRef, useCallback } from "react";
 import { MapPin, Star, Phone, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
 const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
 
 const samplePlaces = [
