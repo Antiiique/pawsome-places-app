@@ -1,0 +1,50 @@
+import logo from "@/assets/logo-wpf.png";
+import { Search, Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+
+const Header = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-md border-b border-border">
+      <div className="container flex items-center justify-between h-16 px-4">
+        <div className="flex items-center gap-2">
+          <img src={logo} alt="World Pet Friendly" width={40} height={40} className="w-10 h-10" />
+          <span className="font-heading font-bold text-lg text-foreground">
+            World Pet <span className="text-primary">Friendly</span>
+          </span>
+        </div>
+
+        <nav className="hidden md:flex items-center gap-6">
+          <a href="#explore" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Explorer</a>
+          <a href="#categories" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Catégories</a>
+          <a href="#about" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">À propos</a>
+        </nav>
+
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="text-muted-foreground">
+            <Search className="w-5 h-5" />
+          </Button>
+          <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90">
+            Ajouter un lieu
+          </Button>
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu className="w-5 h-5" />
+          </Button>
+        </div>
+      </div>
+
+      {menuOpen && (
+        <div className="md:hidden bg-card border-b border-border px-4 py-4 space-y-3">
+          <a href="#explore" className="block text-sm font-medium text-muted-foreground">Explorer</a>
+          <a href="#categories" className="block text-sm font-medium text-muted-foreground">Catégories</a>
+          <a href="#about" className="block text-sm font-medium text-muted-foreground">À propos</a>
+          <Button className="w-full bg-primary text-primary-foreground">Ajouter un lieu</Button>
+        </div>
+      )}
+    </header>
+  );
+};
+
+export default Header;
