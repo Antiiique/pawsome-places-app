@@ -7,11 +7,34 @@ const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
 
 const petFriendlyKeywords = [
   "pet friendly restaurant",
+  "dog friendly restaurant",
   "pet friendly hotel",
-  "dog park",
   "pet friendly cafe",
-  "veterinary",
+  "dog friendly cafe",
+  "dog park",
+  "pet friendly camping",
+  "pet friendly leisure",
+  "veterinary clinic",
 ];
+
+const createPawMarkerIcon = (color: string): google.maps.Icon => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="46" viewBox="0 0 40 46">
+    <filter id="s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/></filter>
+    <path filter="url(%23s)" d="M20 44 C20 44 4 30 4 18 A16 16 0 0 1 36 18 C36 30 20 44 20 44Z" fill="${color}" stroke="white" stroke-width="2"/>
+    <g transform="translate(11,10) scale(0.038)" fill="white">
+      <ellipse cx="120" cy="80" rx="45" ry="55"/>
+      <ellipse cx="320" cy="80" rx="45" ry="55"/>
+      <ellipse cx="50" cy="220" rx="42" ry="50"/>
+      <ellipse cx="390" cy="220" rx="42" ry="50"/>
+      <path d="M100 340 Q140 260 220 250 Q300 260 340 340 Q340 420 220 420 Q100 420 100 340Z"/>
+    </g>
+  </svg>`;
+  return {
+    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+    scaledSize: new google.maps.Size(40, 46),
+    anchor: new google.maps.Point(20, 46),
+  };
+};
 
 const categoryFromTypes = (types: string[]): string => {
   if (types.includes("restaurant") || types.includes("cafe") || types.includes("food")) return "Restaurant";
@@ -139,14 +162,7 @@ const MapSection = ({ searchQuery }: MapSectionProps) => {
     const marker = new google.maps.Marker({
       position: place.position,
       map,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        fillColor: color,
-        fillOpacity: 1,
-        strokeColor: "#fff",
-        strokeWeight: 2,
-        scale: 10,
-      },
+      icon: createPawMarkerIcon(color),
       title: place.name,
     });
 
