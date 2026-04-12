@@ -1,7 +1,6 @@
 /// <reference types="google.maps" />
 import { useState, useEffect, useRef, useCallback } from "react";
-import { MapPin, Loader2, Locate, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { MapPin, Loader2, Locate } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
@@ -36,32 +35,37 @@ const CATEGORY_EMOJIS: Record<string, string> = {
   other: "📍",
 };
 
-function createCategoryMarkerSvg(category: string, acceptsDogs: boolean): string {
+function createMarkerContent(category: string, acceptsDogs: boolean): HTMLElement {
   const color = acceptsDogs
     ? (CATEGORY_MARKER_COLORS[category] || "#4CAF50")
     : "#9E9E9E";
   const emoji = CATEGORY_EMOJIS[category] || "📍";
 
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="52" viewBox="0 0 44 52">
+  const div = document.createElement("div");
+  div.style.cssText = `
+    width: 40px; height: 46px; position: relative; cursor: pointer;
+  `;
+  div.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="46" viewBox="0 0 44 52">
       <filter id="s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/></filter>
-      <path filter="url(%23s)" d="M22 50 C22 50 4 34 4 20 A18 18 0 0 1 40 20 C40 34 22 50 22 50Z" fill="${color}" stroke="white" stroke-width="2"/>
+      <path filter="url(#s)" d="M22 50 C22 50 4 34 4 20 A18 18 0 0 1 40 20 C40 34 22 50 22 50Z" fill="${color}" stroke="white" stroke-width="2"/>
       <text x="22" y="24" text-anchor="middle" font-size="18" dominant-baseline="central">${emoji}</text>
-    </svg>`
-  )}`;
+    </svg>
+  `;
+  return div;
 }
 
 function loadGoogleMapsScript(): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (window.google?.maps?.places) { resolve(); return; }
+    if (window.google?.maps?.marker && window.google?.maps?.places) { resolve(); return; }
     const existing = document.querySelector('script[src*="maps.googleapis.com"]');
     if (existing) {
       existing.addEventListener("load", () => resolve());
-      if (window.google?.maps?.places) resolve();
+      if (window.google?.maps?.marker && window.google?.maps?.places) resolve();
       return;
     }
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker&loading=async`;
     script.async = true;
     script.defer = true;
     script.onload = () => resolve();
@@ -77,9 +81,9 @@ interface MapSectionProps {
 const MapSection = ({ searchQuery }: MapSectionProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
-  const autocompleteInputRef = useRef<HTMLInputElement>(null);
+  const autocompleteContainerRef = useRef<HTMLDivElement>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -104,28 +108,41 @@ const MapSection = ({ searchQuery }: MapSectionProps) => {
     const map = new google.maps.Map(mapRef.current, {
       center,
       zoom: 13,
+      mapId: "DEMO_MAP_ID",
       disableDefaultUI: false,
       zoomControl: true,
       mapTypeControl: false,
       streetViewControl: false,
       fullscreenControl: true,
-      styles: [
-        { featureType: "poi", stylers: [{ visibility: "off" }] },
-        { featureType: "transit", stylers: [{ visibility: "off" }] },
-        { featureType: "poi.park", elementType: "geometry.fill", stylers: [{ visibility: "on" }, { color: "#c8e6c9" }] },
-        { featureType: "water", elementType: "geometry.fill", stylers: [{ color: "#bbdefb" }] },
-        { featureType: "road", elementType: "geometry.fill", stylers: [{ color: "#fafafa" }] },
-      ],
     });
     mapInstanceRef.current = map;
-    clustererRef.current = new MarkerClusterer({ map, markers: [] });
+
+    clustererRef.current = new MarkerClusterer({
+      map,
+      markers: [],
+      renderer: {
+        render: ({ count, position }) => {
+          const el = document.createElement("div");
+          el.style.cssText = `
+            background: hsl(var(--primary)); color: white; border-radius: 50%;
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 13px; border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          `;
+          el.textContent = String(count);
+          return new google.maps.marker.AdvancedMarkerElement({
+            position,
+            content: el,
+          });
+        },
+      },
+    });
 
     // Drag end → reload
     map.addListener("dragend", () => {
       const c = map.getCenter();
       if (c) {
-        const newCenter = { lat: c.lat(), lng: c.lng() };
-        setCenter(newCenter);
+        setCenter({ lat: c.lat(), lng: c.lng() });
       }
     });
 
@@ -138,7 +155,6 @@ const MapSection = ({ searchQuery }: MapSectionProps) => {
           map.panTo(loc);
         },
         () => {
-          // denied → stay on Paris, load data
           loadPlaces(center.lat, center.lng, radiusKm, activeCategory);
         }
       );
@@ -146,20 +162,38 @@ const MapSection = ({ searchQuery }: MapSectionProps) => {
       loadPlaces(center.lat, center.lng, radiusKm, activeCategory);
     }
 
-    // Setup autocomplete
-    if (autocompleteInputRef.current) {
-      const autocomplete = new google.maps.places.Autocomplete(autocompleteInputRef.current, {
-        types: ["(cities)"],
-      });
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-        if (place.geometry?.location) {
-          const loc = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
-          setCenter(loc);
-          map.panTo(loc);
-          map.setZoom(13);
-        }
-      });
+    // Setup PlaceAutocompleteElement
+    if (autocompleteContainerRef.current) {
+      try {
+        const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement({
+          componentRestrictions: { country: [] },
+        });
+        
+        // Style the element
+        (placeAutocomplete as any).style.cssText = `
+          width: 100%; border: none; outline: none;
+        `;
+        
+        autocompleteContainerRef.current.innerHTML = "";
+        autocompleteContainerRef.current.appendChild(placeAutocomplete as unknown as Node);
+
+        // @ts-ignore - gmp-placeselect event
+        placeAutocomplete.addEventListener("gmp-placeselect", async (event: any) => {
+          const placePrediction = event.placePrediction;
+          if (!placePrediction) return;
+          const place = placePrediction.toPlace();
+          await place.fetchFields({ fields: ["location"] });
+          const location = place.location;
+          if (location) {
+            const loc = { lat: location.lat(), lng: location.lng() };
+            setCenter(loc);
+            map.panTo(loc);
+            map.setZoom(13);
+          }
+        });
+      } catch (e) {
+        console.warn("PlaceAutocompleteElement not available, falling back to input", e);
+      }
     }
   }, [isLoaded]);
 
@@ -187,7 +221,7 @@ const MapSection = ({ searchQuery }: MapSectionProps) => {
   }, [searchQuery, isLoaded]);
 
   const clearMarkers = useCallback(() => {
-    markersRef.current.forEach((m) => m.setMap(null));
+    markersRef.current.forEach((m) => (m.map = null));
     markersRef.current = [];
     clustererRef.current?.clearMarkers();
   }, []);
@@ -220,16 +254,13 @@ const MapSection = ({ searchQuery }: MapSectionProps) => {
       const map = mapInstanceRef.current;
       if (!map) { setSearching(false); return; }
 
-      const newMarkers: google.maps.Marker[] = [];
+      const newMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
       results.forEach((place) => {
-        const marker = new google.maps.Marker({
+        const content = createMarkerContent(place.category, place.accepts_dogs);
+        const marker = new google.maps.marker.AdvancedMarkerElement({
           position: { lat: place.latitude, lng: place.longitude },
           title: place.name,
-          icon: {
-            url: createCategoryMarkerSvg(place.category, place.accepts_dogs),
-            scaledSize: new google.maps.Size(40, 46),
-            anchor: new google.maps.Point(20, 46),
-          },
+          content,
         });
         marker.addListener("click", () => {
           setSelectedPlace(place);
@@ -258,17 +289,12 @@ const MapSection = ({ searchQuery }: MapSectionProps) => {
   return (
     <section id="explore" className="py-8 bg-secondary/50">
       <div className="container px-4">
-        {/* Search bar with Google Places Autocomplete */}
+        {/* Search bar with PlaceAutocompleteElement */}
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              ref={autocompleteInputRef}
-              type="text"
-              placeholder="Rechercher une ville ou adresse…"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-card text-foreground text-sm outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
+          <div
+            ref={autocompleteContainerRef}
+            className="relative flex-1 rounded-lg border border-border bg-card text-foreground text-sm overflow-hidden [&_gmp-place-autocomplete]:w-full [&_gmp-place-autocomplete]:border-none [&_gmp-place-autocomplete]:outline-none [&_input]:w-full [&_input]:pl-4 [&_input]:pr-4 [&_input]:py-2.5 [&_input]:bg-transparent [&_input]:text-sm [&_input]:outline-none [&_input]:border-none"
+          />
         </div>
 
         {/* Category filter chips */}
