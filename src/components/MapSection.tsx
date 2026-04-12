@@ -110,7 +110,9 @@ const MapSection = ({ searchQuery }: MapSectionProps) => {
       streetViewControl: false,
       fullscreenControl: true,
       styles: [
-        { featureType: "poi.park", elementType: "geometry.fill", stylers: [{ color: "#c8e6c9" }] },
+        { featureType: "poi", stylers: [{ visibility: "off" }] },
+        { featureType: "transit", stylers: [{ visibility: "off" }] },
+        { featureType: "poi.park", elementType: "geometry.fill", stylers: [{ visibility: "on" }, { color: "#c8e6c9" }] },
         { featureType: "water", elementType: "geometry.fill", stylers: [{ color: "#bbdefb" }] },
         { featureType: "road", elementType: "geometry.fill", stylers: [{ color: "#fafafa" }] },
       ],
