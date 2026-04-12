@@ -27,26 +27,26 @@ const CATEGORY_MARKER_COLORS: Record<string, string> = {
   other: "#9E9E9E",
 };
 
+const CATEGORY_EMOJIS: Record<string, string> = {
+  restaurant: "🍽️",
+  hotel: "🛏️",
+  outdoor: "🌿",
+  services: "❤️",
+  shop: "🐾",
+  other: "📍",
+};
+
 function createCategoryMarkerSvg(category: string, acceptsDogs: boolean): string {
   const color = acceptsDogs
     ? (CATEGORY_MARKER_COLORS[category] || "#4CAF50")
     : "#9E9E9E";
-
-  const iconPaths: Record<string, string> = {
-    restaurant: `<path d="M7 2v8h2V2h2v8h2V2h2v8c0 1.1-.9 2-2 2h-1v6h-2v-6H9c-1.1 0-2-.9-2-2V2h2z" fill="white" transform="translate(8,8) scale(0.7)"/>`,
-    hotel: `<path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v8H3V5H1v15h2v-3h18v3h2V10c0-2.21-1.79-4-4-4z" fill="white" transform="translate(6,8) scale(0.6)"/>`,
-    outdoor: `<path d="M17 12h-2l-3-4-3 4H7l5-7 5 7zm-5 8c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="white" transform="translate(8,7) scale(0.7)"/>`,
-    services: `<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="white" transform="translate(8,7) scale(0.6)"/>`,
-    shop: `<g transform="translate(11,10) scale(0.028)" fill="white"><ellipse cx="120" cy="80" rx="45" ry="55"/><ellipse cx="320" cy="80" rx="45" ry="55"/><ellipse cx="50" cy="220" rx="42" ry="50"/><ellipse cx="390" cy="220" rx="42" ry="50"/><path d="M100 340 Q140 260 220 250 Q300 260 340 340 Q340 420 220 420 Q100 420 100 340Z"/></g>`,
-  };
-
-  const icon = iconPaths[category] || iconPaths.shop;
+  const emoji = CATEGORY_EMOJIS[category] || "📍";
 
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="46" viewBox="0 0 40 46">
+    `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="52" viewBox="0 0 44 52">
       <filter id="s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/></filter>
-      <path filter="url(%23s)" d="M20 44 C20 44 4 30 4 18 A16 16 0 0 1 36 18 C36 30 20 44 20 44Z" fill="${color}" stroke="white" stroke-width="2"/>
-      ${icon}
+      <path filter="url(%23s)" d="M22 50 C22 50 4 34 4 20 A18 18 0 0 1 40 20 C40 34 22 50 22 50Z" fill="${color}" stroke="white" stroke-width="2"/>
+      <text x="22" y="24" text-anchor="middle" font-size="18" dominant-baseline="central">${emoji}</text>
     </svg>`
   )}`;
 }
