@@ -55,20 +55,35 @@ function createMarkerContent(category: string, acceptsDogs: boolean): HTMLElemen
   return div;
 }
 
+function waitForGoogleMaps(): Promise<void> {
+  return new Promise((resolve) => {
+    const check = () => {
+      if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places) {
+        resolve();
+      } else {
+        setTimeout(check, 100);
+      }
+    };
+    check();
+  });
+}
+
 function loadGoogleMapsScript(): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (window.google?.maps?.marker && window.google?.maps?.places) { resolve(); return; }
+    if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places) {
+      resolve();
+      return;
+    }
     const existing = document.querySelector('script[src*="maps.googleapis.com"]');
     if (existing) {
-      existing.addEventListener("load", () => resolve());
-      if (window.google?.maps?.marker && window.google?.maps?.places) resolve();
+      waitForGoogleMaps().then(resolve);
       return;
     }
     const script = document.createElement("script");
     script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker&loading=async`;
     script.async = true;
     script.defer = true;
-    script.onload = () => resolve();
+    script.onload = () => waitForGoogleMaps().then(resolve);
     script.onerror = () => reject(new Error("Failed to load Google Maps"));
     document.head.appendChild(script);
   });
