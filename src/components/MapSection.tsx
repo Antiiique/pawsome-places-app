@@ -434,6 +434,52 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
     [clearMarkers]
   );
 
+  // Manage A/B markers and dashed preview line
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !isLoaded) return;
+
+    // Origin marker
+    if (originMarkerRef.current) originMarkerRef.current.map = null;
+    if (originPoint) {
+      const el = document.createElement("div");
+      el.innerHTML = `<div style="background:#4CAF50;color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);animation:pulse 2s infinite">A</div>`;
+      originMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({ position: originPoint, content: el, map });
+    }
+
+    // Destination marker
+    if (destMarkerRef.current) destMarkerRef.current.map = null;
+    if (destPoint) {
+      const el = document.createElement("div");
+      el.innerHTML = `<div style="background:#F44336;color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);animation:pulse 2s infinite">B</div>`;
+      destMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({ position: destPoint, content: el, map });
+    }
+
+    // Dashed preview line
+    previewLineRef.current?.setMap(null);
+    if (originPoint && destPoint) {
+      previewLineRef.current = new google.maps.Polyline({
+        path: [originPoint, destPoint],
+        strokeColor: "#FF6B35",
+        strokeWeight: 3,
+        strokeOpacity: 0,
+        icons: [{
+          icon: { path: "M 0,-1 0,1", strokeOpacity: 0.6, scale: 3 },
+          offset: "0",
+          repeat: "15px",
+        }],
+        map,
+      });
+    }
+  }, [originPoint, destPoint, isLoaded]);
+
+  // Clear A/B markers when itinerary route is drawn
+  useEffect(() => {
+    if (itineraryData) {
+      previewLineRef.current?.setMap(null);
+    }
+  }, [itineraryData]);
+
   const handleLocateMe = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition((pos) => {
