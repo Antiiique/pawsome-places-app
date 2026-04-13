@@ -198,8 +198,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick }: MapSectionProps
         autocompleteContainerRef.current.innerHTML = "";
         autocompleteContainerRef.current.appendChild(placeAutocomplete as unknown as Node);
 
-        // @ts-ignore - gmp-placeselect event
-        placeAutocomplete.addEventListener("gmp-placeselect", async (event: any) => {
+        // @ts-ignore - gmp-select event
+        placeAutocomplete.addEventListener("gmp-select", async (event: any) => {
           const placePrediction = event.placePrediction;
           if (!placePrediction) return;
           const place = placePrediction.toPlace();

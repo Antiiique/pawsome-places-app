@@ -347,8 +347,9 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
               <div
                 key={`origin-${autoKey}`}
                 ref={originContainerRef}
-                className="rounded-lg border border-border bg-background text-foreground text-sm overflow-hidden [&_input]:w-full [&_input]:pl-4 [&_input]:pr-4 [&_input]:py-2.5 [&_input]:bg-transparent [&_input]:text-sm [&_input]:outline-none [&_input]:border-none"
+                className={`rounded-lg border bg-background text-foreground text-sm overflow-hidden [&_input]:w-full [&_input]:pl-4 [&_input]:pr-4 [&_input]:py-2.5 [&_input]:bg-transparent [&_input]:text-sm [&_input]:outline-none [&_input]:border-none ${errors.origin ? "border-destructive" : "border-border"}`}
               />
+              {errors.origin && <span className="text-xs text-destructive mt-1 block">{errors.origin}</span>}
               {origin && <span className="text-xs text-primary mt-1 block">✓ {origin.text}</span>}
             </div>
 
