@@ -1,6 +1,6 @@
 /// <reference types="google.maps" />
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, ArrowUpDown, Loader2, MapPin, ExternalLink, Share2, Save, Navigation } from "lucide-react";
+import { X, ArrowUpDown, Loader2, MapPin, ExternalLink, Share2, Save, Navigation, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,132 +27,241 @@ const CATEGORY_COLORS: Record<string, string> = {
   shop: "#9C27B0",
 };
 
+export type PickMode = "origin" | "destination" | null;
+
 interface ItineraryPanelProps {
   onClose: () => void;
   onRouteCalculated: (data: ItineraryMapData | null) => void;
   onViewStep: (lat: number, lng: number) => void;
+  pickMode: PickMode;
+  onPickModeChange: (mode: PickMode) => void;
 }
 
-async function geocodeAddress(address: string): Promise<{ lat: number; lng: number; name: string }> {
-  const geocoder = new google.maps.Geocoder();
-  return new Promise((resolve, reject) => {
-    geocoder.geocode({ address }, (results, status) => {
-      if (status === "OK" && results?.[0]) {
-        resolve({
-          lat: results[0].geometry.location.lat(),
-          lng: results[0].geometry.location.lng(),
-          name: results[0].formatted_address,
-        });
-      } else {
-        reject(new Error("Adresse introuvable : " + address));
-      }
-    });
-  });
+interface Prediction {
+  place_id: string;
+  description: string;
+  structured_formatting: {
+    main_text: string;
+    secondary_text: string;
+  };
 }
 
-function setupAutocomplete(
-  container: HTMLDivElement | null,
-  onSelect: (location: { lat: number; lng: number }, text: string) => void,
-  onTextChange: (text: string) => void
-) {
-  if (!container || !window.google?.maps?.places) return;
-  try {
-    const ac = new google.maps.places.PlaceAutocompleteElement({});
-    (ac as any).style.cssText = "width:100%;border:none;outline:none;";
-    container.innerHTML = "";
-    container.appendChild(ac as unknown as Node);
+function PlaceInput({
+  label,
+  value,
+  selection,
+  error,
+  onSelect,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  selection: PlaceSelection | null;
+  error?: string;
+  onSelect: (sel: PlaceSelection) => void;
+  onChange: (text: string) => void;
+}) {
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const containerRef = useRef<HTMLDivElement>(null);
 
-    // Listen for text input changes for fallback
-    const observer = new MutationObserver(() => {
-      const input = container.querySelector("input");
-      if (input) {
-        input.addEventListener("input", () => onTextChange(input.value));
-        observer.disconnect();
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
       }
-    });
-    observer.observe(container, { childList: true, subtree: true });
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-    // @ts-ignore - gmp-select is the correct event for new API
-    ac.addEventListener("gmp-select", async (e: any) => {
-      try {
-        const place = e.placePrediction?.toPlace();
-        if (!place) return;
-        await place.fetchFields({ fields: ["location", "displayName"] });
-        const loc = place.location;
-        if (loc) {
-          onSelect({ lat: loc.lat(), lng: loc.lng() }, place.displayName || "");
+  const fetchPredictions = useCallback((input: string) => {
+    if (!input.trim() || !window.google?.maps?.places) {
+      setPredictions([]);
+      setShowDropdown(false);
+      return;
+    }
+    const service = new google.maps.places.AutocompleteService();
+    service.getPlacePredictions(
+      {
+        input,
+        language: "fr",
+        types: ["geocode", "establishment"],
+      },
+      (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+          setPredictions(results.slice(0, 5) as unknown as Prediction[]);
+          setShowDropdown(true);
+        } else {
+          setPredictions([]);
+          setShowDropdown(false);
         }
-      } catch (err) {
-        console.warn("gmp-select handler error, will use geocoding fallback", err);
+      }
+    );
+  }, []);
+
+  const handleInput = (text: string) => {
+    onChange(text);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => fetchPredictions(text), 300);
+  };
+
+  const handleSelect = (pred: Prediction) => {
+    setShowDropdown(false);
+    onChange(pred.description);
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ placeId: pred.place_id }, (results, status) => {
+      if (status === "OK" && results?.[0]) {
+        onSelect({
+          location: {
+            lat: results[0].geometry.location.lat(),
+            lng: results[0].geometry.location.lng(),
+          },
+          text: results[0].formatted_address,
+        });
       }
     });
-  } catch (err) {
-    console.warn("PlaceAutocompleteElement setup failed", err);
-  }
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <label className="text-xs font-medium text-muted-foreground mb-1 block">{label}</label>
+      <div className="relative">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => handleInput(e.target.value)}
+          onFocus={() => { if (predictions.length > 0) setShowDropdown(true); }}
+          placeholder={`Saisissez une adresse ou ville`}
+          className={`w-full pl-4 pr-10 py-2.5 rounded-lg border bg-background text-foreground text-sm outline-none transition-colors ${
+            error ? "border-destructive" : selection ? "border-primary" : "border-border"
+          }`}
+        />
+        {selection && (
+          <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+        )}
+      </div>
+      {error && <span className="text-xs text-destructive mt-1 block">{error}</span>}
+      {selection && <span className="text-xs text-primary mt-1 block">✓ {selection.text}</span>}
+
+      {showDropdown && predictions.length > 0 && (
+        <div className="absolute z-50 left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
+          {predictions.map((pred) => (
+            <button
+              key={pred.place_id}
+              onClick={() => handleSelect(pred)}
+              className="w-full text-left px-3 py-2.5 hover:bg-muted transition-colors flex items-start gap-2"
+            >
+              <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">
+                  {pred.structured_formatting.main_text}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {pred.structured_formatting.secondary_text}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep }: ItineraryPanelProps) {
+export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep, pickMode, onPickModeChange }: ItineraryPanelProps) {
   const [origin, setOrigin] = useState<PlaceSelection | null>(null);
   const [destination, setDestination] = useState<PlaceSelection | null>(null);
+  const [originText, setOriginText] = useState("");
+  const [destText, setDestText] = useState("");
   const [maxStepDistance, setMaxStepDistance] = useState(100);
   const [filters, setFilters] = useState<Record<string, boolean>>({
     outdoor: true, restaurant: true, hotel: true, services: true, shop: false,
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ItineraryMapData | null>(null);
-  const [autoKey, setAutoKey] = useState(0);
-  const [originText, setOriginText] = useState("");
-  const [destText, setDestText] = useState("");
   const [errors, setErrors] = useState<{ origin?: string; dest?: string }>({});
 
-  const originContainerRef = useRef<HTMLDivElement>(null);
-  const destContainerRef = useRef<HTMLDivElement>(null);
-
+  // Listen for map picks
   useEffect(() => {
-    setupAutocomplete(
-      originContainerRef.current,
-      (loc, text) => { setOrigin({ location: loc, text }); setOriginText(text); setErrors((e) => ({ ...e, origin: undefined })); },
-      (text) => { setOriginText(text); if (origin) setOrigin(null); }
-    );
-    setupAutocomplete(
-      destContainerRef.current,
-      (loc, text) => { setDestination({ location: loc, text }); setDestText(text); setErrors((e) => ({ ...e, dest: undefined })); },
-      (text) => { setDestText(text); if (destination) setDestination(null); }
-    );
-  }, [autoKey]);
+    const handler = (e: CustomEvent<{ location: { lat: number; lng: number }; text: string }>) => {
+      const sel: PlaceSelection = e.detail;
+      if (pickMode === "origin") {
+        setOrigin(sel);
+        setOriginText(sel.text);
+        setErrors((prev) => ({ ...prev, origin: undefined }));
+        toast.success(`✓ Point de départ défini : ${sel.text}`);
+      } else if (pickMode === "destination") {
+        setDestination(sel);
+        setDestText(sel.text);
+        setErrors((prev) => ({ ...prev, dest: undefined }));
+        toast.success(`✓ Point d'arrivée défini : ${sel.text}`);
+      }
+      onPickModeChange(null);
+    };
+    window.addEventListener("itinerary-pick" as any, handler as any);
+    return () => window.removeEventListener("itinerary-pick" as any, handler as any);
+  }, [pickMode, onPickModeChange]);
 
   const handleSwap = () => {
-    const temp = origin;
+    const tempOrigin = origin;
+    const tempText = originText;
     setOrigin(destination);
-    setDestination(temp);
-    setAutoKey((k) => k + 1);
+    setOriginText(destText);
+    setDestination(tempOrigin);
+    setDestText(tempText);
   };
 
   const toggleFilter = (key: string) => {
     setFilters((f) => ({ ...f, [key]: !f[key] }));
   };
 
+  const handleOriginSelect = (sel: PlaceSelection) => {
+    setOrigin(sel);
+    setOriginText(sel.text);
+    setErrors((e) => ({ ...e, origin: undefined }));
+  };
+
+  const handleDestSelect = (sel: PlaceSelection) => {
+    setDestination(sel);
+    setDestText(sel.text);
+    setErrors((e) => ({ ...e, dest: undefined }));
+  };
+
+  const handleOriginChange = (text: string) => {
+    setOriginText(text);
+    if (origin) setOrigin(null);
+  };
+
+  const handleDestChange = (text: string) => {
+    setDestText(text);
+    if (destination) setDestination(null);
+  };
+
+  const canCalculate = !loading && (!!origin || originText.trim().length > 0) && (!!destination || destText.trim().length > 0);
+
   const calculate = useCallback(async () => {
     const newErrors: { origin?: string; dest?: string } = {};
 
-    // Get input text from containers for fallback
-    const originInput = originContainerRef.current?.querySelector("input");
-    const destInput = destContainerRef.current?.querySelector("input");
-    const originVal = originInput?.value || originText;
-    const destVal = destInput?.value || destText;
+    if (!origin && !originText.trim()) {
+      newErrors.origin = "Veuillez saisir un lieu de départ";
+    } else if (!origin && originText.trim()) {
+      newErrors.origin = "Sélectionnez une ville dans la liste qui apparaît en tapant";
+    }
+    if (!destination && !destText.trim()) {
+      newErrors.dest = "Veuillez saisir un lieu d'arrivée";
+    } else if (!destination && destText.trim()) {
+      newErrors.dest = "Sélectionnez une ville dans la liste qui apparaît en tapant";
+    }
 
-    if (!origin && !originVal.trim()) {
-      newErrors.origin = "Veuillez saisir un point de départ";
-    }
-    if (!destination && !destVal.trim()) {
-      newErrors.dest = "Veuillez saisir un point d'arrivée";
-    }
-    if (originVal.trim() && destVal.trim() && originVal.trim() === destVal.trim()) {
-      toast.error("Le départ et l'arrivée doivent être différents");
-      return;
-    }
     if (newErrors.origin || newErrors.dest) {
       setErrors(newErrors);
+      return;
+    }
+
+    if (origin && destination && originText.trim() === destText.trim()) {
+      toast.error("Le départ et l'arrivée doivent être différents");
       return;
     }
 
@@ -167,26 +276,9 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
     onRouteCalculated(null);
 
     try {
-      // Use selected place coords, or fallback to geocoding
-      let originLoc = origin?.location;
-      let destLoc = destination?.location;
-      let originName = origin?.text || originVal;
-      let destName = destination?.text || destVal;
+      const originLoc = origin!.location;
+      const destLoc = destination!.location;
 
-      if (!originLoc) {
-        const geo = await geocodeAddress(originVal);
-        originLoc = { lat: geo.lat, lng: geo.lng };
-        originName = geo.name;
-        setOrigin({ location: originLoc, text: originName });
-      }
-      if (!destLoc) {
-        const geo = await geocodeAddress(destVal);
-        destLoc = { lat: geo.lat, lng: geo.lng };
-        destName = geo.name;
-        setDestination({ location: destLoc, text: destName });
-      }
-
-      // Step 1: Get directions
       const directionsService = new google.maps.DirectionsService();
       const dirResult = await directionsService.route({
         origin: originLoc,
@@ -200,7 +292,6 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
       const leg = route.legs[0];
       const path = route.overview_path;
 
-      // Step 2: Sample checkpoints along the route
       let cumDist = 0;
       const pathWithDist: { point: google.maps.LatLng; dist: number }[] = [
         { point: path[0], dist: 0 },
@@ -220,10 +311,7 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
         }
       }
 
-      // Step 3: Query Supabase for each checkpoint
-      const selectedCategories = Object.entries(filters)
-        .filter(([, v]) => v)
-        .map(([k]) => k);
+      const selectedCategories = Object.entries(filters).filter(([, v]) => v).map(([k]) => k);
 
       const allPlaces: ItineraryStep[] = [];
       for (const cp of checkpoints) {
@@ -236,17 +324,15 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
             dogs_only: false,
           });
           if (data) {
-            const mapped = data.slice(0, 3).map((d: any) => ({
+            allPlaces.push(...data.slice(0, 3).map((d: any) => ({
               ...d,
               id: d.id as string,
               distance_from_start_km: cp.dist,
-            }));
-            allPlaces.push(...mapped);
+            })));
           }
         }
       }
 
-      // Step 4: Deduplicate and sort
       const seen = new Set<string>();
       const unique = allPlaces.filter((p) => {
         if (seen.has(p.id)) return false;
@@ -256,16 +342,11 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
       unique.sort((a, b) => a.distance_from_start_km - b.distance_from_start_km);
       const steps = unique.slice(0, 8);
 
-      // Pause points every ~160km (approx 2h)
       const pausePoints: { lat: number; lng: number; distance_km: number }[] = [];
       let nextPause = 160000;
       for (const pd of pathWithDist) {
         if (pd.dist >= nextPause) {
-          pausePoints.push({
-            lat: pd.point.lat(),
-            lng: pd.point.lng(),
-            distance_km: pd.dist / 1000,
-          });
+          pausePoints.push({ lat: pd.point.lat(), lng: pd.point.lng(), distance_km: pd.dist / 1000 });
           nextPause += 160000;
         }
       }
@@ -321,7 +402,6 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
 
   return (
     <>
-      {/* Backdrop on mobile */}
       <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={onClose} />
 
       <div className="fixed z-50 bg-card border-border shadow-xl flex flex-col
@@ -341,17 +421,35 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
 
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
-            {/* Origin */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Départ</label>
-              <div
-                key={`origin-${autoKey}`}
-                ref={originContainerRef}
-                className={`rounded-lg border bg-background text-foreground text-sm overflow-hidden [&_input]:w-full [&_input]:pl-4 [&_input]:pr-4 [&_input]:py-2.5 [&_input]:bg-transparent [&_input]:text-sm [&_input]:outline-none [&_input]:border-none ${errors.origin ? "border-destructive" : "border-border"}`}
-              />
-              {errors.origin && <span className="text-xs text-destructive mt-1 block">{errors.origin}</span>}
-              {origin && <span className="text-xs text-primary mt-1 block">✓ {origin.text}</span>}
+            {/* Map pick mode buttons */}
+            <div className="flex gap-2">
+              <Button
+                variant={pickMode === "origin" ? "default" : "outline"}
+                size="sm"
+                className={`flex-1 text-xs ${pickMode === "origin" ? "bg-primary text-primary-foreground" : ""}`}
+                onClick={() => onPickModeChange(pickMode === "origin" ? null : "origin")}
+              >
+                🟢 Définir départ sur carte
+              </Button>
+              <Button
+                variant={pickMode === "destination" ? "default" : "outline"}
+                size="sm"
+                className={`flex-1 text-xs ${pickMode === "destination" ? "bg-destructive text-destructive-foreground" : ""}`}
+                onClick={() => onPickModeChange(pickMode === "destination" ? null : "destination")}
+              >
+                🔴 Définir arrivée sur carte
+              </Button>
             </div>
+
+            {/* Origin */}
+            <PlaceInput
+              label="Départ"
+              value={originText}
+              selection={origin}
+              error={errors.origin}
+              onSelect={handleOriginSelect}
+              onChange={handleOriginChange}
+            />
 
             {/* Swap button */}
             <div className="flex justify-center">
@@ -361,16 +459,14 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
             </div>
 
             {/* Destination */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Arrivée</label>
-              <div
-                key={`dest-${autoKey}`}
-                ref={destContainerRef}
-                className={`rounded-lg border bg-background text-foreground text-sm overflow-hidden [&_input]:w-full [&_input]:pl-4 [&_input]:pr-4 [&_input]:py-2.5 [&_input]:bg-transparent [&_input]:text-sm [&_input]:outline-none [&_input]:border-none ${errors.dest ? "border-destructive" : "border-border"}`}
-              />
-              {errors.dest && <span className="text-xs text-destructive mt-1 block">{errors.dest}</span>}
-              {destination && <span className="text-xs text-primary mt-1 block">✓ {destination.text}</span>}
-            </div>
+            <PlaceInput
+              label="Arrivée"
+              value={destText}
+              selection={destination}
+              error={errors.dest}
+              onSelect={handleDestSelect}
+              onChange={handleDestChange}
+            />
 
             {/* Max step distance */}
             <div>
@@ -411,8 +507,8 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
             {/* Calculate button */}
             <Button
               onClick={calculate}
-              disabled={loading}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+              disabled={!canCalculate}
+              className="w-full font-semibold"
             >
               {loading ? (
                 <>
@@ -445,7 +541,6 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
             {/* Results */}
             {result && !loading && (
               <div className="space-y-4">
-                {/* Summary header */}
                 <div className="bg-muted/50 rounded-xl p-4 text-center space-y-1">
                   <div className="flex items-center justify-center gap-4 text-lg font-bold text-foreground">
                     <span>{result.totalDistance}</span>
@@ -457,7 +552,6 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
                   </p>
                 </div>
 
-                {/* No results message */}
                 {result.steps.length === 0 && (
                   <div className="bg-amber-50 dark:bg-amber-950/30 rounded-xl p-4 text-center">
                     <p className="text-sm text-amber-700 dark:text-amber-300">
@@ -466,7 +560,6 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
                   </div>
                 )}
 
-                {/* Step cards */}
                 {result.steps.map((step, i) => {
                   const color = CATEGORY_COLORS[step.category] || "#9E9E9E";
                   return (
@@ -497,30 +590,14 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
                             {step.category}{step.outdoor_seating ? " • Terrasse" : ""}
                           </p>
                         </div>
-                        {step.phone && (
-                          <p className="text-xs text-muted-foreground">📞 {step.phone}</p>
-                        )}
-                        {step.opening_hours && (
-                          <p className="text-xs text-muted-foreground">🕐 {step.opening_hours}</p>
-                        )}
-                        {step.rating && (
-                          <p className="text-xs text-muted-foreground">⭐ {step.rating}</p>
-                        )}
+                        {step.phone && <p className="text-xs text-muted-foreground">📞 {step.phone}</p>}
+                        {step.opening_hours && <p className="text-xs text-muted-foreground">🕐 {step.opening_hours}</p>}
+                        {step.rating && <p className="text-xs text-muted-foreground">⭐ {step.rating}</p>}
                         <div className="flex gap-2 pt-1">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs flex-1"
-                            onClick={() => onViewStep(step.latitude, step.longitude)}
-                          >
+                          <Button variant="outline" size="sm" className="text-xs flex-1" onClick={() => onViewStep(step.latitude, step.longitude)}>
                             Voir sur carte
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs flex-1"
-                            onClick={() => handleStepGoogleMaps(step)}
-                          >
+                          <Button variant="outline" size="sm" className="text-xs flex-1" onClick={() => handleStepGoogleMaps(step)}>
                             <ExternalLink className="w-3 h-3" />
                             Itinéraire
                           </Button>
@@ -530,7 +607,6 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
                   );
                 })}
 
-                {/* Footer actions */}
                 <div className="space-y-2 pt-2 border-t border-border">
                   <Button variant="outline" className="w-full text-sm" onClick={handleShare}>
                     <Share2 className="w-4 h-4" />
@@ -540,7 +616,7 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
                     <Save className="w-4 h-4" />
                     Sauvegarder
                   </Button>
-                  <Button className="w-full text-sm bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleOpenGoogleMaps}>
+                  <Button className="w-full text-sm" onClick={handleOpenGoogleMaps}>
                     <ExternalLink className="w-4 h-4" />
                     Ouvrir dans Google Maps
                   </Button>
