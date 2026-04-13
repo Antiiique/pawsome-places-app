@@ -8,6 +8,7 @@ import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
 import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
 import { toast } from "sonner";
 import type { FavoritePlace } from "@/hooks/useFavorites";
+import { detectCategoryFromTypes } from "@/hooks/useFavorites";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
 
