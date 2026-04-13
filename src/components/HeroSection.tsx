@@ -108,7 +108,7 @@ const HeroSection = ({ onSearch }: HeroSectionProps) => {
           </p>
 
           <div ref={containerRef} className="relative max-w-xl">
-            <div className="flex flex-col sm:flex-row gap-3 bg-card/95 backdrop-blur-sm rounded-xl p-3 shadow-xl">
+            <div className="flex flex-col sm:flex-row gap-3 bg-card/95 backdrop-blur-md rounded-xl p-3 shadow-xl border border-border">
               <div className="flex items-center gap-2 flex-1 px-3">
                 <MapPin className="w-5 h-5 text-pet-coral shrink-0" />
                 <input
@@ -131,7 +131,7 @@ const HeroSection = ({ onSearch }: HeroSectionProps) => {
             </div>
 
             {showDropdown && predictions.length > 0 && (
-              <div className="absolute z-50 left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
+              <div className="absolute z-50 left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden" style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
                 {predictions.map((pred) => (
                   <button
                     key={pred.place_id}
