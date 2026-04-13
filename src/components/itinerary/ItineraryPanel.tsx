@@ -310,6 +310,14 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
     setDestination(tmpO); setDestText(tmpT);
   };
 
+  const clearRoute = () => {
+    setResult(null); setLegs([]); onRouteCalculated(null);
+  };
+
+  const clearOrigin = () => { setOrigin(null); setOriginText(""); clearRoute(); };
+  const clearDestination = () => { setDestination(null); setDestText(""); clearRoute(); };
+  const clearAll = () => { clearOrigin(); clearDestination(); setWaypoints([]); clearRoute(); toast("🗑️ Itinéraire effacé"); };
+
   const toggleFilter = (key: string) => setFilters((f) => ({ ...f, [key]: !f[key] }));
 
   const handleOriginSelect = (sel: PlaceSelection) => { setOrigin(sel); setOriginText(sel.text); setErrors((e) => ({ ...e, origin: undefined })); };
@@ -317,7 +325,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
   const handleOriginChange = (text: string) => { setOriginText(text); if (origin) setOrigin(null); };
   const handleDestChange = (text: string) => { setDestText(text); if (destination) setDestination(null); };
 
-  const removeWaypoint = (id: string) => setWaypoints((prev) => prev.filter((w) => w.id !== id));
+  const removeWaypoint = (id: string) => { setWaypoints((prev) => prev.filter((w) => w.id !== id)); clearRoute(); };
 
   const addWaypoint = (wp: Omit<Waypoint, "id">) => {
     setWaypoints((prev) => [...prev, { ...wp, id: `wp_${Date.now()}_${Math.random()}` }]);
