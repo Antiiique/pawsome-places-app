@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ItineraryMapData, ItineraryStep, PlaceSelection } from "./types";
 
+const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
+
 const STEP_DISTANCE_OPTIONS = [50, 100, 150];
 
 const CATEGORY_FILTERS = [
@@ -46,7 +48,16 @@ interface Prediction {
   };
 }
 
+// Global active dropdown tracking
+let activeDropdownId: string | null = null;
+const dropdownChangeListeners = new Set<() => void>();
+
+function notifyDropdownChange() {
+  dropdownChangeListeners.forEach((fn) => fn());
+}
+
 function PlaceInput({
+  id,
   label,
   value,
   selection,
@@ -54,6 +65,7 @@ function PlaceInput({
   onSelect,
   onChange,
 }: {
+  id: string;
   label: string;
   value: string;
   selection: PlaceSelection | null;
@@ -66,15 +78,47 @@ function PlaceInput({
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Listen for other dropdown opening
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+    const listener = () => {
+      if (activeDropdownId !== id) {
         setShowDropdown(false);
       }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+    dropdownChangeListeners.add(listener);
+    return () => { dropdownChangeListeners.delete(listener); };
+  }, [id]);
+
+  // Close on outside click and Escape
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+        if (activeDropdownId === id) activeDropdownId = null;
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowDropdown(false);
+        activeDropdownId = null;
+        notifyDropdownChange();
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [id]);
+
+  const openMyDropdown = () => {
+    if (activeDropdownId !== id) {
+      activeDropdownId = id;
+      notifyDropdownChange();
+    }
+    setShowDropdown(true);
+  };
 
   const fetchPredictions = useCallback((input: string) => {
     if (!input.trim() || !window.google?.maps?.places) {
@@ -84,22 +128,18 @@ function PlaceInput({
     }
     const service = new google.maps.places.AutocompleteService();
     service.getPlacePredictions(
-      {
-        input,
-        language: "fr",
-        types: ["geocode", "establishment"],
-      },
+      { input, language: "fr", types: ["geocode", "establishment"] },
       (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
           setPredictions(results.slice(0, 5) as unknown as Prediction[]);
-          setShowDropdown(true);
+          openMyDropdown();
         } else {
           setPredictions([]);
           setShowDropdown(false);
         }
       }
     );
-  }, []);
+  }, [id]);
 
   const handleInput = (text: string) => {
     onChange(text);
@@ -109,6 +149,7 @@ function PlaceInput({
 
   const handleSelect = (pred: Prediction) => {
     setShowDropdown(false);
+    activeDropdownId = null;
     onChange(pred.description);
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ placeId: pred.place_id }, (results, status) => {
@@ -124,6 +165,15 @@ function PlaceInput({
     });
   };
 
+  const handleFocus = () => {
+    // Close other dropdown, open ours if we have predictions
+    activeDropdownId = id;
+    notifyDropdownChange();
+    if (predictions.length > 0) {
+      setShowDropdown(true);
+    }
+  };
+
   return (
     <div ref={containerRef} className="relative">
       <label className="text-xs font-medium text-muted-foreground mb-1 block">{label}</label>
@@ -132,8 +182,8 @@ function PlaceInput({
           type="text"
           value={value}
           onChange={(e) => handleInput(e.target.value)}
-          onFocus={() => { if (predictions.length > 0) setShowDropdown(true); }}
-          placeholder={`Saisissez une adresse ou ville`}
+          onFocus={handleFocus}
+          placeholder="Saisissez une adresse ou ville"
           className={`w-full pl-4 pr-10 py-2.5 rounded-lg border bg-background text-foreground text-sm outline-none transition-colors ${
             error ? "border-destructive" : selection ? "border-primary" : "border-border"
           }`}
@@ -204,6 +254,27 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
     return () => window.removeEventListener("itinerary-pick" as any, handler as any);
   }, [pickMode, onPickModeChange]);
 
+  // Listen for marker-set-itinerary events (from marker popup)
+  useEffect(() => {
+    const handler = (e: CustomEvent<{ type: "origin" | "destination"; location: { lat: number; lng: number }; text: string }>) => {
+      const { type, location, text } = e.detail;
+      const sel: PlaceSelection = { location, text };
+      if (type === "origin") {
+        setOrigin(sel);
+        setOriginText(text);
+        setErrors((prev) => ({ ...prev, origin: undefined }));
+        toast.success(`✓ Départ : ${text}`);
+      } else {
+        setDestination(sel);
+        setDestText(text);
+        setErrors((prev) => ({ ...prev, dest: undefined }));
+        toast.success(`✓ Arrivée : ${text}`);
+      }
+    };
+    window.addEventListener("marker-set-itinerary" as any, handler as any);
+    return () => window.removeEventListener("marker-set-itinerary" as any, handler as any);
+  }, []);
+
   const handleSwap = () => {
     const tempOrigin = origin;
     const tempText = originText;
@@ -265,11 +336,6 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
       return;
     }
 
-    if (!window.google?.maps?.DirectionsService) {
-      toast.error("Google Maps n'est pas encore chargé.");
-      return;
-    }
-
     setLoading(true);
     setResult(null);
     setErrors({});
@@ -279,26 +345,57 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
       const originLoc = origin!.location;
       const destLoc = destination!.location;
 
-      const directionsService = new google.maps.DirectionsService();
-      const dirResult = await directionsService.route({
-        origin: originLoc,
-        destination: destLoc,
-        travelMode: google.maps.TravelMode.DRIVING,
-      });
+      // Use Routes API via fetch instead of DirectionsService
+      const response = await fetch(
+        "https://routes.googleapis.com/directions/v2:computeRoutes",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
+            "X-Goog-FieldMask": "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.legs",
+          },
+          body: JSON.stringify({
+            origin: {
+              location: { latLng: { latitude: originLoc.lat, longitude: originLoc.lng } },
+            },
+            destination: {
+              location: { latLng: { latitude: destLoc.lat, longitude: destLoc.lng } },
+            },
+            travelMode: "DRIVE",
+            languageCode: "fr-FR",
+            units: "METRIC",
+          }),
+        }
+      );
 
-      const route = dirResult.routes[0];
-      if (!route?.legs?.[0]) throw new Error("Aucun itinéraire trouvé");
+      const routeData = await response.json();
 
-      const leg = route.legs[0];
-      const path = route.overview_path;
+      if (!routeData.routes || routeData.routes.length === 0) {
+        throw new Error("Itinéraire introuvable");
+      }
 
+      const route = routeData.routes[0];
+      const distanceMeters = route.distanceMeters || 0;
+      const distanceKm = Math.round(distanceMeters / 1000);
+      const durationSeconds = parseInt((route.duration || "0s").replace("s", ""));
+      const durationMin = Math.round(durationSeconds / 60);
+      const hours = Math.floor(durationMin / 60);
+      const mins = durationMin % 60;
+
+      // Decode polyline
+      const decodedPath = google.maps.geometry.encoding.decodePath(
+        route.polyline.encodedPolyline
+      );
+
+      // Build path with cumulative distance
       let cumDist = 0;
       const pathWithDist: { point: google.maps.LatLng; dist: number }[] = [
-        { point: path[0], dist: 0 },
+        { point: decodedPath[0], dist: 0 },
       ];
-      for (let i = 1; i < path.length; i++) {
-        cumDist += google.maps.geometry.spherical.computeDistanceBetween(path[i - 1], path[i]);
-        pathWithDist.push({ point: path[i], dist: cumDist });
+      for (let i = 1; i < decodedPath.length; i++) {
+        cumDist += google.maps.geometry.spherical.computeDistanceBetween(decodedPath[i - 1], decodedPath[i]);
+        pathWithDist.push({ point: decodedPath[i], dist: cumDist });
       }
 
       const stepDistanceM = maxStepDistance * 1000;
@@ -351,22 +448,25 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
         }
       }
 
-      const routePath = path.map((p) => ({ lat: p.lat(), lng: p.lng() }));
+      const routePath = decodedPath.map((p) => ({ lat: p.lat(), lng: p.lng() }));
+      const totalDistanceText = `${distanceKm} km`;
+      const totalDurationText = hours > 0 ? `${hours}h${mins.toString().padStart(2, "0")}` : `${mins} min`;
+
       const itineraryResult: ItineraryMapData = {
         routePath,
         origin: originLoc,
         destination: destLoc,
         steps,
         pausePoints,
-        totalDistance: leg.distance?.text || "",
-        totalDuration: leg.duration?.text || "",
+        totalDistance: totalDistanceText,
+        totalDuration: totalDurationText,
       };
 
       setResult(itineraryResult);
       onRouteCalculated(itineraryResult);
     } catch (err: any) {
       console.error("Route calculation error:", err);
-      toast.error(err.message || "Adresse non reconnue. Essayez avec une ville ou un code postal.");
+      toast.error(err.message || "Erreur lors du calcul. Essayez avec une ville ou un code postal.");
     } finally {
       setLoading(false);
     }
@@ -443,6 +543,7 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
 
             {/* Origin */}
             <PlaceInput
+              id="origin"
               label="Départ"
               value={originText}
               selection={origin}
@@ -460,6 +561,7 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
 
             {/* Destination */}
             <PlaceInput
+              id="destination"
               label="Arrivée"
               value={destText}
               selection={destination}

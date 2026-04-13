@@ -5,6 +5,8 @@ import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
+import MarkerPopup from "./MarkerPopup";
+import { toast } from "sonner";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
 
@@ -117,6 +119,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [radiusKm, setRadiusKm] = useState(20);
   const [center, setCenter] = useState<{ lat: number; lng: number }>({ lat: 48.8566, lng: 2.3522 });
+  const [popupPlace, setPopupPlace] = useState<{ place: PetPlace; position: { x: number; y: number } } | null>(null);
 
   // Load Google Maps
   useEffect(() => {
@@ -397,8 +400,11 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
           title: place.name,
           content,
         });
-        marker.addListener("click", () => {
-          setSelectedPlace(place);
+        marker.addListener("click", (e: any) => {
+          const domEvent = e.domEvent as MouseEvent | undefined;
+          const x = domEvent?.clientX ?? window.innerWidth / 2;
+          const y = domEvent?.clientY ?? window.innerHeight / 2;
+          setPopupPlace({ place, position: { x, y } });
           map.panTo({ lat: place.latitude, lng: place.longitude });
         });
         newMarkers.push(marker);
@@ -504,6 +510,35 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
           <span className="font-semibold text-foreground">{places.length}</span> lieu{places.length !== 1 ? "x" : ""} pet-friendly trouvé{places.length !== 1 ? "s" : ""} dans un rayon de <span className="font-semibold text-foreground">{radiusKm} km</span>
         </p>
       </div>
+
+      {/* Marker popup */}
+      {popupPlace && (
+        <MarkerPopup
+          place={popupPlace.place}
+          position={popupPlace.position}
+          onClose={() => setPopupPlace(null)}
+          onSetOrigin={() => {
+            const p = popupPlace.place;
+            window.dispatchEvent(new CustomEvent("marker-set-itinerary", {
+              detail: { type: "origin", location: { lat: p.latitude, lng: p.longitude }, text: p.name },
+            }));
+            toast.success(`✓ Départ : ${p.name}`);
+            setPopupPlace(null);
+          }}
+          onSetDestination={() => {
+            const p = popupPlace.place;
+            window.dispatchEvent(new CustomEvent("marker-set-itinerary", {
+              detail: { type: "destination", location: { lat: p.latitude, lng: p.longitude }, text: p.name },
+            }));
+            toast.success(`✓ Arrivée : ${p.name}`);
+            setPopupPlace(null);
+          }}
+          onShowInfo={() => {
+            setSelectedPlace(popupPlace.place);
+            setPopupPlace(null);
+          }}
+        />
+      )}
 
       {/* Side panel */}
       {selectedPlace && (
