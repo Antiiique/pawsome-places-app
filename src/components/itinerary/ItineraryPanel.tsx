@@ -561,9 +561,9 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
         onClick={onClose}
       />
 
-      <div data-panel className={`fixed z-50 bottom-0 left-0 w-[360px] max-w-[92vw] bg-card border-r border-border shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+      <div data-panel className={`fixed z-50 bottom-0 left-0 w-[420px] max-w-[96vw] min-w-[320px] bg-card border-r border-border shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
         open ? "translate-x-0" : "-translate-x-full"
-      }`} style={{ top: 56, borderRadius: '0 0 var(--radius) 0' }}>
+      } max-[500px]:!w-screen max-[500px]:!max-w-[100vw] max-[500px]:!rounded-none`} style={{ top: 56, borderRadius: '0 0 var(--radius) 0' }}>
 
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
@@ -632,15 +632,15 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                           onDragLeave={handleDragLeave}
                           onDrop={(e) => handleDrop(e, idx)}
                           onDragEnd={handleDragEnd}
-                          className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm cursor-grab active:cursor-grabbing transition-all ${
+                           className={`flex items-start gap-2 rounded-lg px-3 py-2.5 text-sm cursor-grab active:cursor-grabbing transition-all ${
                             dragIdx === idx ? "opacity-40 scale-[0.98]" : ""
                           } ${dropTargetIdx === idx && dragIdx !== idx ? "border-primary bg-primary/5" : "bg-muted/50"} border border-transparent`}
                         >
-                          <GripVertical className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                          <GripVertical className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
                           <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ backgroundColor: wp.isPetFriendly ? "#4CAF50" : "#FF9800" }}>
                             {idx + 1}
                           </span>
-                          <span className="flex-1 text-xs text-foreground break-words whitespace-normal">{wp.name}</span>
+                          <span className="flex-1 min-w-0 text-xs text-foreground break-words whitespace-normal leading-snug">{wp.name}</span>
                           {wp.isPetFriendly && <span className="text-[10px]">🐾</span>}
                           <button onClick={() => removeWaypoint(wp.id)} className="text-muted-foreground hover:text-destructive transition-colors shrink-0">
                             <X className="w-3.5 h-3.5" />
