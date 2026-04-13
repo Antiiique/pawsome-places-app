@@ -640,7 +640,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                           <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ backgroundColor: wp.isPetFriendly ? "#4CAF50" : "#FF9800" }}>
                             {idx + 1}
                           </span>
-                          <span className="flex-1 truncate text-xs text-foreground">{wp.name}</span>
+                          <span className="flex-1 text-xs text-foreground break-words whitespace-normal">{wp.name}</span>
                           {wp.isPetFriendly && <span className="text-[10px]">🐾</span>}
                           <button onClick={() => removeWaypoint(wp.id)} className="text-muted-foreground hover:text-destructive transition-colors shrink-0">
                             <X className="w-3.5 h-3.5" />
@@ -730,7 +730,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                           return (
                             <div key={i} className="flex items-center gap-2 text-xs bg-muted/30 rounded-lg px-3 py-2">
                               <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">{i + 1}</span>
-                              <span className="flex-1 min-w-0 truncate text-foreground">{leg.startName} → {leg.endName}</span>
+                              <span className="flex-1 min-w-0 break-words whitespace-normal text-foreground">{leg.startName} → {leg.endName}</span>
                               <span className="text-muted-foreground shrink-0">{leg.distanceKm} km • {durStr}</span>
                             </div>
                           );
@@ -755,7 +755,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                             <div className="flex items-center gap-2">
                               <span className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ backgroundColor: "#FF9800" }}>{i + 1}</span>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-foreground truncate">{wp.name}</p>
+                                <p className="text-sm font-semibold text-foreground break-words whitespace-normal">{wp.name}</p>
                                 <div className="flex gap-1">
                                   {wp.isPetFriendly ? (
                                     <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-1.5 py-0.5 rounded-full">🐾 Pet-friendly</span>

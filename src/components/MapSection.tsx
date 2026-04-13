@@ -88,9 +88,10 @@ interface MapSectionProps {
   pickMode?: PickMode;
   isFavorite?: (id: string) => boolean;
   onToggleFavorite?: (place: Omit<FavoritePlace, "savedAt">) => boolean;
+  onOpenItinerary?: () => void;
 }
 
-const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavorite, onToggleFavorite }: MapSectionProps) => {
+const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavorite, onToggleFavorite, onOpenItinerary }: MapSectionProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
@@ -528,6 +529,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             }));
             toast.success(`✓ Départ : ${p.name}`);
             setPopupData(null);
+            onOpenItinerary?.();
           }}
           onSetDestination={() => {
             const p = popupData.place;
@@ -537,6 +539,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             }));
             toast.success(`✓ Arrivée : ${p.name}`);
             setPopupData(null);
+            onOpenItinerary?.();
           }}
           onShowInfo={popupData.petPlace ? () => {
             setSelectedPlace(popupData.petPlace!);
@@ -573,6 +576,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             }));
             toast.success(`✓ ${p.name} ajouté à l'itinéraire`);
             setPopupData(null);
+            onOpenItinerary?.();
           }}
         />
       )}
