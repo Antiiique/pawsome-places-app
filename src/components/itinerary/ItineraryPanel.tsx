@@ -128,7 +128,7 @@ function PlaceInput({
     }
     const service = new google.maps.places.AutocompleteService();
     service.getPlacePredictions(
-      { input, language: "fr", types: ["geocode", "establishment"] },
+      { input, language: "fr" },
       (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
           setPredictions(results.slice(0, 5) as unknown as Prediction[]);

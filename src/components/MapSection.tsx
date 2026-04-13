@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
-import MarkerPopup from "./MarkerPopup";
+import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
 import { toast } from "sonner";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
@@ -110,6 +110,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
   const itineraryPolylineRef = useRef<google.maps.Polyline | null>(null);
   const itineraryMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const pickMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const originMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const destMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const previewLineRef = useRef<google.maps.Polyline | null>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -119,7 +122,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [radiusKm, setRadiusKm] = useState(20);
   const [center, setCenter] = useState<{ lat: number; lng: number }>({ lat: 48.8566, lng: 2.3522 });
-  const [popupPlace, setPopupPlace] = useState<{ place: PetPlace; position: { x: number; y: number } } | null>(null);
+  const [popupData, setPopupData] = useState<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
+  const [originPoint, setOriginPoint] = useState<{ lat: number; lng: number } | null>(null);
+  const [destPoint, setDestPoint] = useState<{ lat: number; lng: number } | null>(null);
 
   // Load Google Maps
   useEffect(() => {
@@ -333,15 +338,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
       const latLng = { lat: e.latLng.lat(), lng: e.latLng.lng() };
 
       if (pickMarkerRef.current) pickMarkerRef.current.map = null;
-      const color = pickMode === "origin" ? "#4CAF50" : "#E53935";
-      const label = pickMode === "origin" ? "A" : "B";
-      const el = document.createElement("div");
-      el.innerHTML = `<div style="background:${color};color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)">${label}</div>`;
-      pickMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
-        position: latLng,
-        content: el,
-        map,
-      });
+
+      if (pickMode === "origin") setOriginPoint(latLng);
+      else setDestPoint(latLng);
 
       const geocoder = new google.maps.Geocoder();
       geocoder.geocode({ location: latLng }, (results, status) => {
@@ -404,7 +403,19 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
           const domEvent = e.domEvent as MouseEvent | undefined;
           const x = domEvent?.clientX ?? window.innerWidth / 2;
           const y = domEvent?.clientY ?? window.innerHeight / 2;
-          setPopupPlace({ place, position: { x, y } });
+          const universalPlace: UniversalPlace = {
+            name: place.name,
+            address: place.address || place.city || "",
+            lat: place.latitude,
+            lng: place.longitude,
+            category: place.category,
+            city: place.city || undefined,
+            phone: place.phone || undefined,
+            opening_hours: place.opening_hours || undefined,
+            rating: place.rating || undefined,
+            isPetFriendly: true,
+          };
+          setPopupData({ place: universalPlace, position: { x, y }, petPlace: place });
           map.panTo({ lat: place.latitude, lng: place.longitude });
         });
         newMarkers.push(marker);
@@ -416,6 +427,52 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
     },
     [clearMarkers]
   );
+
+  // Manage A/B markers and dashed preview line
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !isLoaded) return;
+
+    // Origin marker
+    if (originMarkerRef.current) originMarkerRef.current.map = null;
+    if (originPoint) {
+      const el = document.createElement("div");
+      el.innerHTML = `<div style="background:#4CAF50;color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);animation:pulse 2s infinite">A</div>`;
+      originMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({ position: originPoint, content: el, map });
+    }
+
+    // Destination marker
+    if (destMarkerRef.current) destMarkerRef.current.map = null;
+    if (destPoint) {
+      const el = document.createElement("div");
+      el.innerHTML = `<div style="background:#F44336;color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);animation:pulse 2s infinite">B</div>`;
+      destMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({ position: destPoint, content: el, map });
+    }
+
+    // Dashed preview line
+    previewLineRef.current?.setMap(null);
+    if (originPoint && destPoint) {
+      previewLineRef.current = new google.maps.Polyline({
+        path: [originPoint, destPoint],
+        strokeColor: "#FF6B35",
+        strokeWeight: 3,
+        strokeOpacity: 0,
+        icons: [{
+          icon: { path: "M 0,-1 0,1", strokeOpacity: 0.6, scale: 3 },
+          offset: "0",
+          repeat: "15px",
+        }],
+        map,
+      });
+    }
+  }, [originPoint, destPoint, isLoaded]);
+
+  // Clear A/B markers when itinerary route is drawn
+  useEffect(() => {
+    if (itineraryData) {
+      previewLineRef.current?.setMap(null);
+    }
+  }, [itineraryData]);
 
   const handleLocateMe = () => {
     if (!navigator.geolocation) return;
@@ -512,31 +569,33 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
       </div>
 
       {/* Marker popup */}
-      {popupPlace && (
+      {popupData && (
         <MarkerPopup
-          place={popupPlace.place}
-          position={popupPlace.position}
-          onClose={() => setPopupPlace(null)}
+          place={popupData.place}
+          position={popupData.position}
+          onClose={() => setPopupData(null)}
           onSetOrigin={() => {
-            const p = popupPlace.place;
+            const p = popupData.place;
+            setOriginPoint({ lat: p.lat, lng: p.lng });
             window.dispatchEvent(new CustomEvent("marker-set-itinerary", {
-              detail: { type: "origin", location: { lat: p.latitude, lng: p.longitude }, text: p.name },
+              detail: { type: "origin", location: { lat: p.lat, lng: p.lng }, text: p.name },
             }));
             toast.success(`✓ Départ : ${p.name}`);
-            setPopupPlace(null);
+            setPopupData(null);
           }}
           onSetDestination={() => {
-            const p = popupPlace.place;
+            const p = popupData.place;
+            setDestPoint({ lat: p.lat, lng: p.lng });
             window.dispatchEvent(new CustomEvent("marker-set-itinerary", {
-              detail: { type: "destination", location: { lat: p.latitude, lng: p.longitude }, text: p.name },
+              detail: { type: "destination", location: { lat: p.lat, lng: p.lng }, text: p.name },
             }));
             toast.success(`✓ Arrivée : ${p.name}`);
-            setPopupPlace(null);
+            setPopupData(null);
           }}
-          onShowInfo={() => {
-            setSelectedPlace(popupPlace.place);
-            setPopupPlace(null);
-          }}
+          onShowInfo={popupData.petPlace ? () => {
+            setSelectedPlace(popupData.petPlace!);
+            setPopupData(null);
+          } : undefined}
         />
       )}
 
