@@ -10,10 +10,11 @@ import type { ItineraryMapData } from "@/components/itinerary/types";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 
+type PanelName = "itinerary" | "favorites" | null;
+
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [itineraryOpen, setItineraryOpen] = useState(false);
-  const [favoritesOpen, setFavoritesOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState<PanelName>(null);
   const [itineraryData, setItineraryData] = useState<ItineraryMapData | null>(null);
   const [pickMode, setPickMode] = useState<PickMode>(null);
 
@@ -21,39 +22,43 @@ const Index = () => {
 
   const handleSearch = (query: string) => setSearchQuery(query);
 
+  const openPanel = useCallback((panel: PanelName) => {
+    setActivePanel((prev) => (prev === panel ? null : panel));
+    if (panel !== "itinerary") setPickMode(null);
+  }, []);
+
   const handleViewStep = useCallback((lat: number, lng: number) => {
     document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   const handleFavViewOnMap = useCallback((lat: number, lng: number) => {
     document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" });
-    // Pan the map via a custom event
     window.dispatchEvent(new CustomEvent("map-pan-to", { detail: { lat, lng } }));
   }, []);
 
   const handleFavSetOrigin = useCallback((fav: any) => {
-    if (!itineraryOpen) setItineraryOpen(true);
+    setActivePanel("itinerary");
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent("marker-set-itinerary", {
         detail: { type: "origin", location: { lat: fav.lat, lng: fav.lng }, text: fav.name },
       }));
     }, 300);
-  }, [itineraryOpen]);
+  }, []);
 
   const handleFavSetDest = useCallback((fav: any) => {
-    if (!itineraryOpen) setItineraryOpen(true);
+    setActivePanel("itinerary");
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent("marker-set-itinerary", {
         detail: { type: "destination", location: { lat: fav.lat, lng: fav.lng }, text: fav.name },
       }));
     }, 300);
-  }, [itineraryOpen]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
       <Header
-        onItineraryClick={() => setItineraryOpen(true)}
-        onFavoritesClick={() => setFavoritesOpen(true)}
+        onItineraryClick={() => openPanel("itinerary")}
+        onFavoritesClick={() => openPanel("favorites")}
         favoritesCount={favCount}
       />
       <HeroSection onSearch={handleSearch} />
@@ -67,26 +72,26 @@ const Index = () => {
       />
       <Footer />
 
-      <div className={itineraryOpen ? "" : "hidden"}>
-        <ItineraryPanel
-          onClose={() => { setItineraryOpen(false); setPickMode(null); }}
-          onRouteCalculated={setItineraryData}
-          onViewStep={handleViewStep}
-          pickMode={pickMode}
-          onPickModeChange={setPickMode}
-        />
-      </div>
+      {/* Itinerary panel - always mounted, slides in/out */}
+      <ItineraryPanel
+        open={activePanel === "itinerary"}
+        onClose={() => { setActivePanel(null); setPickMode(null); }}
+        onRouteCalculated={setItineraryData}
+        onViewStep={handleViewStep}
+        pickMode={pickMode}
+        onPickModeChange={setPickMode}
+      />
 
-      {favoritesOpen && (
-        <FavoritesPanel
-          favorites={favorites}
-          onClose={() => setFavoritesOpen(false)}
-          onRemove={removeFavorite}
-          onViewOnMap={handleFavViewOnMap}
-          onSetOrigin={handleFavSetOrigin}
-          onSetDestination={handleFavSetDest}
-        />
-      )}
+      {/* Favorites panel - always mounted, slides in/out */}
+      <FavoritesPanel
+        open={activePanel === "favorites"}
+        favorites={favorites}
+        onClose={() => setActivePanel(null)}
+        onRemove={removeFavorite}
+        onViewOnMap={handleFavViewOnMap}
+        onSetOrigin={handleFavSetOrigin}
+        onSetDestination={handleFavSetDest}
+      />
     </div>
   );
 };

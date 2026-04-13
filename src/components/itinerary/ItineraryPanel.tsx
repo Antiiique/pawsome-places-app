@@ -35,6 +35,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 export type PickMode = "origin" | "destination" | null;
 
 interface ItineraryPanelProps {
+  open: boolean;
   onClose: () => void;
   onRouteCalculated: (data: ItineraryMapData | null) => void;
   onViewStep: (lat: number, lng: number) => void;
@@ -240,7 +241,7 @@ function WaypointSearchInput({ onSelect, onCancel }: { onSelect: (wp: Omit<Waypo
   );
 }
 
-export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep, pickMode, onPickModeChange }: ItineraryPanelProps) {
+export default function ItineraryPanel({ open, onClose, onRouteCalculated, onViewStep, pickMode, onPickModeChange }: ItineraryPanelProps) {
   const [origin, setOrigin] = useState<PlaceSelection | null>(null);
   const [destination, setDestination] = useState<PlaceSelection | null>(null);
   const [originText, setOriginText] = useState("");
@@ -309,6 +310,14 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
     setDestination(tmpO); setDestText(tmpT);
   };
 
+  const clearRoute = () => {
+    setResult(null); setLegs([]); onRouteCalculated(null);
+  };
+
+  const clearOrigin = () => { setOrigin(null); setOriginText(""); clearRoute(); };
+  const clearDestination = () => { setDestination(null); setDestText(""); clearRoute(); };
+  const clearAll = () => { clearOrigin(); clearDestination(); setWaypoints([]); clearRoute(); toast("🗑️ Itinéraire effacé"); };
+
   const toggleFilter = (key: string) => setFilters((f) => ({ ...f, [key]: !f[key] }));
 
   const handleOriginSelect = (sel: PlaceSelection) => { setOrigin(sel); setOriginText(sel.text); setErrors((e) => ({ ...e, origin: undefined })); };
@@ -316,7 +325,7 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
   const handleOriginChange = (text: string) => { setOriginText(text); if (origin) setOrigin(null); };
   const handleDestChange = (text: string) => { setDestText(text); if (destination) setDestination(null); };
 
-  const removeWaypoint = (id: string) => setWaypoints((prev) => prev.filter((w) => w.id !== id));
+  const removeWaypoint = (id: string) => { setWaypoints((prev) => prev.filter((w) => w.id !== id)); clearRoute(); };
 
   const addWaypoint = (wp: Omit<Waypoint, "id">) => {
     setWaypoints((prev) => [...prev, { ...wp, id: `wp_${Date.now()}_${Math.random()}` }]);
@@ -546,11 +555,15 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={onClose} />
+      {/* Mobile backdrop */}
+      <div
+        className={`fixed inset-0 bg-black/30 z-40 md:hidden transition-opacity duration-300 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        onClick={onClose}
+      />
 
-      <div className="fixed z-50 bg-card border-border shadow-xl flex flex-col
-        bottom-0 left-0 right-0 h-[75vh] rounded-t-2xl border-t
-        md:top-16 md:bottom-0 md:left-0 md:right-auto md:w-[380px] md:h-auto md:rounded-none md:border-r md:border-t-0 md:rounded-t-none">
+      <div className={`fixed z-50 top-16 bottom-0 left-0 w-[380px] max-w-[90vw] bg-card border-r border-border shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
+        open ? "translate-x-0" : "-translate-x-full"
+      }`}>
 
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
@@ -583,13 +596,27 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
                   </Button>
                 </div>
 
-                <PlaceInput id="origin" label="Départ" value={originText} selection={origin} error={errors.origin} onSelect={handleOriginSelect} onChange={handleOriginChange} />
+                <div className="relative">
+                  <PlaceInput id="origin" label="Départ" value={originText} selection={origin} error={errors.origin} onSelect={handleOriginSelect} onChange={handleOriginChange} />
+                  {(origin || originText) && (
+                    <button onClick={clearOrigin} className="absolute top-0 right-0 text-muted-foreground hover:text-destructive transition-colors p-1" title="Effacer le départ">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
 
                 <div className="flex justify-center">
                   <Button variant="outline" size="icon" onClick={handleSwap} className="rounded-full"><ArrowUpDown className="w-4 h-4" /></Button>
                 </div>
 
-                <PlaceInput id="destination" label="Arrivée" value={destText} selection={destination} error={errors.dest} onSelect={handleDestSelect} onChange={handleDestChange} />
+                <div className="relative">
+                  <PlaceInput id="destination" label="Arrivée" value={destText} selection={destination} error={errors.dest} onSelect={handleDestSelect} onChange={handleDestChange} />
+                  {(destination || destText) && (
+                    <button onClick={clearDestination} className="absolute top-0 right-0 text-muted-foreground hover:text-destructive transition-colors p-1" title="Effacer l'arrivée">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
 
                 {/* Waypoints section */}
                 <div>
@@ -661,6 +688,12 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
                 <Button onClick={calculate} disabled={!canCalculate} className="w-full font-semibold">
                   {loading ? (<><Loader2 className="w-4 h-4 animate-spin" />Calcul en cours…</>) : (<><Navigation className="w-4 h-4" />Calculer l'itinéraire</>)}
                 </Button>
+
+                {(origin || destination || waypoints.length > 0 || result) && (
+                  <Button variant="outline" className="w-full text-sm text-muted-foreground hover:text-destructive" onClick={clearAll}>
+                    <Trash2 className="w-4 h-4" />🗑️ Effacer tout
+                  </Button>
+                )}
 
                 {loading && (
                   <div className="space-y-3">
