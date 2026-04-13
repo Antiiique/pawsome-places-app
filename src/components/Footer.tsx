@@ -15,7 +15,7 @@ const Footer = () => {
           </div>
 
           <p className="text-sm text-muted-foreground flex items-center gap-1">
-            Fait avec <Heart className="w-4 h-4 text-pet-coral fill-pet-coral" /> pour les amoureux des animaux
+            Fait avec <Heart className="w-4 h-4 text-destructive fill-destructive" /> pour les amoureux des animaux
           </p>
 
           <div className="flex gap-4 text-sm text-muted-foreground">

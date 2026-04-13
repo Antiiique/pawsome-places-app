@@ -14,11 +14,11 @@ const Header = ({ onItineraryClick, onFavoritesClick, onSearchClick, favoritesCo
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-md border-b border-border">
-      <div className="container flex items-center justify-between h-16 px-4">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border" style={{ height: 56 }}>
+      <div className="container flex items-center justify-between h-14 px-4">
         <div className="flex items-center gap-2">
           <img src={logo} alt="World Pet Friendly" width={40} height={40} className="w-10 h-10" />
-          <span className="font-heading font-bold text-lg text-foreground">
+          <span className="font-heading font-bold text-base text-foreground">
             World Pet <span className="text-primary">Friendly</span>
           </span>
         </div>
@@ -30,7 +30,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, onSearchClick, favoritesCo
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-muted-foreground relative" onClick={onFavoritesClick} title="Mes favoris">
+          <Button variant="ghost" size="icon" className="text-foreground hover:bg-card relative" onClick={onFavoritesClick} title="Mes favoris">
             <Heart className="w-5 h-5" />
             {favoritesCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
@@ -38,16 +38,16 @@ const Header = ({ onItineraryClick, onFavoritesClick, onSearchClick, favoritesCo
               </span>
             )}
           </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
+          <Button variant="ghost" size="icon" className="text-foreground hover:bg-card" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
             <Navigation className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={onSearchClick} title="Rechercher">
+          <Button variant="ghost" size="icon" className="text-foreground hover:bg-card" onClick={onSearchClick} title="Rechercher">
             <Search className="w-5 h-5" />
           </Button>
-          <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90">
+          <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90 text-sm">
             Ajouter un lieu
           </Button>
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
+          <Button variant="ghost" size="icon" className="md:hidden text-foreground" onClick={() => setMenuOpen(!menuOpen)}>
             <Menu className="w-5 h-5" />
           </Button>
         </div>
@@ -55,9 +55,9 @@ const Header = ({ onItineraryClick, onFavoritesClick, onSearchClick, favoritesCo
 
       {menuOpen && (
         <div className="md:hidden bg-card border-b border-border px-4 py-4 space-y-3">
-          <a href="#explore" className="block text-sm font-medium text-muted-foreground">Explorer</a>
-          <a href="#categories" className="block text-sm font-medium text-muted-foreground">Catégories</a>
-          <a href="#about" className="block text-sm font-medium text-muted-foreground">À propos</a>
+          <a href="#explore" className="block text-sm font-medium text-foreground">Explorer</a>
+          <a href="#categories" className="block text-sm font-medium text-foreground">Catégories</a>
+          <a href="#about" className="block text-sm font-medium text-foreground">À propos</a>
           <Button className="w-full bg-primary text-primary-foreground" onClick={onFavoritesClick}>
             ❤️ Mes favoris ({favoritesCount})
           </Button>

@@ -75,7 +75,7 @@ export default function MarkerPopup({
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 z-[9999] bg-black/40 cursor-pointer"
+        className="fixed inset-0 z-[9999] bg-black/50 cursor-pointer"
         onClick={onClose}
       />
       {/* Centered modal */}
@@ -89,13 +89,13 @@ export default function MarkerPopup({
           maxWidth: "92vw",
           maxHeight: "85vh",
           overflowY: "auto",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
         }}
       >
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-colors"
+          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-foreground hover:text-primary transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -112,7 +112,7 @@ export default function MarkerPopup({
             </div>
 
             {place.isPetFriendly && (
-              <span className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+              <span className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-semibold">
                 🐾 Pet-friendly
               </span>
             )}
@@ -131,7 +131,7 @@ export default function MarkerPopup({
               </p>
             )}
             {place.rating && (
-              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+              <p className="text-xs text-foreground flex items-start gap-1.5">
                 <span>⭐</span> <span>{place.rating}/5</span>
               </p>
             )}
@@ -156,15 +156,13 @@ export default function MarkerPopup({
           <div className="space-y-2 pt-1">
             <div className="grid grid-cols-2 gap-2">
               <button
-                className="text-xs h-9 rounded-lg font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
-                style={{ backgroundColor: "#4CAF50" }}
+                className="text-xs h-9 rounded-lg font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-success"
                 onClick={(e) => { e.stopPropagation(); onSetOrigin(); }}
               >
                 🚩 Départ
               </button>
               <button
-                className="text-xs h-9 rounded-lg font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
-                style={{ backgroundColor: "#F44336" }}
+                className="text-xs h-9 rounded-lg font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-destructive"
                 onClick={(e) => { e.stopPropagation(); onSetDestination(); }}
               >
                 🏁 Arrivée
@@ -173,8 +171,7 @@ export default function MarkerPopup({
 
             {onAddWaypoint && (
               <button
-                className="w-full text-xs h-9 rounded-lg font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
-                style={{ backgroundColor: "#3b82f6" }}
+                className="w-full text-xs h-9 rounded-lg font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-primary"
                 onClick={(e) => { e.stopPropagation(); onAddWaypoint(); }}
               >
                 ⛳ Ajouter à l'itinéraire
@@ -184,8 +181,8 @@ export default function MarkerPopup({
             <button
               className={`w-full text-xs h-9 rounded-lg font-semibold flex items-center justify-center gap-1.5 border transition-all ${
                 isFavorite
-                  ? "bg-destructive/10 border-destructive/30 text-destructive"
-                  : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+                  ? "bg-destructive/20 border-destructive/40 text-destructive"
+                  : "bg-warning/20 border-warning/40 text-warning hover:bg-warning/30"
               }`}
               onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
             >
@@ -195,7 +192,7 @@ export default function MarkerPopup({
 
             {place.isPetFriendly && onShowInfo && (
               <button
-                className="w-full text-xs h-9 rounded-lg font-semibold flex items-center justify-center gap-1.5 border border-border bg-muted text-foreground hover:bg-accent transition-colors"
+                className="w-full text-xs h-9 rounded-lg font-semibold flex items-center justify-center gap-1.5 border border-border bg-surface text-foreground hover:bg-card transition-colors"
                 onClick={(e) => { e.stopPropagation(); onShowInfo(); }}
               >
                 ℹ️ Voir les détails

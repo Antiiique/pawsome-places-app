@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ["Quicksand", "sans-serif"],
-        body: ["Nunito", "sans-serif"],
+        heading: ["Inter", "Segoe UI", "-apple-system", "sans-serif"],
+        body: ["Inter", "Segoe UI", "-apple-system", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -51,13 +51,10 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        pet: {
-          coral: "hsl(var(--pet-coral))",
-          green: "hsl(var(--pet-green))",
-          "green-light": "hsl(var(--pet-green-light))",
-          sand: "hsl(var(--pet-sand))",
-          warm: "hsl(var(--pet-warm))",
-        },
+        surface: "hsl(var(--surface))",
+        success: "hsl(var(--success))",
+        warning: "hsl(var(--warning))",
+        danger: "hsl(var(--danger))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
