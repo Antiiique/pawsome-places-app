@@ -323,21 +323,33 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
     setShowWaypointSearch(false);
   };
 
+  const [dropTargetIdx, setDropTargetIdx] = useState<number | null>(null);
+
   const handleDragStart = (idx: number) => setDragIdx(idx);
   const handleDragOver = (e: React.DragEvent, idx: number) => {
     e.preventDefault();
-    if (dragIdx === null || dragIdx === idx) return;
+    e.dataTransfer.dropEffect = "move";
+    setDropTargetIdx(idx);
+  };
+  const handleDragLeave = () => setDropTargetIdx(null);
+  const handleDrop = (e: React.DragEvent, toIdx: number) => {
+    e.preventDefault();
+    if (dragIdx === null || dragIdx === toIdx) { setDragIdx(null); setDropTargetIdx(null); return; }
     setWaypoints((prev) => {
       const next = [...prev];
       const [moved] = next.splice(dragIdx, 1);
-      next.splice(idx, 0, moved);
+      next.splice(toIdx, 0, moved);
       return next;
     });
-    setDragIdx(idx);
+    setDragIdx(null);
+    setDropTargetIdx(null);
+    toast.success(`✓ Étape déplacée en position ${toIdx + 1}`);
   };
-  const handleDragEnd = () => setDragIdx(null);
+  const handleDragEnd = () => { setDragIdx(null); setDropTargetIdx(null); };
 
   const canCalculate = !loading && (!!origin || originText.trim().length > 0) && (!!destination || destText.trim().length > 0);
+
+  const [legs, setLegs] = useState<Array<{ distanceKm: number; durationMin: number; startName: string; endName: string }>>([]);
 
   const calculate = useCallback(async () => {
     const newErrors: { origin?: string; dest?: string } = {};
@@ -347,21 +359,35 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
     else if (!destination && destText.trim()) newErrors.dest = "Sélectionnez une ville dans la liste";
     if (newErrors.origin || newErrors.dest) { setErrors(newErrors); return; }
 
-    setLoading(true); setResult(null); setErrors({}); onRouteCalculated(null);
+    setLoading(true); setResult(null); setErrors({}); setLegs([]); onRouteCalculated(null);
 
     try {
       const originLoc = origin!.location;
       const destLoc = destination!.location;
 
       const body: any = {
-        origin: { location: { latLng: { latitude: originLoc.lat, longitude: originLoc.lng } } },
-        destination: { location: { latLng: { latitude: destLoc.lat, longitude: destLoc.lng } } },
-        travelMode: "DRIVE", languageCode: "fr-FR", units: "METRIC",
+        origin: { location: { latLng: { latitude: parseFloat(String(originLoc.lat)), longitude: parseFloat(String(originLoc.lng)) } } },
+        destination: { location: { latLng: { latitude: parseFloat(String(destLoc.lat)), longitude: parseFloat(String(destLoc.lng)) } } },
+        travelMode: "DRIVE",
+        languageCode: "fr-FR",
+        units: "METRIC",
+        computeAlternativeRoutes: false,
+        routeModifiers: { avoidTolls: false, avoidHighways: false, avoidFerries: false },
       };
+
+      const fieldMaskParts = [
+        "routes.duration",
+        "routes.distanceMeters",
+        "routes.polyline.encodedPolyline",
+        "routes.legs.duration",
+        "routes.legs.distanceMeters",
+        "routes.legs.startLocation",
+        "routes.legs.endLocation",
+      ];
 
       if (waypoints.length > 0) {
         body.intermediates = waypoints.map((wp) => ({
-          location: { latLng: { latitude: wp.lat, longitude: wp.lng } },
+          location: { latLng: { latitude: parseFloat(String(wp.lat)), longitude: parseFloat(String(wp.lng)) } },
         }));
         body.optimizeWaypointOrder = true;
       }
@@ -371,19 +397,40 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
         headers: {
           "Content-Type": "application/json",
           "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
-          "X-Goog-FieldMask": "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.legs",
+          "X-Goog-FieldMask": fieldMaskParts.join(","),
         },
         body: JSON.stringify(body),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Routes API error:", errorData);
+        throw new Error(errorData.error?.message || `Erreur API Routes: ${response.status}`);
+      }
+
       const routeData = await response.json();
-      if (!routeData.routes || routeData.routes.length === 0) throw new Error("Itinéraire introuvable");
+      if (!routeData.routes || routeData.routes.length === 0) throw new Error("Aucun itinéraire trouvé entre ces points");
 
       const route = routeData.routes[0];
       const distanceKm = Math.round((route.distanceMeters || 0) / 1000);
-      const durationMin = Math.round(parseInt((route.duration || "0s").replace("s", "")) / 60);
-      const hours = Math.floor(durationMin / 60);
-      const mins = durationMin % 60;
+      const durationSec = parseInt((route.duration || "0s").replace("s", ""));
+      const hours = Math.floor(durationSec / 3600);
+      const mins = Math.floor((durationSec % 3600) / 60);
+
+      // Build leg-by-leg summary
+      const legNames = [originText.split(",")[0], ...waypoints.map((w) => w.name), destText.split(",")[0]];
+      const legsSummary = (route.legs || []).map((leg: any, i: number) => {
+        const legDist = Math.round((leg.distanceMeters || 0) / 1000);
+        const legDurSec = parseInt((leg.duration || "0s").replace("s", ""));
+        const legDurMin = Math.round(legDurSec / 60);
+        return {
+          distanceKm: legDist,
+          durationMin: legDurMin,
+          startName: legNames[i] || `Point ${i + 1}`,
+          endName: legNames[i + 1] || `Point ${i + 2}`,
+        };
+      });
+      setLegs(legsSummary);
 
       const decodedPath = google.maps.geometry.encoding.decodePath(route.polyline.encodedPolyline);
 
