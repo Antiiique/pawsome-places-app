@@ -58,7 +58,7 @@ function createMarkerContent(category: string, acceptsDogs: boolean): HTMLElemen
 function waitForGoogleMaps(): Promise<void> {
   return new Promise((resolve) => {
     const check = () => {
-      if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places) {
+      if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places && window.google?.maps?.geometry) {
         resolve();
       } else {
         setTimeout(check, 100);
@@ -70,7 +70,7 @@ function waitForGoogleMaps(): Promise<void> {
 
 function loadGoogleMapsScript(): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places) {
+    if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places && window.google?.maps?.geometry) {
       resolve();
       return;
     }
@@ -80,7 +80,7 @@ function loadGoogleMapsScript(): Promise<void> {
       return;
     }
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker&loading=async`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker,geometry&loading=async`;
     script.async = true;
     script.defer = true;
     script.onload = () => waitForGoogleMaps().then(resolve);
@@ -89,16 +89,22 @@ function loadGoogleMapsScript(): Promise<void> {
   });
 }
 
+import type { ItineraryMapData } from "./itinerary/types";
+
 interface MapSectionProps {
   searchQuery?: string;
+  itineraryData?: ItineraryMapData | null;
+  onStepClick?: (lat: number, lng: number) => void;
 }
 
-const MapSection = ({ searchQuery }: MapSectionProps) => {
+const MapSection = ({ searchQuery, itineraryData, onStepClick }: MapSectionProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const autocompleteContainerRef = useRef<HTMLDivElement>(null);
+  const itineraryPolylineRef = useRef<google.maps.Polyline | null>(null);
+  const itineraryMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
