@@ -58,7 +58,7 @@ function createMarkerContent(category: string, acceptsDogs: boolean): HTMLElemen
 function waitForGoogleMaps(): Promise<void> {
   return new Promise((resolve) => {
     const check = () => {
-      if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places) {
+      if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places && window.google?.maps?.geometry) {
         resolve();
       } else {
         setTimeout(check, 100);
@@ -70,7 +70,7 @@ function waitForGoogleMaps(): Promise<void> {
 
 function loadGoogleMapsScript(): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places) {
+    if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places && window.google?.maps?.geometry) {
       resolve();
       return;
     }
@@ -80,7 +80,7 @@ function loadGoogleMapsScript(): Promise<void> {
       return;
     }
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker&loading=async`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker,geometry&loading=async`;
     script.async = true;
     script.defer = true;
     script.onload = () => waitForGoogleMaps().then(resolve);
@@ -89,16 +89,22 @@ function loadGoogleMapsScript(): Promise<void> {
   });
 }
 
+import type { ItineraryMapData } from "./itinerary/types";
+
 interface MapSectionProps {
   searchQuery?: string;
+  itineraryData?: ItineraryMapData | null;
+  onStepClick?: (lat: number, lng: number) => void;
 }
 
-const MapSection = ({ searchQuery }: MapSectionProps) => {
+const MapSection = ({ searchQuery, itineraryData, onStepClick }: MapSectionProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const autocompleteContainerRef = useRef<HTMLDivElement>(null);
+  const itineraryPolylineRef = useRef<google.maps.Polyline | null>(null);
+  const itineraryMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -234,6 +240,71 @@ const MapSection = ({ searchQuery }: MapSectionProps) => {
       }
     });
   }, [searchQuery, isLoaded]);
+
+  // Render itinerary on map
+  useEffect(() => {
+    if (!mapInstanceRef.current || !isLoaded) return;
+
+    // Clean up previous itinerary
+    itineraryPolylineRef.current?.setMap(null);
+    itineraryMarkersRef.current.forEach((m) => (m.map = null));
+    itineraryMarkersRef.current = [];
+
+    if (!itineraryData) return;
+
+    const map = mapInstanceRef.current;
+
+    // Draw polyline
+    const polyline = new google.maps.Polyline({
+      path: itineraryData.routePath,
+      strokeColor: "#FF6B35",
+      strokeWeight: 5,
+      strokeOpacity: 0.8,
+      map,
+    });
+    itineraryPolylineRef.current = polyline;
+
+    const markers: google.maps.marker.AdvancedMarkerElement[] = [];
+
+    // Start marker
+    const startEl = document.createElement("div");
+    startEl.innerHTML = `<div style="background:#4CAF50;color:white;padding:6px 12px;border-radius:20px;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)">🏁 Départ</div>`;
+    markers.push(new google.maps.marker.AdvancedMarkerElement({ position: itineraryData.origin, content: startEl, map }));
+
+    // End marker
+    const endEl = document.createElement("div");
+    endEl.innerHTML = `<div style="background:#E53935;color:white;padding:6px 12px;border-radius:20px;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)">🏁 Arrivée</div>`;
+    markers.push(new google.maps.marker.AdvancedMarkerElement({ position: itineraryData.destination, content: endEl, map }));
+
+    // Step markers
+    const catColors: Record<string, string> = { restaurant: "#FF6B35", hotel: "#4285F4", outdoor: "#4CAF50", services: "#E53935", shop: "#9C27B0" };
+    itineraryData.steps.forEach((step, i) => {
+      const color = catColors[step.category] || "#9E9E9E";
+      const el = document.createElement("div");
+      el.innerHTML = `<div style="background:${color};color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer" title="${step.name} — ${step.category}">${i + 1}</div>`;
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        position: { lat: step.latitude, lng: step.longitude },
+        content: el,
+        map,
+      });
+      marker.addListener("click", () => onStepClick?.(step.latitude, step.longitude));
+      markers.push(marker);
+    });
+
+    // Pause markers
+    itineraryData.pausePoints.forEach((pp) => {
+      const el = document.createElement("div");
+      el.innerHTML = `<div style="background:#FFF;color:#FF6B35;padding:4px 8px;border-radius:12px;font-size:11px;border:2px solid #FF6B35;box-shadow:0 2px 4px rgba(0,0,0,0.2)" title="Pause conseillée ici">🐾 Pause</div>`;
+      markers.push(new google.maps.marker.AdvancedMarkerElement({ position: pp, content: el, map }));
+    });
+
+    itineraryMarkersRef.current = markers;
+
+    // Fit bounds
+    const bounds = new google.maps.LatLngBounds();
+    itineraryData.routePath.forEach((p) => bounds.extend(p));
+    map.fitBounds(bounds, 50);
+  }, [itineraryData, isLoaded, onStepClick]);
 
   const clearMarkers = useCallback(() => {
     markersRef.current.forEach((m) => (m.map = null));

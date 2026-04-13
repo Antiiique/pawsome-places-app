@@ -1,9 +1,13 @@
 import logo from "@/assets/logo-wpf.png";
-import { Search, Menu } from "lucide-react";
+import { Search, Menu, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
-const Header = () => {
+interface HeaderProps {
+  onItineraryClick?: () => void;
+}
+
+const Header = ({ onItineraryClick }: HeaderProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -23,6 +27,9 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
+            <Navigation className="w-5 h-5" />
+          </Button>
           <Button variant="ghost" size="icon" className="text-muted-foreground">
             <Search className="w-5 h-5" />
           </Button>
@@ -40,6 +47,9 @@ const Header = () => {
           <a href="#explore" className="block text-sm font-medium text-muted-foreground">Explorer</a>
           <a href="#categories" className="block text-sm font-medium text-muted-foreground">Catégories</a>
           <a href="#about" className="block text-sm font-medium text-muted-foreground">À propos</a>
+          <Button className="w-full bg-primary text-primary-foreground" onClick={onItineraryClick}>
+            🐾 Itinéraire Pet-Friendly
+          </Button>
           <Button className="w-full bg-primary text-primary-foreground">Ajouter un lieu</Button>
         </div>
       )}
@@ -48,3 +58,4 @@ const Header = () => {
 };
 
 export default Header;
+
