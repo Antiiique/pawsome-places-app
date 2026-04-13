@@ -185,12 +185,11 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
         setDestination({ location: destLoc, text: destName });
       }
 
-    try {
       // Step 1: Get directions
       const directionsService = new google.maps.DirectionsService();
       const dirResult = await directionsService.route({
-        origin: origin.location,
-        destination: destination.location,
+        origin: originLoc,
+        destination: destLoc,
         travelMode: google.maps.TravelMode.DRIVING,
       });
 
@@ -271,25 +270,25 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
       }
 
       const routePath = path.map((p) => ({ lat: p.lat(), lng: p.lng() }));
-      const data: ItineraryMapData = {
+      const itineraryResult: ItineraryMapData = {
         routePath,
-        origin: origin.location,
-        destination: destination.location,
+        origin: originLoc,
+        destination: destLoc,
         steps,
         pausePoints,
         totalDistance: leg.distance?.text || "",
         totalDuration: leg.duration?.text || "",
       };
 
-      setResult(data);
-      onRouteCalculated(data);
+      setResult(itineraryResult);
+      onRouteCalculated(itineraryResult);
     } catch (err: any) {
       console.error("Route calculation error:", err);
-      toast.error(err.message || "Erreur lors du calcul de l'itinéraire.");
+      toast.error(err.message || "Adresse non reconnue. Essayez avec une ville ou un code postal.");
     } finally {
       setLoading(false);
     }
-  }, [origin, destination, maxStepDistance, filters, onRouteCalculated]);
+  }, [origin, destination, originText, destText, maxStepDistance, filters, onRouteCalculated]);
 
   const handleShare = () => {
     if (!result) return;
