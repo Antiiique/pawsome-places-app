@@ -338,15 +338,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
       const latLng = { lat: e.latLng.lat(), lng: e.latLng.lng() };
 
       if (pickMarkerRef.current) pickMarkerRef.current.map = null;
-      const color = pickMode === "origin" ? "#4CAF50" : "#E53935";
-      const label = pickMode === "origin" ? "A" : "B";
-      const el = document.createElement("div");
-      el.innerHTML = `<div style="background:${color};color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)">${label}</div>`;
-      pickMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
-        position: latLng,
-        content: el,
-        map,
-      });
+
+      if (pickMode === "origin") setOriginPoint(latLng);
+      else setDestPoint(latLng);
 
       const geocoder = new google.maps.Geocoder();
       geocoder.geocode({ location: latLng }, (results, status) => {
