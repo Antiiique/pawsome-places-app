@@ -83,6 +83,7 @@ const Index = () => {
         pickMode={pickMode}
         isFavorite={isFavorite}
         onToggleFavorite={toggleFavorite}
+        onOpenItinerary={() => openPanel("itinerary")}
       />
       <Footer />
 
