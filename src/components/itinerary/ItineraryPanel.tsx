@@ -555,11 +555,15 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={onClose} />
+      {/* Mobile backdrop */}
+      <div
+        className={`fixed inset-0 bg-black/30 z-40 md:hidden transition-opacity duration-300 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        onClick={onClose}
+      />
 
-      <div className="fixed z-50 bg-card border-border shadow-xl flex flex-col
-        bottom-0 left-0 right-0 h-[75vh] rounded-t-2xl border-t
-        md:top-16 md:bottom-0 md:left-0 md:right-auto md:w-[380px] md:h-auto md:rounded-none md:border-r md:border-t-0 md:rounded-t-none">
+      <div className={`fixed z-50 top-16 bottom-0 left-0 w-[380px] max-w-[90vw] bg-card border-r border-border shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
+        open ? "translate-x-0" : "-translate-x-full"
+      }`}>
 
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
