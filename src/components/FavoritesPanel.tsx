@@ -17,6 +17,7 @@ const CATEGORY_FILTERS = [
 ];
 
 interface FavoritesPanelProps {
+  open: boolean;
   favorites: FavoritePlace[];
   onClose: () => void;
   onRemove: (id: string) => void;
@@ -25,7 +26,7 @@ interface FavoritesPanelProps {
   onSetDestination: (fav: FavoritePlace) => void;
 }
 
-export default function FavoritesPanel({ favorites, onClose, onRemove, onViewOnMap, onSetOrigin, onSetDestination }: FavoritesPanelProps) {
+export default function FavoritesPanel({ open, favorites, onClose, onRemove, onViewOnMap, onSetOrigin, onSetDestination }: FavoritesPanelProps) {
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"date" | "name" | "category">("date");
@@ -44,11 +45,18 @@ export default function FavoritesPanel({ favorites, onClose, onRemove, onViewOnM
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={onClose} />
-      <div className="fixed z-50 bg-card border-border shadow-xl flex flex-col
-        bottom-0 left-0 right-0 h-[75vh] rounded-t-2xl border-t
-        md:top-16 md:bottom-0 md:right-0 md:left-auto md:w-[380px] md:h-auto md:rounded-none md:border-l md:border-t-0">
+      {/* Mobile backdrop - only when open */}
+      <div
+        className={`fixed inset-0 bg-black/30 z-40 md:hidden transition-opacity duration-300 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        onClick={onClose}
+      />
 
+      {/* Side panel */}
+      <div
+        className={`fixed z-50 top-16 bottom-0 right-0 w-[380px] max-w-[90vw] bg-card border-l border-border shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
+          open ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-destructive fill-destructive" />
