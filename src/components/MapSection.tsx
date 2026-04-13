@@ -107,6 +107,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
   const autocompleteContainerRef = useRef<HTMLDivElement>(null);
   const itineraryPolylineRef = useRef<google.maps.Polyline | null>(null);
   const itineraryMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const pickMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
