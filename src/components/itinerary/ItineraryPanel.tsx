@@ -33,9 +33,27 @@ interface ItineraryPanelProps {
   onViewStep: (lat: number, lng: number) => void;
 }
 
+async function geocodeAddress(address: string): Promise<{ lat: number; lng: number; name: string }> {
+  const geocoder = new google.maps.Geocoder();
+  return new Promise((resolve, reject) => {
+    geocoder.geocode({ address }, (results, status) => {
+      if (status === "OK" && results?.[0]) {
+        resolve({
+          lat: results[0].geometry.location.lat(),
+          lng: results[0].geometry.location.lng(),
+          name: results[0].formatted_address,
+        });
+      } else {
+        reject(new Error("Adresse introuvable : " + address));
+      }
+    });
+  });
+}
+
 function setupAutocomplete(
   container: HTMLDivElement | null,
-  onSelect: (location: { lat: number; lng: number }, text: string) => void
+  onSelect: (location: { lat: number; lng: number }, text: string) => void,
+  onTextChange: (text: string) => void
 ) {
   if (!container || !window.google?.maps?.places) return;
   try {
@@ -43,14 +61,29 @@ function setupAutocomplete(
     (ac as any).style.cssText = "width:100%;border:none;outline:none;";
     container.innerHTML = "";
     container.appendChild(ac as unknown as Node);
-    // @ts-ignore
-    ac.addEventListener("gmp-placeselect", async (e: any) => {
-      const place = e.placePrediction?.toPlace();
-      if (!place) return;
-      await place.fetchFields({ fields: ["location", "displayName"] });
-      const loc = place.location;
-      if (loc) {
-        onSelect({ lat: loc.lat(), lng: loc.lng() }, place.displayName || "");
+
+    // Listen for text input changes for fallback
+    const observer = new MutationObserver(() => {
+      const input = container.querySelector("input");
+      if (input) {
+        input.addEventListener("input", () => onTextChange(input.value));
+        observer.disconnect();
+      }
+    });
+    observer.observe(container, { childList: true, subtree: true });
+
+    // @ts-ignore - gmp-select is the correct event for new API
+    ac.addEventListener("gmp-select", async (e: any) => {
+      try {
+        const place = e.placePrediction?.toPlace();
+        if (!place) return;
+        await place.fetchFields({ fields: ["location", "displayName"] });
+        const loc = place.location;
+        if (loc) {
+          onSelect({ lat: loc.lat(), lng: loc.lng() }, place.displayName || "");
+        }
+      } catch (err) {
+        console.warn("gmp-select handler error, will use geocoding fallback", err);
       }
     });
   } catch (err) {
