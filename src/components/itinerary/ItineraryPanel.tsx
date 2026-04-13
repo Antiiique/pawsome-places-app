@@ -596,13 +596,27 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                   </Button>
                 </div>
 
-                <PlaceInput id="origin" label="Départ" value={originText} selection={origin} error={errors.origin} onSelect={handleOriginSelect} onChange={handleOriginChange} />
+                <div className="relative">
+                  <PlaceInput id="origin" label="Départ" value={originText} selection={origin} error={errors.origin} onSelect={handleOriginSelect} onChange={handleOriginChange} />
+                  {(origin || originText) && (
+                    <button onClick={clearOrigin} className="absolute top-0 right-0 text-muted-foreground hover:text-destructive transition-colors p-1" title="Effacer le départ">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
 
                 <div className="flex justify-center">
                   <Button variant="outline" size="icon" onClick={handleSwap} className="rounded-full"><ArrowUpDown className="w-4 h-4" /></Button>
                 </div>
 
-                <PlaceInput id="destination" label="Arrivée" value={destText} selection={destination} error={errors.dest} onSelect={handleDestSelect} onChange={handleDestChange} />
+                <div className="relative">
+                  <PlaceInput id="destination" label="Arrivée" value={destText} selection={destination} error={errors.dest} onSelect={handleDestSelect} onChange={handleDestChange} />
+                  {(destination || destText) && (
+                    <button onClick={clearDestination} className="absolute top-0 right-0 text-muted-foreground hover:text-destructive transition-colors p-1" title="Effacer l'arrivée">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
 
                 {/* Waypoints section */}
                 <div>
