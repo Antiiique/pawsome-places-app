@@ -409,7 +409,19 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
           const domEvent = e.domEvent as MouseEvent | undefined;
           const x = domEvent?.clientX ?? window.innerWidth / 2;
           const y = domEvent?.clientY ?? window.innerHeight / 2;
-          setPopupPlace({ place, position: { x, y } });
+          const universalPlace: UniversalPlace = {
+            name: place.name,
+            address: place.address || place.city || "",
+            lat: place.latitude,
+            lng: place.longitude,
+            category: place.category,
+            city: place.city || undefined,
+            phone: place.phone || undefined,
+            opening_hours: place.opening_hours || undefined,
+            rating: place.rating || undefined,
+            isPetFriendly: true,
+          };
+          setPopupData({ place: universalPlace, position: { x, y }, petPlace: place });
           map.panTo({ lat: place.latitude, lng: place.longitude });
         });
         newMarkers.push(marker);
