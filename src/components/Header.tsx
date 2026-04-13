@@ -1,13 +1,15 @@
 import logo from "@/assets/logo-wpf.png";
-import { Search, Menu, Navigation } from "lucide-react";
+import { Search, Menu, Navigation, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 interface HeaderProps {
   onItineraryClick?: () => void;
+  onFavoritesClick?: () => void;
+  favoritesCount?: number;
 }
 
-const Header = ({ onItineraryClick }: HeaderProps) => {
+const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: HeaderProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -27,6 +29,14 @@ const Header = ({ onItineraryClick }: HeaderProps) => {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="text-muted-foreground relative" onClick={onFavoritesClick} title="Mes favoris">
+            <Heart className="w-5 h-5" />
+            {favoritesCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                {favoritesCount > 99 ? "99+" : favoritesCount}
+              </span>
+            )}
+          </Button>
           <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
             <Navigation className="w-5 h-5" />
           </Button>
@@ -47,6 +57,9 @@ const Header = ({ onItineraryClick }: HeaderProps) => {
           <a href="#explore" className="block text-sm font-medium text-muted-foreground">Explorer</a>
           <a href="#categories" className="block text-sm font-medium text-muted-foreground">Catégories</a>
           <a href="#about" className="block text-sm font-medium text-muted-foreground">À propos</a>
+          <Button className="w-full bg-primary text-primary-foreground" onClick={onFavoritesClick}>
+            ❤️ Mes favoris ({favoritesCount})
+          </Button>
           <Button className="w-full bg-primary text-primary-foreground" onClick={onItineraryClick}>
             🐾 Itinéraire Pet-Friendly
           </Button>
@@ -58,4 +71,3 @@ const Header = ({ onItineraryClick }: HeaderProps) => {
 };
 
 export default Header;
-
