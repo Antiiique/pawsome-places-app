@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
-import MarkerPopup from "./MarkerPopup";
+import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
 import { toast } from "sonner";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
@@ -110,6 +110,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
   const itineraryPolylineRef = useRef<google.maps.Polyline | null>(null);
   const itineraryMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const pickMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const originMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const destMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const previewLineRef = useRef<google.maps.Polyline | null>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -119,7 +122,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [radiusKm, setRadiusKm] = useState(20);
   const [center, setCenter] = useState<{ lat: number; lng: number }>({ lat: 48.8566, lng: 2.3522 });
-  const [popupPlace, setPopupPlace] = useState<{ place: PetPlace; position: { x: number; y: number } } | null>(null);
+  const [popupData, setPopupData] = useState<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
+  const [originPoint, setOriginPoint] = useState<{ lat: number; lng: number } | null>(null);
+  const [destPoint, setDestPoint] = useState<{ lat: number; lng: number } | null>(null);
 
   // Load Google Maps
   useEffect(() => {
