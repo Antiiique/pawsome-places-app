@@ -100,14 +100,24 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ItineraryMapData | null>(null);
-  const [autoKey, setAutoKey] = useState(0);
+  const [originText, setOriginText] = useState("");
+  const [destText, setDestText] = useState("");
+  const [errors, setErrors] = useState<{ origin?: string; dest?: string }>({});
 
   const originContainerRef = useRef<HTMLDivElement>(null);
   const destContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setupAutocomplete(originContainerRef.current, (loc, text) => setOrigin({ location: loc, text }));
-    setupAutocomplete(destContainerRef.current, (loc, text) => setDestination({ location: loc, text }));
+    setupAutocomplete(
+      originContainerRef.current,
+      (loc, text) => { setOrigin({ location: loc, text }); setOriginText(text); setErrors((e) => ({ ...e, origin: undefined })); },
+      (text) => { setOriginText(text); if (origin) setOrigin(null); }
+    );
+    setupAutocomplete(
+      destContainerRef.current,
+      (loc, text) => { setDestination({ location: loc, text }); setDestText(text); setErrors((e) => ({ ...e, dest: undefined })); },
+      (text) => { setDestText(text); if (destination) setDestination(null); }
+    );
   }, [autoKey]);
 
   const handleSwap = () => {
