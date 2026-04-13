@@ -31,3 +31,12 @@ export interface PlaceSelection {
   location: { lat: number; lng: number };
   text: string;
 }
+
+export interface Waypoint {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  category: string;
+  isPetFriendly: boolean;
+}

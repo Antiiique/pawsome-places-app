@@ -12,6 +12,8 @@ const CATEGORY_FILTERS = [
   { key: "outdoor", label: "Parcs", emoji: "🌿" },
   { key: "services", label: "Vétos", emoji: "❤️" },
   { key: "shop", label: "Shops", emoji: "🐾" },
+  { key: "transport", label: "Transport", emoji: "🚉" },
+  { key: "other", label: "Autres", emoji: "📍" },
 ];
 
 interface FavoritesPanelProps {

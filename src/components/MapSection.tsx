@@ -8,6 +8,7 @@ import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
 import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
 import { toast } from "sonner";
 import type { FavoritePlace } from "@/hooks/useFavorites";
+import { detectCategoryFromTypes } from "@/hooks/useFavorites";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
 
@@ -572,6 +573,38 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             setSelectedPlace(popupData.petPlace!);
             setPopupData(null);
           } : undefined}
+          isFavorite={isFavorite?.(popupData.petPlace?.id || popupData.place.placeId || `custom_${popupData.place.lat}_${popupData.place.lng}`)}
+          onToggleFavorite={() => {
+            if (!onToggleFavorite) return;
+            const p = popupData.place;
+            const id = popupData.petPlace?.id || p.placeId || `custom_${p.lat}_${p.lng}`;
+            const category = popupData.petPlace?.category || detectCategoryFromTypes(p.types);
+            const added = onToggleFavorite({
+              id,
+              name: p.name,
+              category,
+              address: p.address || null,
+              city: p.city || null,
+              lat: p.lat,
+              lng: p.lng,
+              phone: p.phone || null,
+              website: p.website || null,
+              accepts_dogs: p.isPetFriendly,
+              rating: p.rating || null,
+              placeId: p.placeId || null,
+              isPetFriendly: p.isPetFriendly,
+              source: p.isPetFriendly ? "supabase" : "google_maps",
+            });
+            toast(added ? `❤️ ${p.name} ajouté aux favoris` : `💔 ${p.name} retiré des favoris`);
+          }}
+          onAddWaypoint={() => {
+            const p = popupData.place;
+            window.dispatchEvent(new CustomEvent("itinerary-add-waypoint", {
+              detail: { name: p.name, lat: p.lat, lng: p.lng, category: popupData.petPlace?.category || detectCategoryFromTypes(p.types), isPetFriendly: p.isPetFriendly },
+            }));
+            toast.success(`✓ ${p.name} ajouté à l'itinéraire`);
+            setPopupData(null);
+          }}
         />
       )}
 

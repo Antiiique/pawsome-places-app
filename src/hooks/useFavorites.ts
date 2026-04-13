@@ -15,8 +15,25 @@ export interface FavoritePlace {
   website?: string | null;
   accepts_dogs: boolean;
   accepts_cats?: boolean;
+  rating?: number | null;
+  placeId?: string | null;
+  isPetFriendly?: boolean;
+  source?: string;
   savedAt: string;
 }
+
+function detectCategoryFromTypes(types?: string[]): string {
+  if (!types) return "other";
+  if (types.some(t => ["restaurant", "cafe", "bar", "food", "meal_delivery", "meal_takeaway"].includes(t))) return "restaurant";
+  if (types.some(t => ["lodging", "hotel"].includes(t))) return "hotel";
+  if (types.some(t => ["supermarket", "grocery_or_supermarket", "store", "shopping_mall", "clothing_store", "convenience_store"].includes(t))) return "shop";
+  if (types.some(t => ["park", "campground", "natural_feature"].includes(t))) return "outdoor";
+  if (types.some(t => ["hospital", "veterinary_care", "pharmacy", "doctor"].includes(t))) return "services";
+  if (types.some(t => ["transit_station", "airport", "train_station", "bus_station"].includes(t))) return "transport";
+  return "other";
+}
+
+export { detectCategoryFromTypes };
 
 function loadFavorites(): FavoritePlace[] {
   try {

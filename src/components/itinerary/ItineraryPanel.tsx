@@ -1,6 +1,6 @@
 /// <reference types="google.maps" />
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, ArrowUpDown, Loader2, MapPin, ExternalLink, Share2, Save, Navigation, Check, Trash2, Play } from "lucide-react";
+import { X, ArrowUpDown, Loader2, MapPin, ExternalLink, Share2, Save, Navigation, Check, Trash2, Play, GripVertical, Plus, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { ItineraryMapData, ItineraryStep, PlaceSelection } from "./types";
+import type { ItineraryMapData, ItineraryStep, PlaceSelection, Waypoint } from "./types";
 import { useSavedItineraries, type SavedItinerary } from "@/hooks/useSavedItineraries";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
@@ -163,6 +163,83 @@ function PlaceInput({
   );
 }
 
+// Compact waypoint search input
+function WaypointSearchInput({ onSelect, onCancel }: { onSelect: (wp: Omit<Waypoint, "id">) => void; onCancel: () => void }) {
+  const [text, setText] = useState("");
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const fetchPredictions = useCallback((input: string) => {
+    if (!input.trim() || !window.google?.maps?.places) { setPredictions([]); setShowDropdown(false); return; }
+    const service = new google.maps.places.AutocompleteService();
+    service.getPlacePredictions({ input, language: "fr" }, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+        setPredictions(results.slice(0, 5) as unknown as Prediction[]);
+        setShowDropdown(true);
+      } else { setPredictions([]); setShowDropdown(false); }
+    });
+  }, []);
+
+  const handleInput = (val: string) => {
+    setText(val);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => fetchPredictions(val), 300);
+  };
+
+  const handleSelect = (pred: Prediction) => {
+    setShowDropdown(false);
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ placeId: pred.place_id }, (results, status) => {
+      if (status === "OK" && results?.[0]) {
+        onSelect({
+          name: pred.structured_formatting.main_text,
+          lat: results[0].geometry.location.lat(),
+          lng: results[0].geometry.location.lng(),
+          category: "other",
+          isPetFriendly: false,
+        });
+      }
+    });
+  };
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setShowDropdown(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div className="flex gap-1.5">
+        <input
+          type="text" value={text} onChange={(e) => handleInput(e.target.value)} autoFocus
+          placeholder="Rechercher un lieu…"
+          className="flex-1 pl-3 pr-3 py-2 rounded-lg border border-border bg-background text-foreground text-xs outline-none"
+          onKeyDown={(e) => { if (e.key === "Escape") onCancel(); }}
+        />
+        <Button variant="ghost" size="sm" className="text-xs px-2 h-auto" onClick={onCancel}>✕</Button>
+      </div>
+      {showDropdown && predictions.length > 0 && (
+        <div className="absolute z-50 left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
+          {predictions.map((pred) => (
+            <button key={pred.place_id} onClick={() => handleSelect(pred)} className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-start gap-2">
+              <MapPin className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-foreground truncate">{pred.structured_formatting.main_text}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{pred.structured_formatting.secondary_text}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep, pickMode, onPickModeChange }: ItineraryPanelProps) {
   const [origin, setOrigin] = useState<PlaceSelection | null>(null);
   const [destination, setDestination] = useState<PlaceSelection | null>(null);
@@ -176,8 +253,21 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [activeTab, setActiveTab] = useState("new");
+  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
+  const [showWaypointSearch, setShowWaypointSearch] = useState(false);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
 
   const { itineraries, save, remove, count: savedCount } = useSavedItineraries();
+
+  // Listen for waypoint add events from map popup
+  useEffect(() => {
+    const handler = (e: CustomEvent<{ name: string; lat: number; lng: number; category: string; isPetFriendly: boolean }>) => {
+      const { name, lat, lng, category, isPetFriendly } = e.detail;
+      setWaypoints((prev) => [...prev, { id: `wp_${Date.now()}_${Math.random()}`, name, lat, lng, category, isPetFriendly }]);
+    };
+    window.addEventListener("itinerary-add-waypoint" as any, handler as any);
+    return () => window.removeEventListener("itinerary-add-waypoint" as any, handler as any);
+  }, []);
 
   // Listen for map picks
   useEffect(() => {
@@ -226,14 +316,35 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
   const handleOriginChange = (text: string) => { setOriginText(text); if (origin) setOrigin(null); };
   const handleDestChange = (text: string) => { setDestText(text); if (destination) setDestination(null); };
 
+  const removeWaypoint = (id: string) => setWaypoints((prev) => prev.filter((w) => w.id !== id));
+
+  const addWaypoint = (wp: Omit<Waypoint, "id">) => {
+    setWaypoints((prev) => [...prev, { ...wp, id: `wp_${Date.now()}_${Math.random()}` }]);
+    setShowWaypointSearch(false);
+  };
+
+  const handleDragStart = (idx: number) => setDragIdx(idx);
+  const handleDragOver = (e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    if (dragIdx === null || dragIdx === idx) return;
+    setWaypoints((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIdx, 1);
+      next.splice(idx, 0, moved);
+      return next;
+    });
+    setDragIdx(idx);
+  };
+  const handleDragEnd = () => setDragIdx(null);
+
   const canCalculate = !loading && (!!origin || originText.trim().length > 0) && (!!destination || destText.trim().length > 0);
 
   const calculate = useCallback(async () => {
     const newErrors: { origin?: string; dest?: string } = {};
     if (!origin && !originText.trim()) newErrors.origin = "Veuillez saisir un lieu de départ";
-    else if (!origin && originText.trim()) newErrors.origin = "Sélectionnez une ville dans la liste qui apparaît en tapant";
+    else if (!origin && originText.trim()) newErrors.origin = "Sélectionnez une ville dans la liste";
     if (!destination && !destText.trim()) newErrors.dest = "Veuillez saisir un lieu d'arrivée";
-    else if (!destination && destText.trim()) newErrors.dest = "Sélectionnez une ville dans la liste qui apparaît en tapant";
+    else if (!destination && destText.trim()) newErrors.dest = "Sélectionnez une ville dans la liste";
     if (newErrors.origin || newErrors.dest) { setErrors(newErrors); return; }
 
     setLoading(true); setResult(null); setErrors({}); onRouteCalculated(null);
@@ -242,6 +353,19 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
       const originLoc = origin!.location;
       const destLoc = destination!.location;
 
+      const body: any = {
+        origin: { location: { latLng: { latitude: originLoc.lat, longitude: originLoc.lng } } },
+        destination: { location: { latLng: { latitude: destLoc.lat, longitude: destLoc.lng } } },
+        travelMode: "DRIVE", languageCode: "fr-FR", units: "METRIC",
+      };
+
+      if (waypoints.length > 0) {
+        body.intermediates = waypoints.map((wp) => ({
+          location: { latLng: { latitude: wp.lat, longitude: wp.lng } },
+        }));
+        body.optimizeWaypointOrder = true;
+      }
+
       const response = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
         method: "POST",
         headers: {
@@ -249,11 +373,7 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
           "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
           "X-Goog-FieldMask": "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.legs",
         },
-        body: JSON.stringify({
-          origin: { location: { latLng: { latitude: originLoc.lat, longitude: originLoc.lng } } },
-          destination: { location: { latLng: { latitude: destLoc.lat, longitude: destLoc.lng } } },
-          travelMode: "DRIVE", languageCode: "fr-FR", units: "METRIC",
-        }),
+        body: JSON.stringify(body),
       });
 
       const routeData = await response.json();
@@ -320,7 +440,7 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
     } finally {
       setLoading(false);
     }
-  }, [origin, destination, originText, destText, maxStepDistance, filters, onRouteCalculated]);
+  }, [origin, destination, originText, destText, maxStepDistance, filters, waypoints, onRouteCalculated]);
 
   const handleShare = () => {
     if (!result) return;
@@ -416,6 +536,45 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
 
                 <PlaceInput id="destination" label="Arrivée" value={destText} selection={destination} error={errors.dest} onSelect={handleDestSelect} onChange={handleDestChange} />
 
+                {/* Waypoints section */}
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-2 block">🗺️ Étapes intermédiaires</label>
+                  {waypoints.length > 0 && (
+                    <div className="space-y-1.5 mb-2">
+                      {waypoints.map((wp, idx) => (
+                        <div
+                          key={wp.id}
+                          draggable
+                          onDragStart={() => handleDragStart(idx)}
+                          onDragOver={(e) => handleDragOver(e, idx)}
+                          onDragEnd={handleDragEnd}
+                          className={`flex items-center gap-2 bg-muted/50 rounded-lg px-2 py-1.5 text-sm cursor-grab active:cursor-grabbing transition-opacity ${dragIdx === idx ? "opacity-50" : ""}`}
+                        >
+                          <GripVertical className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                          <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ backgroundColor: wp.isPetFriendly ? "#4CAF50" : "#FF9800" }}>
+                            {idx + 1}
+                          </span>
+                          <span className="flex-1 truncate text-xs text-foreground">{wp.name}</span>
+                          {wp.isPetFriendly && <span className="text-[10px]">🐾</span>}
+                          <button onClick={() => removeWaypoint(wp.id)} className="text-muted-foreground hover:text-destructive transition-colors shrink-0">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {showWaypointSearch ? (
+                    <WaypointSearchInput onSelect={addWaypoint} onCancel={() => setShowWaypointSearch(false)} />
+                  ) : (
+                    <button
+                      onClick={() => setShowWaypointSearch(true)}
+                      className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-2 rounded-lg border border-dashed border-border hover:border-primary/50 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Ajouter une étape
+                    </button>
+                  )}
+                </div>
+
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-2 block">Distance max entre étapes</label>
                   <div className="flex gap-2">
@@ -463,11 +622,12 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
                         <span>{result.totalDuration}</span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {result.steps.length} étape{result.steps.length !== 1 ? "s" : ""} pet-friendly trouvée{result.steps.length !== 1 ? "s" : ""}
+                        {result.steps.length} étape{result.steps.length !== 1 ? "s" : ""} pet-friendly
+                        {waypoints.length > 0 && ` + ${waypoints.length} étape${waypoints.length !== 1 ? "s" : ""} perso`}
                       </p>
                     </div>
 
-                    {result.steps.length === 0 && (
+                    {result.steps.length === 0 && waypoints.length === 0 && (
                       <div className="bg-amber-50 dark:bg-amber-950/30 rounded-xl p-4 text-center">
                         <p className="text-sm text-amber-700 dark:text-amber-300">
                           Aucune étape trouvée sur ce trajet — pensez à prévoir de l'eau et des pauses pour votre animal 🐾
@@ -475,6 +635,33 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
                       </div>
                     )}
 
+                    {/* Waypoint steps */}
+                    {waypoints.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">⛳ Étapes personnalisées</p>
+                        {waypoints.map((wp, i) => (
+                          <div key={wp.id} className="bg-card border border-border rounded-xl p-3 shadow-sm space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ backgroundColor: "#FF9800" }}>{i + 1}</span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-foreground truncate">{wp.name}</p>
+                                <div className="flex gap-1">
+                                  {wp.isPetFriendly ? (
+                                    <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-1.5 py-0.5 rounded-full">🐾 Pet-friendly</span>
+                                  ) : (
+                                    <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">📍 Lieu</span>
+                                  )}
+                                  <span className="text-[10px] bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300 px-1.5 py-0.5 rounded-full">⛳ Étape perso</span>
+                                </div>
+                              </div>
+                              <button onClick={() => removeWaypoint(wp.id)} className="text-muted-foreground hover:text-destructive"><X className="w-4 h-4" /></button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Pet-friendly steps */}
                     {result.steps.map((step, i) => {
                       const color = CATEGORY_COLORS[step.category] || "#9E9E9E";
                       return (
@@ -486,6 +673,7 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
                               <div className="flex-1 min-w-0">
                                 <span className="text-xs text-muted-foreground">Étape {i + 1} — à {Math.round(step.distance_from_start_km)} km</span>
                               </div>
+                              <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-1.5 py-0.5 rounded-full shrink-0">🐾 Pet-friendly</span>
                             </div>
                             <div>
                               <p className="font-semibold text-foreground flex items-center gap-1.5">
