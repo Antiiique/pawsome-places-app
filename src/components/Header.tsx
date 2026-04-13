@@ -6,10 +6,11 @@ import { useState } from "react";
 interface HeaderProps {
   onItineraryClick?: () => void;
   onFavoritesClick?: () => void;
+  onSearchClick?: () => void;
   favoritesCount?: number;
 }
 
-const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: HeaderProps) => {
+const Header = ({ onItineraryClick, onFavoritesClick, onSearchClick, favoritesCount = 0 }: HeaderProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -40,7 +41,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
           <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
             <Navigation className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
+          <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={onSearchClick} title="Rechercher">
             <Search className="w-5 h-5" />
           </Button>
           <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90">
