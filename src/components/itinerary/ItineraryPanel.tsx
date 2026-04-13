@@ -379,17 +379,13 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
         "routes.duration",
         "routes.distanceMeters",
         "routes.polyline.encodedPolyline",
-        "routes.legs.duration",
-        "routes.legs.distanceMeters",
-        "routes.legs.startLocation",
-        "routes.legs.endLocation",
+        "routes.legs",
       ];
 
       if (waypoints.length > 0) {
         body.intermediates = waypoints.map((wp) => ({
           location: { latLng: { latitude: parseFloat(String(wp.lat)), longitude: parseFloat(String(wp.lng)) } },
         }));
-        body.optimizeWaypointOrder = true;
       }
 
       const response = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
