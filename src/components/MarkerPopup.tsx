@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Heart } from "lucide-react";
 
 export interface UniversalPlace {
   name: string;
@@ -13,6 +13,7 @@ export interface UniversalPlace {
   website?: string;
   isPetFriendly: boolean;
   types?: string[];
+  placeId?: string;
 }
 
 function getPlaceEmoji(place: UniversalPlace): string {
@@ -58,10 +59,15 @@ interface MarkerPopupProps {
   onSetOrigin: () => void;
   onSetDestination: () => void;
   onShowInfo?: () => void;
+  onAddWaypoint?: () => void;
+  onToggleFavorite?: () => void;
+  isFavorite?: boolean;
   onClose: () => void;
 }
 
-export default function MarkerPopup({ place, position, onSetOrigin, onSetDestination, onShowInfo, onClose }: MarkerPopupProps) {
+export default function MarkerPopup({
+  place, position, onSetOrigin, onSetDestination, onShowInfo, onAddWaypoint, onToggleFavorite, isFavorite, onClose,
+}: MarkerPopupProps) {
   const emoji = getPlaceEmoji(place);
   const typeLabel = getPlaceTypeLabel(place);
   const isPointOnMap = place.types?.includes("point_on_map");
@@ -75,28 +81,26 @@ export default function MarkerPopup({ place, position, onSetOrigin, onSetDestina
           left: Math.min(position.x, window.innerWidth - 300),
           top: Math.min(position.y - 10, window.innerHeight - 220),
           transform: "translate(-50%, -100%)",
-          width: 280,
+          width: 290,
           boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
         }}
       >
         <div className="space-y-2">
           <div>
             <div className="flex items-start justify-between gap-2">
-              <p className="font-semibold text-foreground text-sm flex items-center gap-1.5">
-                {emoji} {place.name}
+              <p className="font-semibold text-foreground text-sm flex items-center gap-1.5 min-w-0">
+                {emoji} <span className="truncate">{place.name}</span>
               </p>
               {place.rating && (
                 <span className="text-xs text-muted-foreground whitespace-nowrap">⭐ {place.rating}</span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {typeLabel}
-            </p>
+            <p className="text-xs text-muted-foreground">{typeLabel}{place.city ? ` • ${place.city}` : ""}</p>
             {place.address && !isPointOnMap && (
-              <p className="text-xs text-muted-foreground mt-0.5">📍 {place.address}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">📍 {place.address}</p>
             )}
             {isPointOnMap && (
-              <p className="text-xs text-muted-foreground mt-0.5">{place.address}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">{place.address}</p>
             )}
             {place.opening_hours && (
               <p className="text-xs text-muted-foreground mt-0.5">🕐 {place.opening_hours}</p>
@@ -117,15 +121,34 @@ export default function MarkerPopup({ place, position, onSetOrigin, onSetDestina
             >
               🏁 Arrivée
             </button>
+            {onToggleFavorite && (
+              <button
+                className={`text-xs h-8 w-8 rounded-lg font-medium flex items-center justify-center border transition-all active:scale-110 ${
+                  isFavorite ? "bg-destructive/10 border-destructive/30 text-destructive" : "bg-muted border-border text-muted-foreground hover:text-destructive"
+                }`}
+                onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+                title={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+              >
+                <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
+              </button>
+            )}
+            {onAddWaypoint && (
+              <button
+                className="text-xs h-8 w-8 rounded-lg font-medium flex items-center justify-center border border-border bg-muted text-foreground hover:bg-accent transition-colors"
+                onClick={(e) => { e.stopPropagation(); onAddWaypoint(); }}
+                title="Ajouter comme étape"
+              >
+                ⛳
+              </button>
+            )}
             {place.isPetFriendly && onShowInfo && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs h-8 px-2"
+              <button
+                className="text-xs h-8 w-8 rounded-lg font-medium flex items-center justify-center border border-border bg-muted text-foreground hover:bg-accent transition-colors"
                 onClick={(e) => { e.stopPropagation(); onShowInfo(); }}
+                title="Détails"
               >
                 ℹ️
-              </Button>
+              </button>
             )}
           </div>
         </div>
