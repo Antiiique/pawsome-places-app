@@ -678,6 +678,25 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
                       </p>
                     </div>
 
+                    {/* Leg-by-leg summary */}
+                    {legs.length > 1 && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-muted-foreground mb-1">📋 Détail par tronçon</p>
+                        {legs.map((leg, i) => {
+                          const legH = Math.floor(leg.durationMin / 60);
+                          const legM = leg.durationMin % 60;
+                          const durStr = legH > 0 ? `${legH}h${legM.toString().padStart(2, "0")}` : `${legM} min`;
+                          return (
+                            <div key={i} className="flex items-center gap-2 text-xs bg-muted/30 rounded-lg px-3 py-2">
+                              <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">{i + 1}</span>
+                              <span className="flex-1 min-w-0 truncate text-foreground">{leg.startName} → {leg.endName}</span>
+                              <span className="text-muted-foreground shrink-0">{leg.distanceKm} km • {durStr}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
                     {result.steps.length === 0 && waypoints.length === 0 && (
                       <div className="bg-amber-50 dark:bg-amber-950/30 rounded-xl p-4 text-center">
                         <p className="text-sm text-amber-700 dark:text-amber-300">
