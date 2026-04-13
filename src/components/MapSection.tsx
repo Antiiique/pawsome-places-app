@@ -241,7 +241,72 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick }: MapSectionProps
     });
   }, [searchQuery, isLoaded]);
 
-  const clearMarkers = useCallback(() => {
+  // Render itinerary on map
+  useEffect(() => {
+    if (!mapInstanceRef.current || !isLoaded) return;
+
+    // Clean up previous itinerary
+    itineraryPolylineRef.current?.setMap(null);
+    itineraryMarkersRef.current.forEach((m) => (m.map = null));
+    itineraryMarkersRef.current = [];
+
+    if (!itineraryData) return;
+
+    const map = mapInstanceRef.current;
+
+    // Draw polyline
+    const polyline = new google.maps.Polyline({
+      path: itineraryData.routePath,
+      strokeColor: "#FF6B35",
+      strokeWeight: 5,
+      strokeOpacity: 0.8,
+      map,
+    });
+    itineraryPolylineRef.current = polyline;
+
+    const markers: google.maps.marker.AdvancedMarkerElement[] = [];
+
+    // Start marker
+    const startEl = document.createElement("div");
+    startEl.innerHTML = `<div style="background:#4CAF50;color:white;padding:6px 12px;border-radius:20px;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)">🏁 Départ</div>`;
+    markers.push(new google.maps.marker.AdvancedMarkerElement({ position: itineraryData.origin, content: startEl, map }));
+
+    // End marker
+    const endEl = document.createElement("div");
+    endEl.innerHTML = `<div style="background:#E53935;color:white;padding:6px 12px;border-radius:20px;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)">🏁 Arrivée</div>`;
+    markers.push(new google.maps.marker.AdvancedMarkerElement({ position: itineraryData.destination, content: endEl, map }));
+
+    // Step markers
+    const catColors: Record<string, string> = { restaurant: "#FF6B35", hotel: "#4285F4", outdoor: "#4CAF50", services: "#E53935", shop: "#9C27B0" };
+    itineraryData.steps.forEach((step, i) => {
+      const color = catColors[step.category] || "#9E9E9E";
+      const el = document.createElement("div");
+      el.innerHTML = `<div style="background:${color};color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer" title="${step.name} — ${step.category}">${i + 1}</div>`;
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        position: { lat: step.latitude, lng: step.longitude },
+        content: el,
+        map,
+      });
+      marker.addListener("click", () => onStepClick?.(step.latitude, step.longitude));
+      markers.push(marker);
+    });
+
+    // Pause markers
+    itineraryData.pausePoints.forEach((pp) => {
+      const el = document.createElement("div");
+      el.innerHTML = `<div style="background:#FFF;color:#FF6B35;padding:4px 8px;border-radius:12px;font-size:11px;border:2px solid #FF6B35;box-shadow:0 2px 4px rgba(0,0,0,0.2)" title="Pause conseillée ici">🐾 Pause</div>`;
+      markers.push(new google.maps.marker.AdvancedMarkerElement({ position: pp, content: el, map }));
+    });
+
+    itineraryMarkersRef.current = markers;
+
+    // Fit bounds
+    const bounds = new google.maps.LatLngBounds();
+    itineraryData.routePath.forEach((p) => bounds.extend(p));
+    map.fitBounds(bounds, 50);
+  }, [itineraryData, isLoaded, onStepClick]);
+
+
     markersRef.current.forEach((m) => (m.map = null));
     markersRef.current = [];
     clustererRef.current?.clearMarkers();
