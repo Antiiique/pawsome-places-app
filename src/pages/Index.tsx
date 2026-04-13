@@ -67,15 +67,15 @@ const Index = () => {
       />
       <Footer />
 
-      {itineraryOpen && (
+      <div className={itineraryOpen ? "" : "hidden"}>
         <ItineraryPanel
-          onClose={() => { setItineraryOpen(false); setItineraryData(null); setPickMode(null); }}
+          onClose={() => { setItineraryOpen(false); setPickMode(null); }}
           onRouteCalculated={setItineraryData}
           onViewStep={handleViewStep}
           pickMode={pickMode}
           onPickModeChange={setPickMode}
         />
-      )}
+      </div>
 
       {favoritesOpen && (
         <FavoritesPanel
