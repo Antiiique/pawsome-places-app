@@ -529,31 +529,33 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
       </div>
 
       {/* Marker popup */}
-      {popupPlace && (
+      {popupData && (
         <MarkerPopup
-          place={popupPlace.place}
-          position={popupPlace.position}
-          onClose={() => setPopupPlace(null)}
+          place={popupData.place}
+          position={popupData.position}
+          onClose={() => setPopupData(null)}
           onSetOrigin={() => {
-            const p = popupPlace.place;
+            const p = popupData.place;
+            setOriginPoint({ lat: p.lat, lng: p.lng });
             window.dispatchEvent(new CustomEvent("marker-set-itinerary", {
-              detail: { type: "origin", location: { lat: p.latitude, lng: p.longitude }, text: p.name },
+              detail: { type: "origin", location: { lat: p.lat, lng: p.lng }, text: p.name },
             }));
             toast.success(`✓ Départ : ${p.name}`);
-            setPopupPlace(null);
+            setPopupData(null);
           }}
           onSetDestination={() => {
-            const p = popupPlace.place;
+            const p = popupData.place;
+            setDestPoint({ lat: p.lat, lng: p.lng });
             window.dispatchEvent(new CustomEvent("marker-set-itinerary", {
-              detail: { type: "destination", location: { lat: p.latitude, lng: p.longitude }, text: p.name },
+              detail: { type: "destination", location: { lat: p.lat, lng: p.lng }, text: p.name },
             }));
             toast.success(`✓ Arrivée : ${p.name}`);
-            setPopupPlace(null);
+            setPopupData(null);
           }}
-          onShowInfo={() => {
-            setSelectedPlace(popupPlace.place);
-            setPopupPlace(null);
-          }}
+          onShowInfo={popupData.petPlace ? () => {
+            setSelectedPlace(popupData.petPlace!);
+            setPopupData(null);
+          } : undefined}
         />
       )}
 
