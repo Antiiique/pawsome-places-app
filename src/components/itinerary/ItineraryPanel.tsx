@@ -241,7 +241,7 @@ function WaypointSearchInput({ onSelect, onCancel }: { onSelect: (wp: Omit<Waypo
   );
 }
 
-export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep, pickMode, onPickModeChange }: ItineraryPanelProps) {
+export default function ItineraryPanel({ open, onClose, onRouteCalculated, onViewStep, pickMode, onPickModeChange }: ItineraryPanelProps) {
   const [origin, setOrigin] = useState<PlaceSelection | null>(null);
   const [destination, setDestination] = useState<PlaceSelection | null>(null);
   const [originText, setOriginText] = useState("");
