@@ -90,14 +90,16 @@ function loadGoogleMapsScript(): Promise<void> {
 }
 
 import type { ItineraryMapData } from "./itinerary/types";
+import type { PickMode } from "./itinerary/ItineraryPanel";
 
 interface MapSectionProps {
   searchQuery?: string;
   itineraryData?: ItineraryMapData | null;
   onStepClick?: (lat: number, lng: number) => void;
+  pickMode?: PickMode;
 }
 
-const MapSection = ({ searchQuery, itineraryData, onStepClick }: MapSectionProps) => {
+const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSectionProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
