@@ -1,4 +1,4 @@
-import { Heart } from "lucide-react";
+import { Heart, X, ExternalLink } from "lucide-react";
 
 export interface UniversalPlace {
   name: string;
@@ -70,84 +70,135 @@ export default function MarkerPopup({
 }: MarkerPopupProps) {
   const emoji = getPlaceEmoji(place);
   const typeLabel = getPlaceTypeLabel(place);
-  const isPointOnMap = place.types?.includes("point_on_map");
 
   return (
     <>
-      <div className="fixed inset-0 z-50" onClick={onClose} />
+      {/* Overlay */}
       <div
-        className="fixed z-50 bg-card border border-border rounded-xl p-3"
+        className="fixed inset-0 z-[9999] bg-black/40 cursor-pointer"
+        onClick={onClose}
+      />
+      {/* Centered modal */}
+      <div
+        className="fixed z-[10000] bg-card border border-border rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         style={{
-          left: Math.min(position.x, window.innerWidth - 300),
-          top: Math.min(position.y - 10, window.innerHeight - 220),
-          transform: "translate(-50%, -100%)",
-          width: 290,
-          boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: 340,
+          maxWidth: "92vw",
+          maxHeight: "85vh",
+          overflowY: "auto",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
         }}
       >
-        <div className="space-y-2">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="p-5 space-y-4">
+          {/* Header */}
           <div>
-            <div className="flex items-start justify-between gap-2">
-              <p className="font-semibold text-foreground text-sm flex items-center gap-1.5 min-w-0">
-                {emoji} <span className="truncate">{place.name}</span>
-              </p>
-              {place.rating && (
-                <span className="text-xs text-muted-foreground whitespace-nowrap">⭐ {place.rating}</span>
-              )}
+            <div className="flex items-start gap-2 pr-8">
+              <span className="text-2xl">{emoji}</span>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-foreground text-base leading-tight">{place.name}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}{place.city ? ` • ${place.city}` : ""}</p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">{typeLabel}{place.city ? ` • ${place.city}` : ""}</p>
-            {place.address && !isPointOnMap && (
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">📍 {place.address}</p>
-            )}
-            {isPointOnMap && (
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">{place.address}</p>
-            )}
-            {place.opening_hours && (
-              <p className="text-xs text-muted-foreground mt-0.5">🕐 {place.opening_hours}</p>
+
+            {place.isPetFriendly && (
+              <span className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                🐾 Pet-friendly
+              </span>
             )}
           </div>
-          <div className="flex gap-1.5">
-            <button
-              className="flex-1 text-xs h-8 rounded-lg font-medium text-white flex items-center justify-center gap-1"
-              style={{ backgroundColor: "#4CAF50" }}
-              onClick={(e) => { e.stopPropagation(); onSetOrigin(); }}
-            >
-              📍 Départ
-            </button>
-            <button
-              className="flex-1 text-xs h-8 rounded-lg font-medium text-white flex items-center justify-center gap-1"
-              style={{ backgroundColor: "#F44336" }}
-              onClick={(e) => { e.stopPropagation(); onSetDestination(); }}
-            >
-              🏁 Arrivée
-            </button>
-            {onToggleFavorite && (
-              <button
-                className={`text-xs h-8 w-8 rounded-lg font-medium flex items-center justify-center border transition-all active:scale-110 ${
-                  isFavorite ? "bg-destructive/10 border-destructive/30 text-destructive" : "bg-muted border-border text-muted-foreground hover:text-destructive"
-                }`}
-                onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-                title={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
-              >
-                <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
-              </button>
+
+          {/* Details */}
+          <div className="space-y-1.5">
+            {place.address && (
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <span>📍</span> <span>{place.address}</span>
+              </p>
             )}
+            {place.opening_hours && (
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <span>🕐</span> <span>{place.opening_hours}</span>
+              </p>
+            )}
+            {place.rating && (
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <span>⭐</span> <span>{place.rating}/5</span>
+              </p>
+            )}
+            {place.phone && (
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <span>📞</span> <span>{place.phone}</span>
+              </p>
+            )}
+            {place.website && (
+              <a
+                href={place.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary hover:underline flex items-center gap-1.5"
+              >
+                <ExternalLink className="w-3 h-3" /> Voir le site web
+              </a>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="space-y-2 pt-1">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                className="text-xs h-9 rounded-lg font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
+                style={{ backgroundColor: "#4CAF50" }}
+                onClick={(e) => { e.stopPropagation(); onSetOrigin(); }}
+              >
+                🚩 Départ
+              </button>
+              <button
+                className="text-xs h-9 rounded-lg font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
+                style={{ backgroundColor: "#F44336" }}
+                onClick={(e) => { e.stopPropagation(); onSetDestination(); }}
+              >
+                🏁 Arrivée
+              </button>
+            </div>
+
             {onAddWaypoint && (
               <button
-                className="text-xs h-8 w-8 rounded-lg font-medium flex items-center justify-center border border-border bg-muted text-foreground hover:bg-accent transition-colors"
+                className="w-full text-xs h-9 rounded-lg font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
+                style={{ backgroundColor: "#3b82f6" }}
                 onClick={(e) => { e.stopPropagation(); onAddWaypoint(); }}
-                title="Ajouter comme étape"
               >
-                ⛳
+                ⛳ Ajouter à l'itinéraire
               </button>
             )}
+
+            <button
+              className={`w-full text-xs h-9 rounded-lg font-semibold flex items-center justify-center gap-1.5 border transition-all ${
+                isFavorite
+                  ? "bg-destructive/10 border-destructive/30 text-destructive"
+                  : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+              }`}
+              onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
+            >
+              <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
+              {isFavorite ? "Retirer des favoris" : "❤️ Ajouter aux favoris"}
+            </button>
+
             {place.isPetFriendly && onShowInfo && (
               <button
-                className="text-xs h-8 w-8 rounded-lg font-medium flex items-center justify-center border border-border bg-muted text-foreground hover:bg-accent transition-colors"
+                className="w-full text-xs h-9 rounded-lg font-semibold flex items-center justify-center gap-1.5 border border-border bg-muted text-foreground hover:bg-accent transition-colors"
                 onClick={(e) => { e.stopPropagation(); onShowInfo(); }}
-                title="Détails"
               >
-                ℹ️
+                ℹ️ Voir les détails
               </button>
             )}
           </div>
