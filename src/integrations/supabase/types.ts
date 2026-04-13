@@ -18,80 +18,224 @@ export type Database = {
         Row: {
           accepts_cats: boolean
           accepts_dogs: boolean
+          accepts_other_pets: boolean
           address: string | null
+          air_conditioning: boolean
+          brand: string | null
+          caravans: boolean
           category: string
+          checkin: string | null
+          checkout: string | null
           city: string | null
           country: string | null
           created_at: string
+          delivery: boolean
+          department: string | null
           description: string | null
+          dogs_indoor_allowed: boolean
           dogs_on_leash_only: boolean
+          electric_hookup: boolean
+          email: string | null
+          facebook: string | null
+          google_maps_url: string | null
+          google_photo_url: string | null
+          google_place_id: string | null
+          google_rating: number | null
+          google_review_count: number | null
+          housenumber: string | null
           id: string
+          instagram: string | null
+          last_updated: string | null
           latitude: number
           location: unknown
           longitude: number
+          max_pet_weight_kg: number | null
           name: string
+          name_fr: string | null
+          note: string | null
           opening_hours: string | null
+          opening_hours_covid: string | null
+          operator: string | null
           outdoor_seating: boolean
+          parking: string | null
+          payment_card: boolean
+          payment_contactless: boolean
+          pet_area: boolean
+          pet_fee: boolean
+          pet_fee_amount: number | null
+          pet_menu: boolean
           phone: string | null
+          phone2: string | null
           photo_url: string | null
+          postcode: string | null
+          price_level: string | null
+          price_range: string | null
           rating: number | null
+          region: string | null
+          rooms: number | null
           source: string | null
+          source_id: string | null
+          stars: string | null
+          state: string | null
+          street: string | null
           subcategory: string | null
+          tags: string | null
+          takeaway: boolean
+          tents: boolean
           updated_at: string
           verified: boolean
+          water_bowl_provided: boolean
           website: string | null
+          wheelchair: string | null
+          wifi: boolean
         }
         Insert: {
           accepts_cats?: boolean
           accepts_dogs?: boolean
+          accepts_other_pets?: boolean
           address?: string | null
+          air_conditioning?: boolean
+          brand?: string | null
+          caravans?: boolean
           category?: string
+          checkin?: string | null
+          checkout?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
+          delivery?: boolean
+          department?: string | null
           description?: string | null
+          dogs_indoor_allowed?: boolean
           dogs_on_leash_only?: boolean
+          electric_hookup?: boolean
+          email?: string | null
+          facebook?: string | null
+          google_maps_url?: string | null
+          google_photo_url?: string | null
+          google_place_id?: string | null
+          google_rating?: number | null
+          google_review_count?: number | null
+          housenumber?: string | null
           id?: string
+          instagram?: string | null
+          last_updated?: string | null
           latitude: number
           location?: unknown
           longitude: number
+          max_pet_weight_kg?: number | null
           name: string
+          name_fr?: string | null
+          note?: string | null
           opening_hours?: string | null
+          opening_hours_covid?: string | null
+          operator?: string | null
           outdoor_seating?: boolean
+          parking?: string | null
+          payment_card?: boolean
+          payment_contactless?: boolean
+          pet_area?: boolean
+          pet_fee?: boolean
+          pet_fee_amount?: number | null
+          pet_menu?: boolean
           phone?: string | null
+          phone2?: string | null
           photo_url?: string | null
+          postcode?: string | null
+          price_level?: string | null
+          price_range?: string | null
           rating?: number | null
+          region?: string | null
+          rooms?: number | null
           source?: string | null
+          source_id?: string | null
+          stars?: string | null
+          state?: string | null
+          street?: string | null
           subcategory?: string | null
+          tags?: string | null
+          takeaway?: boolean
+          tents?: boolean
           updated_at?: string
           verified?: boolean
+          water_bowl_provided?: boolean
           website?: string | null
+          wheelchair?: string | null
+          wifi?: boolean
         }
         Update: {
           accepts_cats?: boolean
           accepts_dogs?: boolean
+          accepts_other_pets?: boolean
           address?: string | null
+          air_conditioning?: boolean
+          brand?: string | null
+          caravans?: boolean
           category?: string
+          checkin?: string | null
+          checkout?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
+          delivery?: boolean
+          department?: string | null
           description?: string | null
+          dogs_indoor_allowed?: boolean
           dogs_on_leash_only?: boolean
+          electric_hookup?: boolean
+          email?: string | null
+          facebook?: string | null
+          google_maps_url?: string | null
+          google_photo_url?: string | null
+          google_place_id?: string | null
+          google_rating?: number | null
+          google_review_count?: number | null
+          housenumber?: string | null
           id?: string
+          instagram?: string | null
+          last_updated?: string | null
           latitude?: number
           location?: unknown
           longitude?: number
+          max_pet_weight_kg?: number | null
           name?: string
+          name_fr?: string | null
+          note?: string | null
           opening_hours?: string | null
+          opening_hours_covid?: string | null
+          operator?: string | null
           outdoor_seating?: boolean
+          parking?: string | null
+          payment_card?: boolean
+          payment_contactless?: boolean
+          pet_area?: boolean
+          pet_fee?: boolean
+          pet_fee_amount?: number | null
+          pet_menu?: boolean
           phone?: string | null
+          phone2?: string | null
           photo_url?: string | null
+          postcode?: string | null
+          price_level?: string | null
+          price_range?: string | null
           rating?: number | null
+          region?: string | null
+          rooms?: number | null
           source?: string | null
+          source_id?: string | null
+          stars?: string | null
+          state?: string | null
+          street?: string | null
           subcategory?: string | null
+          tags?: string | null
+          takeaway?: boolean
+          tents?: boolean
           updated_at?: string
           verified?: boolean
+          water_bowl_provided?: boolean
           website?: string | null
+          wheelchair?: string | null
+          wifi?: boolean
         }
         Relationships: []
       }
