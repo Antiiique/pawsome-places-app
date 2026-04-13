@@ -95,7 +95,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
-  const autocompleteContainerRef = useRef<HTMLDivElement>(null);
   const itineraryPolylineRef = useRef<google.maps.Polyline | null>(null);
   const itineraryMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const pickMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
@@ -240,29 +239,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       loadPlaces(center.lat, center.lng, radiusKm, activeCategory);
     }
 
-    // Setup PlaceAutocompleteElement
-    if (autocompleteContainerRef.current) {
-      try {
-        const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement({ componentRestrictions: { country: [] } });
-        (placeAutocomplete as any).style.cssText = `width: 100%; border: none; outline: none;`;
-        autocompleteContainerRef.current.innerHTML = "";
-        autocompleteContainerRef.current.appendChild(placeAutocomplete as unknown as Node);
-        // @ts-ignore
-        placeAutocomplete.addEventListener("gmp-select", async (event: any) => {
-          const placePrediction = event.placePrediction;
-          if (!placePrediction) return;
-          const place = placePrediction.toPlace();
-          await place.fetchFields({ fields: ["location"] });
-          const location = place.location;
-          if (location) {
-            const loc = { lat: location.lat(), lng: location.lng() };
-            setCenter(loc); map.panTo(loc); map.setZoom(13);
-          }
-        });
-      } catch (e) {
-        console.warn("PlaceAutocompleteElement not available", e);
-      }
-    }
   }, [isLoaded]);
 
   // Helper to convert LatLng to pixel
@@ -488,13 +464,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   return (
     <section id="explore" className="py-8 bg-secondary/50">
       <div className="container px-4">
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <div
-            ref={autocompleteContainerRef}
-            className="relative flex-1 rounded-lg border border-border bg-card text-foreground text-sm overflow-hidden [&_gmp-place-autocomplete]:w-full [&_gmp-place-autocomplete]:border-none [&_gmp-place-autocomplete]:outline-none [&_input]:w-full [&_input]:pl-4 [&_input]:pr-4 [&_input]:py-2.5 [&_input]:bg-transparent [&_input]:text-sm [&_input]:outline-none [&_input]:border-none"
-          />
-        </div>
-
         <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide mb-2">
           {CATEGORY_FILTERS.map((f) => (
             <button

@@ -59,6 +59,12 @@ const Index = () => {
       <Header
         onItineraryClick={() => openPanel("itinerary")}
         onFavoritesClick={() => openPanel("favorites")}
+        onSearchClick={() => {
+          document.querySelector(".hero-search-input")?.scrollIntoView({ behavior: "smooth" });
+          setTimeout(() => {
+            (document.querySelector(".hero-search-input") as HTMLInputElement)?.focus();
+          }, 500);
+        }}
         favoritesCount={favCount}
       />
       <HeroSection onSearch={handleSearch} />

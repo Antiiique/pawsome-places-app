@@ -118,7 +118,7 @@ const HeroSection = ({ onSearch }: HeroSectionProps) => {
                   onChange={(e) => handleInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   onFocus={() => { if (predictions.length > 0) setShowDropdown(true); }}
-                  className="w-full py-2 bg-transparent text-foreground placeholder:text-muted-foreground outline-none text-sm"
+                  className="hero-search-input w-full py-2 bg-transparent text-foreground placeholder:text-muted-foreground outline-none text-sm"
                 />
               </div>
               <Button
