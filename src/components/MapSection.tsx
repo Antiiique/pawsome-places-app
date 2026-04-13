@@ -571,10 +571,25 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           }}
           onAddWaypoint={() => {
             const p = popupData.place;
-            window.dispatchEvent(new CustomEvent("itinerary-add-waypoint", {
-              detail: { name: p.name, lat: p.lat, lng: p.lng, category: popupData.petPlace?.category || detectCategoryFromTypes(p.types), isPetFriendly: p.isPetFriendly },
-            }));
-            toast.success(`✓ ${p.name} ajouté à l'itinéraire`);
+            // Smart add: if no origin → set as origin, if no dest → set as dest, else → waypoint
+            if (!originPoint) {
+              setOriginPoint({ lat: p.lat, lng: p.lng });
+              window.dispatchEvent(new CustomEvent("marker-set-itinerary", {
+                detail: { type: "origin", location: { lat: p.lat, lng: p.lng }, text: p.name },
+              }));
+              toast.success(`🚩 Départ : ${p.name}`);
+            } else if (!destPoint) {
+              setDestPoint({ lat: p.lat, lng: p.lng });
+              window.dispatchEvent(new CustomEvent("marker-set-itinerary", {
+                detail: { type: "destination", location: { lat: p.lat, lng: p.lng }, text: p.name },
+              }));
+              toast.success(`🏁 Arrivée : ${p.name}`);
+            } else {
+              window.dispatchEvent(new CustomEvent("itinerary-add-waypoint", {
+                detail: { name: p.name, lat: p.lat, lng: p.lng, category: popupData.petPlace?.category || detectCategoryFromTypes(p.types), isPetFriendly: p.isPetFriendly },
+              }));
+              toast.success(`⛳ Étape : ${p.name}`);
+            }
             setPopupData(null);
             onOpenItinerary?.();
           }}
