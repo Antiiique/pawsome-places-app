@@ -99,7 +99,7 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
     outdoor: true, restaurant: true, hotel: true, services: true, shop: false,
   });
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<ItineraryMapData | null>(null);
+  const [autoKey, setAutoKey] = useState(0);
   const [originText, setOriginText] = useState("");
   const [destText, setDestText] = useState("");
   const [errors, setErrors] = useState<{ origin?: string; dest?: string }>({});
@@ -132,10 +132,29 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
   };
 
   const calculate = useCallback(async () => {
-    if (!origin || !destination) {
-      toast.error("Veuillez sélectionner un départ et une arrivée.");
+    const newErrors: { origin?: string; dest?: string } = {};
+
+    // Get input text from containers for fallback
+    const originInput = originContainerRef.current?.querySelector("input");
+    const destInput = destContainerRef.current?.querySelector("input");
+    const originVal = originInput?.value || originText;
+    const destVal = destInput?.value || destText;
+
+    if (!origin && !originVal.trim()) {
+      newErrors.origin = "Veuillez saisir un point de départ";
+    }
+    if (!destination && !destVal.trim()) {
+      newErrors.dest = "Veuillez saisir un point d'arrivée";
+    }
+    if (originVal.trim() && destVal.trim() && originVal.trim() === destVal.trim()) {
+      toast.error("Le départ et l'arrivée doivent être différents");
       return;
     }
+    if (newErrors.origin || newErrors.dest) {
+      setErrors(newErrors);
+      return;
+    }
+
     if (!window.google?.maps?.DirectionsService) {
       toast.error("Google Maps n'est pas encore chargé.");
       return;
@@ -143,7 +162,28 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
 
     setLoading(true);
     setResult(null);
+    setErrors({});
     onRouteCalculated(null);
+
+    try {
+      // Use selected place coords, or fallback to geocoding
+      let originLoc = origin?.location;
+      let destLoc = destination?.location;
+      let originName = origin?.text || originVal;
+      let destName = destination?.text || destVal;
+
+      if (!originLoc) {
+        const geo = await geocodeAddress(originVal);
+        originLoc = { lat: geo.lat, lng: geo.lng };
+        originName = geo.name;
+        setOrigin({ location: originLoc, text: originName });
+      }
+      if (!destLoc) {
+        const geo = await geocodeAddress(destVal);
+        destLoc = { lat: geo.lat, lng: geo.lng };
+        destName = geo.name;
+        setDestination({ location: destLoc, text: destName });
+      }
 
     try {
       // Step 1: Get directions
