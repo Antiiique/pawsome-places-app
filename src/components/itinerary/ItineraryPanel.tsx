@@ -524,8 +524,20 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
 
   const handleOpenGoogleMaps = () => {
     if (!result) return;
-    const waypoints = result.steps.map((s) => `${s.latitude},${s.longitude}`).join("/");
-    window.open(`https://www.google.com/maps/dir/${result.origin.lat},${result.origin.lng}/${waypoints}/${result.destination.lat},${result.destination.lng}`, "_blank");
+    const origin = `${result.origin.lat},${result.origin.lng}`;
+    const destination = `${result.destination.lat},${result.destination.lng}`;
+    let url = 'https://www.google.com/maps/dir/?api=1';
+    url += '&origin=' + encodeURIComponent(origin);
+    url += '&destination=' + encodeURIComponent(destination);
+    url += '&travelmode=driving';
+    if (waypoints.length > 0) {
+      const waypointsStr = waypoints
+        .slice(0, 9)
+        .map(wp => `${wp.lat},${wp.lng}`)
+        .join('|');
+      url += '&waypoints=' + encodeURIComponent(waypointsStr);
+    }
+    window.open(url, '_blank');
   };
 
   const handleStepGoogleMaps = (step: ItineraryStep) => {
