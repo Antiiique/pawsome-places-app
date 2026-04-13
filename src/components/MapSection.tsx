@@ -306,7 +306,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick }: MapSectionProps
     map.fitBounds(bounds, 50);
   }, [itineraryData, isLoaded, onStepClick]);
 
-
+  const clearMarkers = useCallback(() => {
     markersRef.current.forEach((m) => (m.map = null));
     markersRef.current = [];
     clustererRef.current?.clearMarkers();
