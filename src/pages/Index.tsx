@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import ItineraryPanel from "@/components/itinerary/ItineraryPanel";
 import FavoritesPanel from "@/components/FavoritesPanel";
 import type { PickMode } from "@/components/itinerary/ItineraryPanel";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { ItineraryMapData } from "@/components/itinerary/types";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
@@ -26,6 +26,20 @@ const Index = () => {
     setActivePanel((prev) => (prev === panel ? null : panel));
     if (panel !== "itinerary") setPickMode(null);
   }, []);
+
+  // Close panel on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!activePanel) return;
+      const target = e.target as HTMLElement;
+      // Don't close if clicking inside a panel or header
+      if (target.closest('[data-panel]') || target.closest('header')) return;
+      setActivePanel(null);
+      setPickMode(null);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [activePanel]);
 
   const handleViewStep = useCallback((lat: number, lng: number) => {
     document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" });
@@ -59,12 +73,6 @@ const Index = () => {
       <Header
         onItineraryClick={() => openPanel("itinerary")}
         onFavoritesClick={() => openPanel("favorites")}
-        onSearchClick={() => {
-          document.querySelector(".hero-search-input")?.scrollIntoView({ behavior: "smooth" });
-          setTimeout(() => {
-            (document.querySelector(".hero-search-input") as HTMLInputElement)?.focus();
-          }, 500);
-        }}
         favoritesCount={favCount}
       />
       <HeroSection onSearch={handleSearch} />
@@ -78,7 +86,6 @@ const Index = () => {
       />
       <Footer />
 
-      {/* Itinerary panel - always mounted, slides in/out */}
       <ItineraryPanel
         open={activePanel === "itinerary"}
         onClose={() => { setActivePanel(null); setPickMode(null); }}
@@ -88,7 +95,6 @@ const Index = () => {
         onPickModeChange={setPickMode}
       />
 
-      {/* Favorites panel - always mounted, slides in/out */}
       <FavoritesPanel
         open={activePanel === "favorites"}
         favorites={favorites}

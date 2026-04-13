@@ -108,7 +108,7 @@ const HeroSection = ({ onSearch }: HeroSectionProps) => {
           </p>
 
           <div ref={containerRef} className="relative max-w-xl">
-            <div className="flex flex-col sm:flex-row gap-3 bg-card/95 backdrop-blur-md rounded-xl p-3 shadow-xl border border-border">
+            <div className="flex flex-col sm:flex-row gap-3 bg-card/95 backdrop-blur-md rounded-xl p-3 border border-border" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
               <div className="flex items-center gap-2 flex-1 px-3">
                 <MapPin className="w-5 h-5 text-pet-coral shrink-0" />
                 <input

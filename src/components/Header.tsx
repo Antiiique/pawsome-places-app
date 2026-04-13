@@ -1,20 +1,19 @@
 import logo from "@/assets/logo-wpf.png";
-import { Search, Menu, Navigation, Heart } from "lucide-react";
+import { Menu, Navigation, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 interface HeaderProps {
   onItineraryClick?: () => void;
   onFavoritesClick?: () => void;
-  onSearchClick?: () => void;
   favoritesCount?: number;
 }
 
-const Header = ({ onItineraryClick, onFavoritesClick, onSearchClick, favoritesCount = 0 }: HeaderProps) => {
+const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: HeaderProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border" style={{ height: 56 }}>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border" style={{ height: 56 }}>
       <div className="container flex items-center justify-between h-14 px-4">
         <div className="flex items-center gap-2">
           <img src={logo} alt="World Pet Friendly" width={40} height={40} className="w-10 h-10" />
@@ -30,7 +29,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, onSearchClick, favoritesCo
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-foreground hover:bg-card relative" onClick={onFavoritesClick} title="Mes favoris">
+          <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent-soft" onClick={onFavoritesClick} title="Mes favoris">
             <Heart className="w-5 h-5" />
             {favoritesCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
@@ -38,13 +37,10 @@ const Header = ({ onItineraryClick, onFavoritesClick, onSearchClick, favoritesCo
               </span>
             )}
           </Button>
-          <Button variant="ghost" size="icon" className="text-foreground hover:bg-card" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
+          <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent-soft" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
             <Navigation className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-foreground hover:bg-card" onClick={onSearchClick} title="Rechercher">
-            <Search className="w-5 h-5" />
-          </Button>
-          <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90 text-sm">
+          <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-accent-hover text-sm">
             Ajouter un lieu
           </Button>
           <Button variant="ghost" size="icon" className="md:hidden text-foreground" onClick={() => setMenuOpen(!menuOpen)}>

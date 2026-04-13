@@ -53,9 +53,11 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
 
       {/* Side panel */}
       <div
-        className={`fixed z-50 top-16 bottom-0 right-0 w-[380px] max-w-[90vw] bg-card border-l border-border shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
+        data-panel
+        className={`fixed z-50 bottom-0 right-0 w-[360px] max-w-[92vw] bg-card border-l border-border shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
+        style={{ top: 56, borderRadius: '0 0 0 var(--radius)' }}
       >
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
