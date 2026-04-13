@@ -594,8 +594,12 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep,
                           draggable
                           onDragStart={() => handleDragStart(idx)}
                           onDragOver={(e) => handleDragOver(e, idx)}
+                          onDragLeave={handleDragLeave}
+                          onDrop={(e) => handleDrop(e, idx)}
                           onDragEnd={handleDragEnd}
-                          className={`flex items-center gap-2 bg-muted/50 rounded-lg px-2 py-1.5 text-sm cursor-grab active:cursor-grabbing transition-opacity ${dragIdx === idx ? "opacity-50" : ""}`}
+                          className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm cursor-grab active:cursor-grabbing transition-all ${
+                            dragIdx === idx ? "opacity-40 scale-[0.98]" : ""
+                          } ${dropTargetIdx === idx && dragIdx !== idx ? "border-primary bg-primary/5" : "bg-muted/50"} border border-transparent`}
                         >
                           <GripVertical className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                           <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ backgroundColor: wp.isPetFriendly ? "#4CAF50" : "#FF9800" }}>
