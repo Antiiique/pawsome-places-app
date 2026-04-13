@@ -689,6 +689,12 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                   {loading ? (<><Loader2 className="w-4 h-4 animate-spin" />Calcul en cours…</>) : (<><Navigation className="w-4 h-4" />Calculer l'itinéraire</>)}
                 </Button>
 
+                {(origin || destination || waypoints.length > 0 || result) && (
+                  <Button variant="outline" className="w-full text-sm text-muted-foreground hover:text-destructive" onClick={clearAll}>
+                    <Trash2 className="w-4 h-4" />🗑️ Effacer tout
+                  </Button>
+                )}
+
                 {loading && (
                   <div className="space-y-3">
                     <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
