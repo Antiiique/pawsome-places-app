@@ -7,6 +7,7 @@ import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
 import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
 import { toast } from "sonner";
+import type { FavoritePlace } from "@/hooks/useFavorites";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
 
@@ -38,33 +39,24 @@ const CATEGORY_EMOJIS: Record<string, string> = {
 };
 
 function createMarkerContent(category: string, acceptsDogs: boolean): HTMLElement {
-  const color = acceptsDogs
-    ? (CATEGORY_MARKER_COLORS[category] || "#4CAF50")
-    : "#9E9E9E";
+  const color = acceptsDogs ? (CATEGORY_MARKER_COLORS[category] || "#4CAF50") : "#9E9E9E";
   const emoji = CATEGORY_EMOJIS[category] || "📍";
-
   const div = document.createElement("div");
-  div.style.cssText = `
-    width: 40px; height: 46px; position: relative; cursor: pointer;
-  `;
+  div.style.cssText = `width: 40px; height: 46px; position: relative; cursor: pointer;`;
   div.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="46" viewBox="0 0 44 52">
       <filter id="s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/></filter>
       <path filter="url(#s)" d="M22 50 C22 50 4 34 4 20 A18 18 0 0 1 40 20 C40 34 22 50 22 50Z" fill="${color}" stroke="white" stroke-width="2"/>
       <text x="22" y="24" text-anchor="middle" font-size="18" dominant-baseline="central">${emoji}</text>
-    </svg>
-  `;
+    </svg>`;
   return div;
 }
 
 function waitForGoogleMaps(): Promise<void> {
   return new Promise((resolve) => {
     const check = () => {
-      if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places && window.google?.maps?.geometry) {
-        resolve();
-      } else {
-        setTimeout(check, 100);
-      }
+      if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places && window.google?.maps?.geometry) resolve();
+      else setTimeout(check, 100);
     };
     check();
   });
@@ -72,15 +64,9 @@ function waitForGoogleMaps(): Promise<void> {
 
 function loadGoogleMapsScript(): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places && window.google?.maps?.geometry) {
-      resolve();
-      return;
-    }
+    if (window.google?.maps?.Map && window.google?.maps?.marker?.AdvancedMarkerElement && window.google?.maps?.places && window.google?.maps?.geometry) { resolve(); return; }
     const existing = document.querySelector('script[src*="maps.googleapis.com"]');
-    if (existing) {
-      waitForGoogleMaps().then(resolve);
-      return;
-    }
+    if (existing) { waitForGoogleMaps().then(resolve); return; }
     const script = document.createElement("script");
     script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker,geometry&loading=async&v=beta`;
     script.async = true;
@@ -99,9 +85,11 @@ interface MapSectionProps {
   itineraryData?: ItineraryMapData | null;
   onStepClick?: (lat: number, lng: number) => void;
   pickMode?: PickMode;
+  isFavorite?: (id: string) => boolean;
+  onToggleFavorite?: (place: Omit<FavoritePlace, "savedAt">) => boolean;
 }
 
-const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSectionProps) => {
+const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavorite, onToggleFavorite }: MapSectionProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
@@ -128,9 +116,17 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
 
   // Load Google Maps
   useEffect(() => {
-    loadGoogleMapsScript()
-      .then(() => setIsLoaded(true))
-      .catch(() => setLoadError(true));
+    loadGoogleMapsScript().then(() => setIsLoaded(true)).catch(() => setLoadError(true));
+  }, []);
+
+  // Listen for map-pan-to events
+  useEffect(() => {
+    const handler = (e: CustomEvent<{ lat: number; lng: number }>) => {
+      const map = mapInstanceRef.current;
+      if (map) { map.panTo(e.detail); map.setZoom(15); }
+    };
+    window.addEventListener("map-pan-to" as any, handler as any);
+    return () => window.removeEventListener("map-pan-to" as any, handler as any);
   }, []);
 
   // Init map
@@ -138,34 +134,19 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
     if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
 
     const map = new google.maps.Map(mapRef.current, {
-      center,
-      zoom: 13,
-      mapId: "DEMO_MAP_ID",
-      disableDefaultUI: false,
-      zoomControl: true,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: true,
+      center, zoom: 13, mapId: "DEMO_MAP_ID",
+      disableDefaultUI: false, zoomControl: true, mapTypeControl: false, streetViewControl: false, fullscreenControl: true,
     });
     mapInstanceRef.current = map;
 
     clustererRef.current = new MarkerClusterer({
-      map,
-      markers: [],
+      map, markers: [],
       renderer: {
         render: ({ count, position }) => {
           const el = document.createElement("div");
-          el.style.cssText = `
-            background: hsl(var(--primary)); color: white; border-radius: 50%;
-            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 13px; border: 2px solid white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-          `;
+          el.style.cssText = `background: hsl(var(--primary)); color: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);`;
           el.textContent = String(count);
-          return new google.maps.marker.AdvancedMarkerElement({
-            position,
-            content: el,
-          });
+          return new google.maps.marker.AdvancedMarkerElement({ position, content: el });
         },
       },
     });
@@ -173,9 +154,76 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
     // Drag end → reload
     map.addListener("dragend", () => {
       const c = map.getCenter();
-      if (c) {
-        setCenter({ lat: c.lat(), lng: c.lng() });
+      if (c) setCenter({ lat: c.lat(), lng: c.lng() });
+    });
+
+    // Click on POI or empty area
+    map.addListener("click", (event: google.maps.MapMouseEvent & { placeId?: string }) => {
+      if (pickMode) return; // In pick mode, handled separately
+      
+      if (event.placeId) {
+        // POI click - get details
+        (event as any).stop?.();
+        const service = new google.maps.places.PlacesService(map);
+        service.getDetails({
+          placeId: event.placeId,
+          fields: ["name", "geometry", "formatted_address", "types", "rating", "opening_hours", "formatted_phone_number", "website"],
+        }, (place, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
+            const universalPlace: UniversalPlace = {
+              name: place.name || "Lieu",
+              address: place.formatted_address || "",
+              lat: place.geometry.location.lat(),
+              lng: place.geometry.location.lng(),
+              types: place.types || [],
+              rating: place.rating,
+              phone: place.formatted_phone_number || undefined,
+              website: place.website || undefined,
+              opening_hours: place.opening_hours?.weekday_text?.[0] || undefined,
+              isPetFriendly: false,
+            };
+            const pixel = event.latLng ? getPixelFromLatLng(map, event.latLng) : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+            setPopupData({ place: universalPlace, position: pixel });
+          }
+        });
+      } else if (event.latLng) {
+        // Empty area click
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ location: event.latLng }, (results, status) => {
+          if (status === "OK" && results?.[0]) {
+            const universalPlace: UniversalPlace = {
+              name: results[0].formatted_address,
+              address: results[0].formatted_address,
+              lat: event.latLng!.lat(),
+              lng: event.latLng!.lng(),
+              types: ["point_on_map"],
+              isPetFriendly: false,
+            };
+            const pixel = getPixelFromLatLng(map, event.latLng!);
+            setPopupData({ place: universalPlace, position: pixel });
+          }
+        });
       }
+    });
+
+    // Right-click for point selection
+    map.addListener("rightclick", (event: google.maps.MapMouseEvent) => {
+      if (!event.latLng) return;
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ location: event.latLng }, (results, status) => {
+        if (status === "OK" && results?.[0]) {
+          const universalPlace: UniversalPlace = {
+            name: results[0].formatted_address,
+            address: results[0].formatted_address,
+            lat: event.latLng!.lat(),
+            lng: event.latLng!.lng(),
+            types: ["point_on_map"],
+            isPetFriendly: false,
+          };
+          const pixel = getPixelFromLatLng(map, event.latLng!);
+          setPopupData({ place: universalPlace, position: pixel });
+        }
+      });
     });
 
     // Geolocation
@@ -183,12 +231,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setCenter(loc);
-          map.panTo(loc);
+          setCenter(loc); map.panTo(loc);
         },
-        () => {
-          loadPlaces(center.lat, center.lng, radiusKm, activeCategory);
-        }
+        () => loadPlaces(center.lat, center.lng, radiusKm, activeCategory)
       );
     } else {
       loadPlaces(center.lat, center.lng, radiusKm, activeCategory);
@@ -197,19 +242,11 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
     // Setup PlaceAutocompleteElement
     if (autocompleteContainerRef.current) {
       try {
-        const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement({
-          componentRestrictions: { country: [] },
-        });
-        
-        // Style the element
-        (placeAutocomplete as any).style.cssText = `
-          width: 100%; border: none; outline: none;
-        `;
-        
+        const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement({ componentRestrictions: { country: [] } });
+        (placeAutocomplete as any).style.cssText = `width: 100%; border: none; outline: none;`;
         autocompleteContainerRef.current.innerHTML = "";
         autocompleteContainerRef.current.appendChild(placeAutocomplete as unknown as Node);
-
-        // @ts-ignore - gmp-select event
+        // @ts-ignore
         placeAutocomplete.addEventListener("gmp-select", async (event: any) => {
           const placePrediction = event.placePrediction;
           if (!placePrediction) return;
@@ -218,25 +255,37 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
           const location = place.location;
           if (location) {
             const loc = { lat: location.lat(), lng: location.lng() };
-            setCenter(loc);
-            map.panTo(loc);
-            map.setZoom(13);
+            setCenter(loc); map.panTo(loc); map.setZoom(13);
           }
         });
       } catch (e) {
-        console.warn("PlaceAutocompleteElement not available, falling back to input", e);
+        console.warn("PlaceAutocompleteElement not available", e);
       }
     }
   }, [isLoaded]);
 
+  // Helper to convert LatLng to pixel
+  function getPixelFromLatLng(map: google.maps.Map, latLng: google.maps.LatLng): { x: number; y: number } {
+    const mapDiv = map.getDiv();
+    const rect = mapDiv.getBoundingClientRect();
+    const proj = map.getProjection();
+    if (!proj) return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    const topRight = proj.fromLatLngToPoint(map.getBounds()!.getNorthEast()!);
+    const bottomLeft = proj.fromLatLngToPoint(map.getBounds()!.getSouthWest()!);
+    const point = proj.fromLatLngToPoint(latLng);
+    if (!topRight || !bottomLeft || !point) return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    const scale = Math.pow(2, map.getZoom()!);
+    const x = rect.left + (point.x - bottomLeft.x) * scale;
+    const y = rect.top + (point.y - topRight.y) * scale;
+    return { x, y };
+  }
+
   // React to center/radius/category changes
   useEffect(() => {
-    if (isLoaded && mapInstanceRef.current) {
-      loadPlaces(center.lat, center.lng, radiusKm, activeCategory);
-    }
+    if (isLoaded && mapInstanceRef.current) loadPlaces(center.lat, center.lng, radiusKm, activeCategory);
   }, [center, radiusKm, activeCategory, isLoaded]);
 
-  // React to external search query (from HeroSection)
+  // React to external search query
   useEffect(() => {
     if (!searchQuery?.trim() || !isLoaded || !mapInstanceRef.current) return;
     const geocoder = new google.maps.Geocoder();
@@ -255,69 +304,47 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
   // Render itinerary on map
   useEffect(() => {
     if (!mapInstanceRef.current || !isLoaded) return;
-
-    // Clean up previous itinerary
     itineraryPolylineRef.current?.setMap(null);
     itineraryMarkersRef.current.forEach((m) => (m.map = null));
     itineraryMarkersRef.current = [];
-
     if (!itineraryData) return;
 
     const map = mapInstanceRef.current;
-
-    // Draw polyline
-    const polyline = new google.maps.Polyline({
-      path: itineraryData.routePath,
-      strokeColor: "#FF6B35",
-      strokeWeight: 5,
-      strokeOpacity: 0.8,
-      map,
-    });
+    const polyline = new google.maps.Polyline({ path: itineraryData.routePath, strokeColor: "#FF6B35", strokeWeight: 5, strokeOpacity: 0.8, map });
     itineraryPolylineRef.current = polyline;
 
     const markers: google.maps.marker.AdvancedMarkerElement[] = [];
-
-    // Start marker
     const startEl = document.createElement("div");
     startEl.innerHTML = `<div style="background:#4CAF50;color:white;padding:6px 12px;border-radius:20px;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)">🏁 Départ</div>`;
     markers.push(new google.maps.marker.AdvancedMarkerElement({ position: itineraryData.origin, content: startEl, map }));
 
-    // End marker
     const endEl = document.createElement("div");
     endEl.innerHTML = `<div style="background:#E53935;color:white;padding:6px 12px;border-radius:20px;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)">🏁 Arrivée</div>`;
     markers.push(new google.maps.marker.AdvancedMarkerElement({ position: itineraryData.destination, content: endEl, map }));
 
-    // Step markers
     const catColors: Record<string, string> = { restaurant: "#FF6B35", hotel: "#4285F4", outdoor: "#4CAF50", services: "#E53935", shop: "#9C27B0" };
     itineraryData.steps.forEach((step, i) => {
       const color = catColors[step.category] || "#9E9E9E";
       const el = document.createElement("div");
-      el.innerHTML = `<div style="background:${color};color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer" title="${step.name} — ${step.category}">${i + 1}</div>`;
-      const marker = new google.maps.marker.AdvancedMarkerElement({
-        position: { lat: step.latitude, lng: step.longitude },
-        content: el,
-        map,
-      });
+      el.innerHTML = `<div style="background:${color};color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer" title="${step.name}">${i + 1}</div>`;
+      const marker = new google.maps.marker.AdvancedMarkerElement({ position: { lat: step.latitude, lng: step.longitude }, content: el, map });
       marker.addListener("click", () => onStepClick?.(step.latitude, step.longitude));
       markers.push(marker);
     });
 
-    // Pause markers
     itineraryData.pausePoints.forEach((pp) => {
       const el = document.createElement("div");
-      el.innerHTML = `<div style="background:#FFF;color:#FF6B35;padding:4px 8px;border-radius:12px;font-size:11px;border:2px solid #FF6B35;box-shadow:0 2px 4px rgba(0,0,0,0.2)" title="Pause conseillée ici">🐾 Pause</div>`;
+      el.innerHTML = `<div style="background:#FFF;color:#FF6B35;padding:4px 8px;border-radius:12px;font-size:11px;border:2px solid #FF6B35;box-shadow:0 2px 4px rgba(0,0,0,0.2)" title="Pause conseillée">🐾 Pause</div>`;
       markers.push(new google.maps.marker.AdvancedMarkerElement({ position: pp, content: el, map }));
     });
 
     itineraryMarkersRef.current = markers;
-
-    // Fit bounds
     const bounds = new google.maps.LatLngBounds();
     itineraryData.routePath.forEach((p) => bounds.extend(p));
     map.fitBounds(bounds, 50);
   }, [itineraryData, isLoaded, onStepClick]);
 
-  // Pick mode: map click to set origin/destination
+  // Pick mode
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !isLoaded) return;
@@ -326,35 +353,25 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
       map.setOptions({ draggableCursor: "crosshair" });
     } else {
       map.setOptions({ draggableCursor: undefined });
-      if (pickMarkerRef.current) {
-        pickMarkerRef.current.map = null;
-        pickMarkerRef.current = null;
-      }
+      if (pickMarkerRef.current) { pickMarkerRef.current.map = null; pickMarkerRef.current = null; }
       return;
     }
 
     const listener = map.addListener("click", (e: google.maps.MapMouseEvent) => {
       if (!e.latLng) return;
       const latLng = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-
       if (pickMarkerRef.current) pickMarkerRef.current.map = null;
-
       if (pickMode === "origin") setOriginPoint(latLng);
       else setDestPoint(latLng);
 
       const geocoder = new google.maps.Geocoder();
       geocoder.geocode({ location: latLng }, (results, status) => {
         const address = status === "OK" && results?.[0] ? results[0].formatted_address : `${latLng.lat.toFixed(4)}, ${latLng.lng.toFixed(4)}`;
-        window.dispatchEvent(new CustomEvent("itinerary-pick", {
-          detail: { location: latLng, text: address },
-        }));
+        window.dispatchEvent(new CustomEvent("itinerary-pick", { detail: { location: latLng, text: address } }));
       });
     });
 
-    return () => {
-      google.maps.event.removeListener(listener);
-      map.setOptions({ draggableCursor: undefined });
-    };
+    return () => { google.maps.event.removeListener(listener); map.setOptions({ draggableCursor: undefined }); };
   }, [pickMode, isLoaded]);
 
   const clearMarkers = useCallback(() => {
@@ -363,77 +380,56 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
     clustererRef.current?.clearMarkers();
   }, []);
 
-  const loadPlaces = useCallback(
-    async (lat: number, lng: number, radius: number, category: string | null) => {
-      setSearching(true);
-      const { data, error } = await supabase.rpc("get_nearby_pet_places", {
-        user_lat: lat,
-        user_lon: lng,
-        radius_km: radius,
-        cat_filter: category,
-        dogs_only: false,
+  const loadPlaces = useCallback(async (lat: number, lng: number, radius: number, category: string | null) => {
+    setSearching(true);
+    const { data, error } = await supabase.rpc("get_nearby_pet_places", { user_lat: lat, user_lon: lng, radius_km: radius, cat_filter: category, dogs_only: false });
+    if (error) { console.error("Supabase RPC error:", error); setSearching(false); return; }
+
+    const results: PetPlace[] = (data || []).map((d: any) => ({ ...d, id: d.id as string }));
+    setPlaces(results);
+    clearMarkers();
+
+    const map = mapInstanceRef.current;
+    if (!map) { setSearching(false); return; }
+
+    const newMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
+    results.forEach((place) => {
+      const content = createMarkerContent(place.category, place.accepts_dogs);
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        position: { lat: place.latitude, lng: place.longitude }, title: place.name, content,
       });
-
-      if (error) {
-        console.error("Supabase RPC error:", error);
-        setSearching(false);
-        return;
-      }
-
-      const results: PetPlace[] = (data || []).map((d: any) => ({
-        ...d,
-        id: d.id as string,
-      }));
-
-      setPlaces(results);
-      clearMarkers();
-
-      const map = mapInstanceRef.current;
-      if (!map) { setSearching(false); return; }
-
-      const newMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
-      results.forEach((place) => {
-        const content = createMarkerContent(place.category, place.accepts_dogs);
-        const marker = new google.maps.marker.AdvancedMarkerElement({
-          position: { lat: place.latitude, lng: place.longitude },
-          title: place.name,
-          content,
-        });
-        marker.addListener("click", (e: any) => {
-          const domEvent = e.domEvent as MouseEvent | undefined;
-          const x = domEvent?.clientX ?? window.innerWidth / 2;
-          const y = domEvent?.clientY ?? window.innerHeight / 2;
-          const universalPlace: UniversalPlace = {
-            name: place.name,
-            address: place.address || place.city || "",
-            lat: place.latitude,
-            lng: place.longitude,
-            category: place.category,
-            city: place.city || undefined,
-            phone: place.phone || undefined,
-            opening_hours: place.opening_hours || undefined,
-            rating: place.rating || undefined,
-            isPetFriendly: true,
-          };
-          setPopupData({ place: universalPlace, position: { x, y }, petPlace: place });
-          map.panTo({ lat: place.latitude, lng: place.longitude });
-        });
-        newMarkers.push(marker);
+      marker.addListener("click", (e: any) => {
+        const domEvent = e.domEvent as MouseEvent | undefined;
+        const x = domEvent?.clientX ?? window.innerWidth / 2;
+        const y = domEvent?.clientY ?? window.innerHeight / 2;
+        const universalPlace: UniversalPlace = {
+          name: place.name,
+          address: place.address || place.city || "",
+          lat: place.latitude,
+          lng: place.longitude,
+          category: place.category,
+          city: place.city || undefined,
+          phone: place.phone || undefined,
+          opening_hours: place.opening_hours || undefined,
+          rating: place.rating || undefined,
+          isPetFriendly: true,
+        };
+        setPopupData({ place: universalPlace, position: { x, y }, petPlace: place });
+        map.panTo({ lat: place.latitude, lng: place.longitude });
       });
+      newMarkers.push(marker);
+    });
 
-      markersRef.current = newMarkers;
-      clustererRef.current?.addMarkers(newMarkers);
-      setSearching(false);
-    },
-    [clearMarkers]
-  );
+    markersRef.current = newMarkers;
+    clustererRef.current?.addMarkers(newMarkers);
+    setSearching(false);
+  }, [clearMarkers]);
 
   // Manage A/B markers and dashed preview line
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !isLoaded) return;
 
-    // Origin marker
     if (originMarkerRef.current) originMarkerRef.current.map = null;
     if (originPoint) {
       const el = document.createElement("div");
@@ -441,7 +437,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
       originMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({ position: originPoint, content: el, map });
     }
 
-    // Destination marker
     if (destMarkerRef.current) destMarkerRef.current.map = null;
     if (destPoint) {
       const el = document.createElement("div");
@@ -449,45 +444,49 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
       destMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({ position: destPoint, content: el, map });
     }
 
-    // Dashed preview line
     previewLineRef.current?.setMap(null);
     if (originPoint && destPoint) {
       previewLineRef.current = new google.maps.Polyline({
-        path: [originPoint, destPoint],
-        strokeColor: "#FF6B35",
-        strokeWeight: 3,
-        strokeOpacity: 0,
-        icons: [{
-          icon: { path: "M 0,-1 0,1", strokeOpacity: 0.6, scale: 3 },
-          offset: "0",
-          repeat: "15px",
-        }],
-        map,
+        path: [originPoint, destPoint], strokeColor: "#FF6B35", strokeWeight: 3, strokeOpacity: 0,
+        icons: [{ icon: { path: "M 0,-1 0,1", strokeOpacity: 0.6, scale: 3 }, offset: "0", repeat: "15px" }], map,
       });
     }
   }, [originPoint, destPoint, isLoaded]);
 
-  // Clear A/B markers when itinerary route is drawn
   useEffect(() => {
-    if (itineraryData) {
-      previewLineRef.current?.setMap(null);
-    }
+    if (itineraryData) previewLineRef.current?.setMap(null);
   }, [itineraryData]);
 
   const handleLocateMe = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition((pos) => {
       const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      setCenter(loc);
-      mapInstanceRef.current?.panTo(loc);
-      mapInstanceRef.current?.setZoom(14);
+      setCenter(loc); mapInstanceRef.current?.panTo(loc); mapInstanceRef.current?.setZoom(14);
     });
+  };
+
+  const handleToggleFav = (place: PetPlace) => {
+    if (!onToggleFavorite) return;
+    const added = onToggleFavorite({
+      id: place.id,
+      name: place.name,
+      category: place.category,
+      subcategory: place.subcategory,
+      address: place.address,
+      city: place.city,
+      lat: place.latitude,
+      lng: place.longitude,
+      phone: place.phone,
+      website: place.website,
+      accepts_dogs: place.accepts_dogs,
+      accepts_cats: place.accepts_cats,
+    });
+    toast(added ? `❤️ ${place.name} ajouté aux favoris` : `💔 ${place.name} retiré des favoris`);
   };
 
   return (
     <section id="explore" className="py-8 bg-secondary/50">
       <div className="container px-4">
-        {/* Search bar with PlaceAutocompleteElement */}
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div
             ref={autocompleteContainerRef}
@@ -495,16 +494,13 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
           />
         </div>
 
-        {/* Category filter chips */}
         <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide mb-2">
           {CATEGORY_FILTERS.map((f) => (
             <button
               key={f.label}
               onClick={() => setActiveCategory(f.key)}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                activeCategory === f.key
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card border border-border text-foreground hover:bg-muted"
+                activeCategory === f.key ? "bg-primary text-primary-foreground" : "bg-card border border-border text-foreground hover:bg-muted"
               }`}
             >
               {f.emoji} {f.label}
@@ -512,21 +508,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
           ))}
         </div>
 
-        {/* Radius slider */}
         <div className="flex items-center gap-4 mb-4 px-1">
           <span className="text-xs text-muted-foreground whitespace-nowrap">Rayon :</span>
-          <Slider
-            min={5}
-            max={50}
-            step={5}
-            value={[radiusKm]}
-            onValueChange={(v) => setRadiusKm(v[0])}
-            className="flex-1 max-w-xs"
-          />
+          <Slider min={5} max={50} step={5} value={[radiusKm]} onValueChange={(v) => setRadiusKm(v[0])} className="flex-1 max-w-xs" />
           <span className="text-sm font-semibold text-foreground w-14 text-right">{radiusKm} km</span>
         </div>
 
-        {/* Map */}
         <div className="relative rounded-2xl overflow-hidden mb-4 border border-border h-[450px]">
           {loadError && (
             <div className="flex items-center justify-center h-full bg-muted">
@@ -546,29 +533,18 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
               </div>
             </div>
           )}
-          <div
-            ref={mapRef}
-            className="w-full h-full"
-            style={{ display: isLoaded && !loadError ? "block" : "none" }}
-          />
+          <div ref={mapRef} className="w-full h-full" style={{ display: isLoaded && !loadError ? "block" : "none" }} />
 
-          {/* Locate me button */}
-          <button
-            onClick={handleLocateMe}
-            className="absolute bottom-4 right-4 z-10 p-3 bg-card rounded-full shadow-lg border border-border hover:bg-muted transition-colors"
-            title="Ma position"
-          >
+          <button onClick={handleLocateMe} className="absolute bottom-4 right-4 z-10 p-3 bg-card rounded-full shadow-lg border border-border hover:bg-muted transition-colors" title="Ma position">
             <Locate className="w-5 h-5 text-primary" />
           </button>
         </div>
 
-        {/* Result counter */}
         <p className="text-center text-sm text-muted-foreground mb-6">
           <span className="font-semibold text-foreground">{places.length}</span> lieu{places.length !== 1 ? "x" : ""} pet-friendly trouvé{places.length !== 1 ? "s" : ""} dans un rayon de <span className="font-semibold text-foreground">{radiusKm} km</span>
         </p>
       </div>
 
-      {/* Marker popup */}
       {popupData && (
         <MarkerPopup
           place={popupData.place}
@@ -599,11 +575,15 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode }: MapSe
         />
       )}
 
-      {/* Side panel */}
       {selectedPlace && (
         <>
           <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setSelectedPlace(null)} />
-          <PlaceDetailPanel place={selectedPlace} onClose={() => setSelectedPlace(null)} />
+          <PlaceDetailPanel
+            place={selectedPlace}
+            onClose={() => setSelectedPlace(null)}
+            isFavorite={isFavorite?.(selectedPlace.id)}
+            onToggleFavorite={() => handleToggleFav(selectedPlace)}
+          />
         </>
       )}
     </section>
