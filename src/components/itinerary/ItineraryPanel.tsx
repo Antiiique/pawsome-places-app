@@ -35,6 +35,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 export type PickMode = "origin" | "destination" | null;
 
 interface ItineraryPanelProps {
+  open: boolean;
   onClose: () => void;
   onRouteCalculated: (data: ItineraryMapData | null) => void;
   onViewStep: (lat: number, lng: number) => void;
