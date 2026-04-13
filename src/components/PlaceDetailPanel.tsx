@@ -1,4 +1,4 @@
-import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home } from "lucide-react";
+import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -47,22 +47,34 @@ const categoryBgColors: Record<string, string> = {
 interface PlaceDetailPanelProps {
   place: PetPlace | null;
   onClose: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }
 
-const PlaceDetailPanel = ({ place, onClose }: PlaceDetailPanelProps) => {
+const PlaceDetailPanel = ({ place, onClose, isFavorite, onToggleFavorite }: PlaceDetailPanelProps) => {
   if (!place) return null;
 
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
 
   return (
-    <div
-      className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-card z-50 shadow-2xl overflow-y-auto animate-slide-in-right"
-    >
+    <div className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-card z-50 shadow-2xl overflow-y-auto animate-slide-in-right">
       <div className="sticky top-0 bg-card z-10 flex items-center justify-between p-4 border-b border-border">
         <h2 className="text-lg font-heading font-bold text-foreground truncate pr-4">{place.name}</h2>
-        <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors shrink-0">
-          <X className="w-5 h-5 text-muted-foreground" />
-        </button>
+        <div className="flex items-center gap-1 shrink-0">
+          {onToggleFavorite && (
+            <button
+              onClick={onToggleFavorite}
+              className="p-1.5 rounded-full hover:bg-muted transition-all active:scale-125"
+            >
+              <Heart
+                className={`w-5 h-5 transition-colors ${isFavorite ? "text-destructive fill-destructive" : "text-muted-foreground"}`}
+              />
+            </button>
+          )}
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
       </div>
 
       {place.photo_url && (
@@ -70,12 +82,10 @@ const PlaceDetailPanel = ({ place, onClose }: PlaceDetailPanelProps) => {
       )}
 
       <div className="p-5 space-y-5">
-        {/* Category badge */}
         <Badge className={`${categoryBgColors[place.category] || "bg-gray-500"} text-white`}>
           {categoryLabels[place.category] || place.category}
         </Badge>
 
-        {/* ✅ Confirmation animaux acceptés */}
         <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
           <p className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
             ✅ Lieu vérifié pet-friendly
@@ -109,20 +119,15 @@ const PlaceDetailPanel = ({ place, onClose }: PlaceDetailPanelProps) => {
           </div>
         </div>
 
-        {/* Rating */}
         {place.rating && (
           <div className="flex items-center gap-2">
             {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`w-4 h-4 ${i < Math.round(place.rating!) ? "text-amber-400 fill-amber-400" : "text-muted"}`}
-              />
+              <Star key={i} className={`w-4 h-4 ${i < Math.round(place.rating!) ? "text-amber-400 fill-amber-400" : "text-muted"}`} />
             ))}
             <span className="text-sm font-semibold text-foreground">{place.rating}</span>
           </div>
         )}
 
-        {/* Opening hours */}
         {place.opening_hours && (
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Horaires</p>
@@ -130,7 +135,6 @@ const PlaceDetailPanel = ({ place, onClose }: PlaceDetailPanelProps) => {
           </div>
         )}
 
-        {/* Address */}
         {place.address && (
           <div className="flex items-start gap-2">
             <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
@@ -138,27 +142,20 @@ const PlaceDetailPanel = ({ place, onClose }: PlaceDetailPanelProps) => {
           </div>
         )}
 
-        {/* Phone */}
         {place.phone && (
           <div className="flex items-center gap-2">
             <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
-            <a href={`tel:${place.phone}`} className="text-sm text-primary hover:underline">
-              {place.phone}
-            </a>
+            <a href={`tel:${place.phone}`} className="text-sm text-primary hover:underline">{place.phone}</a>
           </div>
         )}
 
-        {/* Website */}
         {place.website && (
           <div className="flex items-center gap-2">
             <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
-            <a href={place.website} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate">
-              {place.website}
-            </a>
+            <a href={place.website} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate">{place.website}</a>
           </div>
         )}
 
-        {/* Description */}
         {place.description && (
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Description</p>
@@ -166,11 +163,7 @@ const PlaceDetailPanel = ({ place, onClose }: PlaceDetailPanelProps) => {
           </div>
         )}
 
-        {/* Directions button */}
-        <Button
-          className="w-full gap-2"
-          onClick={() => window.open(directionsUrl, "_blank")}
-        >
+        <Button className="w-full gap-2" onClick={() => window.open(directionsUrl, "_blank")}>
           <Navigation className="w-4 h-4" />
           Itinéraire
         </Button>
