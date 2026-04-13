@@ -33,9 +33,27 @@ interface ItineraryPanelProps {
   onViewStep: (lat: number, lng: number) => void;
 }
 
+async function geocodeAddress(address: string): Promise<{ lat: number; lng: number; name: string }> {
+  const geocoder = new google.maps.Geocoder();
+  return new Promise((resolve, reject) => {
+    geocoder.geocode({ address }, (results, status) => {
+      if (status === "OK" && results?.[0]) {
+        resolve({
+          lat: results[0].geometry.location.lat(),
+          lng: results[0].geometry.location.lng(),
+          name: results[0].formatted_address,
+        });
+      } else {
+        reject(new Error("Adresse introuvable : " + address));
+      }
+    });
+  });
+}
+
 function setupAutocomplete(
   container: HTMLDivElement | null,
-  onSelect: (location: { lat: number; lng: number }, text: string) => void
+  onSelect: (location: { lat: number; lng: number }, text: string) => void,
+  onTextChange: (text: string) => void
 ) {
   if (!container || !window.google?.maps?.places) return;
   try {
@@ -43,14 +61,29 @@ function setupAutocomplete(
     (ac as any).style.cssText = "width:100%;border:none;outline:none;";
     container.innerHTML = "";
     container.appendChild(ac as unknown as Node);
-    // @ts-ignore
-    ac.addEventListener("gmp-placeselect", async (e: any) => {
-      const place = e.placePrediction?.toPlace();
-      if (!place) return;
-      await place.fetchFields({ fields: ["location", "displayName"] });
-      const loc = place.location;
-      if (loc) {
-        onSelect({ lat: loc.lat(), lng: loc.lng() }, place.displayName || "");
+
+    // Listen for text input changes for fallback
+    const observer = new MutationObserver(() => {
+      const input = container.querySelector("input");
+      if (input) {
+        input.addEventListener("input", () => onTextChange(input.value));
+        observer.disconnect();
+      }
+    });
+    observer.observe(container, { childList: true, subtree: true });
+
+    // @ts-ignore - gmp-select is the correct event for new API
+    ac.addEventListener("gmp-select", async (e: any) => {
+      try {
+        const place = e.placePrediction?.toPlace();
+        if (!place) return;
+        await place.fetchFields({ fields: ["location", "displayName"] });
+        const loc = place.location;
+        if (loc) {
+          onSelect({ lat: loc.lat(), lng: loc.lng() }, place.displayName || "");
+        }
+      } catch (err) {
+        console.warn("gmp-select handler error, will use geocoding fallback", err);
       }
     });
   } catch (err) {
@@ -68,13 +101,24 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ItineraryMapData | null>(null);
   const [autoKey, setAutoKey] = useState(0);
+  const [originText, setOriginText] = useState("");
+  const [destText, setDestText] = useState("");
+  const [errors, setErrors] = useState<{ origin?: string; dest?: string }>({});
 
   const originContainerRef = useRef<HTMLDivElement>(null);
   const destContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setupAutocomplete(originContainerRef.current, (loc, text) => setOrigin({ location: loc, text }));
-    setupAutocomplete(destContainerRef.current, (loc, text) => setDestination({ location: loc, text }));
+    setupAutocomplete(
+      originContainerRef.current,
+      (loc, text) => { setOrigin({ location: loc, text }); setOriginText(text); setErrors((e) => ({ ...e, origin: undefined })); },
+      (text) => { setOriginText(text); if (origin) setOrigin(null); }
+    );
+    setupAutocomplete(
+      destContainerRef.current,
+      (loc, text) => { setDestination({ location: loc, text }); setDestText(text); setErrors((e) => ({ ...e, dest: undefined })); },
+      (text) => { setDestText(text); if (destination) setDestination(null); }
+    );
   }, [autoKey]);
 
   const handleSwap = () => {
@@ -89,10 +133,29 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
   };
 
   const calculate = useCallback(async () => {
-    if (!origin || !destination) {
-      toast.error("Veuillez sélectionner un départ et une arrivée.");
+    const newErrors: { origin?: string; dest?: string } = {};
+
+    // Get input text from containers for fallback
+    const originInput = originContainerRef.current?.querySelector("input");
+    const destInput = destContainerRef.current?.querySelector("input");
+    const originVal = originInput?.value || originText;
+    const destVal = destInput?.value || destText;
+
+    if (!origin && !originVal.trim()) {
+      newErrors.origin = "Veuillez saisir un point de départ";
+    }
+    if (!destination && !destVal.trim()) {
+      newErrors.dest = "Veuillez saisir un point d'arrivée";
+    }
+    if (originVal.trim() && destVal.trim() && originVal.trim() === destVal.trim()) {
+      toast.error("Le départ et l'arrivée doivent être différents");
       return;
     }
+    if (newErrors.origin || newErrors.dest) {
+      setErrors(newErrors);
+      return;
+    }
+
     if (!window.google?.maps?.DirectionsService) {
       toast.error("Google Maps n'est pas encore chargé.");
       return;
@@ -100,14 +163,34 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
 
     setLoading(true);
     setResult(null);
+    setErrors({});
     onRouteCalculated(null);
 
     try {
+      // Use selected place coords, or fallback to geocoding
+      let originLoc = origin?.location;
+      let destLoc = destination?.location;
+      let originName = origin?.text || originVal;
+      let destName = destination?.text || destVal;
+
+      if (!originLoc) {
+        const geo = await geocodeAddress(originVal);
+        originLoc = { lat: geo.lat, lng: geo.lng };
+        originName = geo.name;
+        setOrigin({ location: originLoc, text: originName });
+      }
+      if (!destLoc) {
+        const geo = await geocodeAddress(destVal);
+        destLoc = { lat: geo.lat, lng: geo.lng };
+        destName = geo.name;
+        setDestination({ location: destLoc, text: destName });
+      }
+
       // Step 1: Get directions
       const directionsService = new google.maps.DirectionsService();
       const dirResult = await directionsService.route({
-        origin: origin.location,
-        destination: destination.location,
+        origin: originLoc,
+        destination: destLoc,
         travelMode: google.maps.TravelMode.DRIVING,
       });
 
@@ -188,25 +271,25 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
       }
 
       const routePath = path.map((p) => ({ lat: p.lat(), lng: p.lng() }));
-      const data: ItineraryMapData = {
+      const itineraryResult: ItineraryMapData = {
         routePath,
-        origin: origin.location,
-        destination: destination.location,
+        origin: originLoc,
+        destination: destLoc,
         steps,
         pausePoints,
         totalDistance: leg.distance?.text || "",
         totalDuration: leg.duration?.text || "",
       };
 
-      setResult(data);
-      onRouteCalculated(data);
+      setResult(itineraryResult);
+      onRouteCalculated(itineraryResult);
     } catch (err: any) {
       console.error("Route calculation error:", err);
-      toast.error(err.message || "Erreur lors du calcul de l'itinéraire.");
+      toast.error(err.message || "Adresse non reconnue. Essayez avec une ville ou un code postal.");
     } finally {
       setLoading(false);
     }
-  }, [origin, destination, maxStepDistance, filters, onRouteCalculated]);
+  }, [origin, destination, originText, destText, maxStepDistance, filters, onRouteCalculated]);
 
   const handleShare = () => {
     if (!result) return;
@@ -264,8 +347,9 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
               <div
                 key={`origin-${autoKey}`}
                 ref={originContainerRef}
-                className="rounded-lg border border-border bg-background text-foreground text-sm overflow-hidden [&_input]:w-full [&_input]:pl-4 [&_input]:pr-4 [&_input]:py-2.5 [&_input]:bg-transparent [&_input]:text-sm [&_input]:outline-none [&_input]:border-none"
+                className={`rounded-lg border bg-background text-foreground text-sm overflow-hidden [&_input]:w-full [&_input]:pl-4 [&_input]:pr-4 [&_input]:py-2.5 [&_input]:bg-transparent [&_input]:text-sm [&_input]:outline-none [&_input]:border-none ${errors.origin ? "border-destructive" : "border-border"}`}
               />
+              {errors.origin && <span className="text-xs text-destructive mt-1 block">{errors.origin}</span>}
               {origin && <span className="text-xs text-primary mt-1 block">✓ {origin.text}</span>}
             </div>
 
@@ -282,8 +366,9 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
               <div
                 key={`dest-${autoKey}`}
                 ref={destContainerRef}
-                className="rounded-lg border border-border bg-background text-foreground text-sm overflow-hidden [&_input]:w-full [&_input]:pl-4 [&_input]:pr-4 [&_input]:py-2.5 [&_input]:bg-transparent [&_input]:text-sm [&_input]:outline-none [&_input]:border-none"
+                className={`rounded-lg border bg-background text-foreground text-sm overflow-hidden [&_input]:w-full [&_input]:pl-4 [&_input]:pr-4 [&_input]:py-2.5 [&_input]:bg-transparent [&_input]:text-sm [&_input]:outline-none [&_input]:border-none ${errors.dest ? "border-destructive" : "border-border"}`}
               />
+              {errors.dest && <span className="text-xs text-destructive mt-1 block">{errors.dest}</span>}
               {destination && <span className="text-xs text-primary mt-1 block">✓ {destination.text}</span>}
             </div>
 

@@ -80,7 +80,7 @@ function loadGoogleMapsScript(): Promise<void> {
       return;
     }
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker,geometry&loading=async`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker,geometry&loading=async&v=beta`;
     script.async = true;
     script.defer = true;
     script.onload = () => waitForGoogleMaps().then(resolve);
@@ -198,8 +198,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick }: MapSectionProps
         autocompleteContainerRef.current.innerHTML = "";
         autocompleteContainerRef.current.appendChild(placeAutocomplete as unknown as Node);
 
-        // @ts-ignore - gmp-placeselect event
-        placeAutocomplete.addEventListener("gmp-placeselect", async (event: any) => {
+        // @ts-ignore - gmp-select event
+        placeAutocomplete.addEventListener("gmp-select", async (event: any) => {
           const placePrediction = event.placePrediction;
           if (!placePrediction) return;
           const place = placePrediction.toPlace();
