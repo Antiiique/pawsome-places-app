@@ -6,79 +6,85 @@
 
 @layer base {
   :root {
-    --background: 0 0% 5%;
-    --foreground: 0 0% 94%;
+    /* Nature palette */
+    --background: 60 10% 8%;       /* #1a1a14 */
+    --foreground: 40 20% 93%;      /* #f0ede4 */
 
-    --card: 0 0% 14%;
-    --card-foreground: 0 0% 94%;
+    --card: 60 10% 14%;            /* #2d2d20 */
+    --card-foreground: 40 20% 93%;
 
-    --popover: 0 0% 14%;
-    --popover-foreground: 0 0% 94%;
+    --popover: 60 10% 14%;
+    --popover-foreground: 40 20% 93%;
 
-    --primary: 217 91% 60%;
+    --primary: 93 30% 46%;         /* #7c9a52 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 94%;
+    --secondary: 60 10% 10%;      /* #232318 */
+    --secondary-foreground: 40 20% 93%;
 
-    --muted: 0 0% 11%;
-    --muted-foreground: 0 0% 38%;
+    --muted: 60 10% 10%;
+    --muted-foreground: 42 15% 36%; /* #6b6450 */
 
-    --accent: 217 91% 60%;
+    --accent: 93 30% 46%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 5 46% 40%;     /* #a04030 */
+    --destructive-foreground: 40 20% 93%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 217 91% 60%;
+    --border: 50 18% 20%;         /* #3d3d2a */
+    --input: 50 18% 20%;
+    --ring: 93 30% 46%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
 
-    --sidebar-background: 0 0% 7%;
-    --sidebar-foreground: 0 0% 94%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-background: 60 10% 8%;
+    --sidebar-foreground: 40 20% 93%;
+    --sidebar-primary: 93 30% 46%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 14%;
-    --sidebar-accent-foreground: 0 0% 94%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: 60 10% 14%;
+    --sidebar-accent-foreground: 40 20% 93%;
+    --sidebar-border: 50 18% 20%;
+    --sidebar-ring: 93 30% 46%;
 
-    --success: 142 71% 45%;
-    --warning: 38 92% 50%;
-    --danger: 0 84% 60%;
+    --success: 110 40% 38%;       /* #5a8a3c */
+    --warning: 30 65% 47%;        /* #c47c2b */
+    --danger: 5 46% 40%;          /* #a04030 */
 
-    --surface: 0 0% 10%;
-    --text-sub: 0 0% 63%;
+    --surface: 60 10% 10%;        /* #232318 */
+    --text-sub: 36 15% 56%;       /* #a09880 */
+
+    --accent-hover: 93 30% 52%;   /* #8fad60 */
+    --accent-soft: 100 38% 21%;   /* #3a4a22 */
+    --pet: 100 40% 40%;           /* #6b8f3e */
   }
 
   .dark {
-    --background: 0 0% 5%;
-    --foreground: 0 0% 94%;
-    --card: 0 0% 14%;
-    --card-foreground: 0 0% 94%;
-    --popover: 0 0% 14%;
-    --popover-foreground: 0 0% 94%;
-    --primary: 217 91% 60%;
+    --background: 60 10% 8%;
+    --foreground: 40 20% 93%;
+    --card: 60 10% 14%;
+    --card-foreground: 40 20% 93%;
+    --popover: 60 10% 14%;
+    --popover-foreground: 40 20% 93%;
+    --primary: 93 30% 46%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 94%;
-    --muted: 0 0% 11%;
-    --muted-foreground: 0 0% 38%;
-    --accent: 217 91% 60%;
+    --secondary: 60 10% 10%;
+    --secondary-foreground: 40 20% 93%;
+    --muted: 60 10% 10%;
+    --muted-foreground: 42 15% 36%;
+    --accent: 93 30% 46%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 217 91% 60%;
+    --destructive: 5 46% 40%;
+    --destructive-foreground: 40 20% 93%;
+    --border: 50 18% 20%;
+    --input: 50 18% 20%;
+    --ring: 93 30% 46%;
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   body {
@@ -97,14 +103,14 @@
   .hero-gradient {
     background: linear-gradient(
       135deg,
-      hsla(217, 91%, 60%, 0.85) 0%,
-      hsla(217, 91%, 40%, 0.7) 50%,
-      hsla(0, 0%, 5%, 0.9) 100%
+      hsla(93, 30%, 46%, 0.85) 0%,
+      hsla(93, 30%, 30%, 0.7) 50%,
+      hsla(60, 10%, 8%, 0.95) 100%
     );
   }
 
   .category-shadow {
-    box-shadow: 0 4px 20px -4px hsla(217, 91%, 60%, 0.15);
+    box-shadow: 0 4px 20px -4px hsla(93, 30%, 46%, 0.15);
   }
 
   .card-hover {
@@ -113,7 +119,7 @@
 
   .card-hover:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px -8px hsla(217, 91%, 60%, 0.2);
+    box-shadow: 0 12px 32px -8px hsla(93, 30%, 46%, 0.2);
   }
 
   .animate-slide-in-right {
@@ -138,17 +144,17 @@
 #map,
 .map-container,
 [class*="map-wrapper"] {
-  background: hsl(0 0% 5%) !important;
+  background: hsl(60 10% 8%) !important;
 }
 
 /* Force dark on Google Maps InfoWindows */
 .gm-style .gm-style-iw-c,
 .gm-style .gm-style-iw-d {
-  background: hsl(0 0% 14%) !important;
-  color: hsl(0 0% 94%) !important;
+  background: hsl(60 10% 14%) !important;
+  color: hsl(40 20% 93%) !important;
 }
 .gm-style .gm-style-iw-tc::after {
-  background: hsl(0 0% 14%) !important;
+  background: hsl(60 10% 14%) !important;
 }
 
 /* Override any inline white backgrounds */
@@ -158,8 +164,8 @@
 [style*="background:#fff"],
 [style*="background-color: white"],
 [style*="background-color:#fff"] {
-  background: hsl(0 0% 14%) !important;
-  color: hsl(0 0% 94%) !important;
+  background: hsl(60 10% 14%) !important;
+  color: hsl(40 20% 93%) !important;
 }
 
 /* Override inline black text that becomes invisible */
@@ -167,7 +173,7 @@
 [style*="color:#000"],
 [style*="color: black"],
 [style*="color:black"] {
-  color: hsl(0 0% 94%) !important;
+  color: hsl(40 20% 93%) !important;
 }
 
 [style*="color: #333"],
@@ -178,7 +184,7 @@
 [style*="color:#555"],
 [style*="color: #666"],
 [style*="color:#666"] {
-  color: hsl(0 0% 63%) !important;
+  color: hsl(36 15% 56%) !important;
 }
 
 @keyframes pulse {
