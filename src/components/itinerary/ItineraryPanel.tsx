@@ -99,6 +99,7 @@ export default function ItineraryPanel({ onClose, onRouteCalculated, onViewStep 
     outdoor: true, restaurant: true, hotel: true, services: true, shop: false,
   });
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<ItineraryMapData | null>(null);
   const [autoKey, setAutoKey] = useState(0);
   const [originText, setOriginText] = useState("");
   const [destText, setDestText] = useState("");
