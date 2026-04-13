@@ -561,9 +561,9 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
         onClick={onClose}
       />
 
-      <div data-panel className={`fixed z-50 bottom-0 left-0 w-[360px] max-w-[92vw] bg-card border-r border-border shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+      <div data-panel className={`fixed z-50 bottom-0 left-0 w-[420px] max-w-[96vw] min-w-[320px] bg-card border-r border-border shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
         open ? "translate-x-0" : "-translate-x-full"
-      }`} style={{ top: 56, borderRadius: '0 0 var(--radius) 0' }}>
+      } max-[500px]:!w-screen max-[500px]:!max-w-[100vw] max-[500px]:!rounded-none`} style={{ top: 56, borderRadius: '0 0 var(--radius) 0' }}>
 
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
