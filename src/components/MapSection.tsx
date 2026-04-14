@@ -543,6 +543,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           place={popupData.place}
           position={popupData.position}
           onClose={() => setPopupData(null)}
+
           onSetOrigin={() => {
             const p = popupData.place;
             setOriginPoint({ lat: p.lat, lng: p.lng });
