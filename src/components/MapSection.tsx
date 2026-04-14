@@ -171,8 +171,18 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           placeId: event.placeId,
           fields: ["name", "geometry", "formatted_address", "types", "rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos"],
         }, (place, status) => {
-          console.log("📍 getDetails status:", status);
-          console.log("📍 place reçu:", place);
+          console.log('=== Places API getDetails ===');
+          console.log('Status:', status);
+          console.log('Place reçu:', place);
+          console.log('Photos:', place?.photos?.length ?? 'aucune');
+          console.log('Avis:', place?.reviews?.length ?? 'aucun');
+          console.log('============================');
+          if (status === 'REQUEST_DENIED') {
+            console.error('❌ Places API non activée ou clé API invalide');
+          }
+          if (status === 'OVER_QUERY_LIMIT') {
+            console.error('❌ Quota dépassé');
+          }
           if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
             const photos = place.photos
               ? place.photos.slice(0, 5).map(p => p.getUrl({ maxWidth: 400, maxHeight: 300 }))
