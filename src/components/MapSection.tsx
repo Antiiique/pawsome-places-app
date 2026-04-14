@@ -168,9 +168,21 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         const service = new google.maps.places.PlacesService(map);
         service.getDetails({
           placeId: event.placeId,
-          fields: ["name", "geometry", "formatted_address", "types", "rating", "opening_hours", "formatted_phone_number", "website"],
+          fields: ["name", "geometry", "formatted_address", "types", "rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos"],
         }, (place, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
+            const photos = place.photos
+              ? place.photos.slice(0, 5).map(p => p.getUrl({ maxWidth: 400, maxHeight: 300 }))
+              : [];
+            const reviews = place.reviews
+              ? place.reviews.slice(0, 5).map(r => ({
+                  author: r.author_name || "Anonyme",
+                  avatar: r.profile_photo_url || null,
+                  rating: r.rating,
+                  text: r.text || "",
+                  time: r.relative_time_description || "",
+                }))
+              : [];
             const universalPlace: UniversalPlace = {
               name: place.name || "Lieu",
               address: place.formatted_address || "",
@@ -178,10 +190,15 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
               lng: place.geometry.location.lng(),
               types: place.types || [],
               rating: place.rating,
+              reviewsTotal: (place as any).user_ratings_total || 0,
               phone: place.formatted_phone_number || undefined,
               website: place.website || undefined,
-              opening_hours: place.opening_hours?.weekday_text?.[0] || undefined,
+              opening_hours: place.opening_hours?.isOpen?.()
+                ? "🟢 Ouvert maintenant"
+                : place.opening_hours?.weekday_text?.join(" • ") || undefined,
               isPetFriendly: false,
+              photos,
+              reviews,
             };
             const pixel = event.latLng ? getPixelFromLatLng(map, event.latLng) : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
             setPopupData({ place: universalPlace, position: pixel });

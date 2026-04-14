@@ -1,4 +1,13 @@
-import { Heart, X, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { Heart, X, ExternalLink, ChevronLeft, ChevronRight, Star } from "lucide-react";
+
+export interface PlaceReview {
+  author: string;
+  avatar?: string | null;
+  rating: number;
+  text: string;
+  time: string;
+}
 
 export interface UniversalPlace {
   name: string;
@@ -10,10 +19,13 @@ export interface UniversalPlace {
   phone?: string;
   opening_hours?: string;
   rating?: number;
+  reviewsTotal?: number;
   website?: string;
   isPetFriendly: boolean;
   types?: string[];
   placeId?: string;
+  photos?: string[];
+  reviews?: PlaceReview[];
 }
 
 function getPlaceEmoji(place: UniversalPlace): string {
