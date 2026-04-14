@@ -24,6 +24,7 @@ export interface PetPlace {
   photo_url: string | null;
   verified: boolean;
   distance_km?: number;
+  google_place_id?: string | null;
 }
 
 const categoryLabels: Record<string, string> = {
