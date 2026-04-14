@@ -173,6 +173,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         }, (place, status) => {
           console.log("📍 getDetails status:", status);
           console.log("📍 place reçu:", place);
+          if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
             const photos = place.photos
               ? place.photos.slice(0, 5).map(p => p.getUrl({ maxWidth: 400, maxHeight: 300 }))
               : [];
@@ -204,6 +205,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             };
             const pixel = event.latLng ? getPixelFromLatLng(map, event.latLng) : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
             setPopupData({ place: universalPlace, position: pixel });
+          } else {
+            console.error("❌ Erreur Places API:", status);
           }
         });
       } else if (event.latLng) {
