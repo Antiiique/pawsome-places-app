@@ -171,12 +171,14 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           placeId: event.placeId,
           fields: ["name", "geometry", "formatted_address", "types", "rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos"],
         }, (place, status) => {
-          console.log('=== Places API getDetails ===');
+          console.log('--- DIAGNOSTIC PLACES API ---');
           console.log('Status:', status);
-          console.log('Place reçu:', place);
-          console.log('Photos:', place?.photos?.length ?? 'aucune');
-          console.log('Avis:', place?.reviews?.length ?? 'aucun');
-          console.log('============================');
+          console.log('Nom du lieu:', place?.name);
+          console.log('Nombre de photos:', place?.photos?.length ?? 0);
+          console.log('Nombre d\'avis:', place?.reviews?.length ?? 0);
+          console.log('Premier avis:', place?.reviews?.[0] ?? 'aucun');
+          console.log('Première photo URL:', place?.photos?.[0]?.getUrl({ maxWidth: 400 }) ?? 'aucune');
+          console.log('-----------------------------');
           if (status === 'REQUEST_DENIED') {
             console.error('❌ Places API non activée ou clé API invalide');
           }
