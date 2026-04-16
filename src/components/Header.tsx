@@ -9,7 +9,7 @@ import AuthModal from "@/components/AuthModal";
 import SubmitPlaceModal from "@/components/SubmitPlaceModal";
 import NotificationPanel from "@/components/NotificationPanel";
 import { useUserNotifications } from "@/hooks/useUserNotifications";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface HeaderProps {
   onItineraryClick?: () => void;
@@ -28,7 +28,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
 
   const handleSignOut = async () => {
     await signOut();
-    toast({ title: "À bientôt ! 👋" });
+    toast("À bientôt ! 👋");
   };
 
   const initial = profile?.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";

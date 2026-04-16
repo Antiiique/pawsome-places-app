@@ -37,8 +37,13 @@ export function useUserNotifications() {
     }
     fetchNotifications();
 
+    const channelName = "user-notifs-" + user.id;
+    // Remove any existing channel with the same name first
+    const existing = supabase.getChannels().find((c) => c.topic === `realtime:${channelName}`);
+    if (existing) supabase.removeChannel(existing);
+
     const channel = supabase
-      .channel("user-notifs-" + user.id)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
