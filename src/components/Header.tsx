@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { useState, useEffect } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
+import SubmitPlaceModal from "@/components/SubmitPlaceModal";
 import { toast } from "@/hooks/use-toast";
 
 interface HeaderProps {
@@ -17,6 +18,7 @@ interface HeaderProps {
 const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: HeaderProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const { user, profile, signOut } = useAuthContext();
 
   const handleSignOut = async () => {
@@ -63,7 +65,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
 
           {user ? (
             <>
-              <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-accent-hover text-sm">
+              <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-accent-hover text-sm" onClick={() => user ? setShowSubmitModal(true) : setShowAuthModal(true)}>
                 Ajouter un lieu
               </Button>
               <Popover>
@@ -129,7 +131,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
           </Button>
           {user ? (
             <>
-              <Button className="w-full bg-primary text-primary-foreground">Ajouter un lieu</Button>
+              <Button className="w-full bg-primary text-primary-foreground" onClick={() => { setMenuOpen(false); user ? setShowSubmitModal(true) : setShowAuthModal(true); }}>Ajouter un lieu</Button>
               <Button variant="destructive" className="w-full" onClick={handleSignOut}>Se déconnecter</Button>
             </>
           ) : (
@@ -142,6 +144,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
       )}
 
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <SubmitPlaceModal open={showSubmitModal} onClose={() => setShowSubmitModal(false)} onLoginRequired={() => { setShowSubmitModal(false); setShowAuthModal(true); }} />
     </header>
   );
 };
