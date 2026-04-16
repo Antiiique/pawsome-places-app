@@ -362,11 +362,12 @@ const AdminPage = () => {
         </div>
 
         <Tabs defaultValue="notifications">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="notifications">🔔 Notifs</TabsTrigger>
             <TabsTrigger value="submissions">📍 À valider</TabsTrigger>
             <TabsTrigger value="reports">⚠️ Signalements</TabsTrigger>
             <TabsTrigger value="places">🗺️ Lieux</TabsTrigger>
+            <TabsTrigger value="published">🗺️ Publiés</TabsTrigger>
           </TabsList>
 
           <TabsContent value="notifications" className="space-y-2 mt-4">
