@@ -87,6 +87,8 @@ const AdminPage = () => {
 
   const [rejectDialog, setRejectDialog] = useState<{ open: boolean; id: string | null }>({ open: false, id: null });
   const [rejectNote, setRejectNote] = useState("");
+  const [approveDialog, setApproveDialog] = useState<{ open: boolean; sub: Submission | null }>({ open: false, sub: null });
+  const [approveNote, setApproveNote] = useState("");
 
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
@@ -158,9 +160,9 @@ const AdminPage = () => {
     fetchCounts();
   };
 
-  const approveSubmission = async (sub: Submission) => {
-    // Insert into pet_friendly_places
-    await supabase.from("pet_friendly_places").insert({
+  const approveSubmission = async (sub: Submission, note: string) => {
+    // 1. Insert into pet_friendly_places
+    const { data: newPlace } = await supabase.from("pet_friendly_places").insert({
       name: sub.name,
       category: sub.category,
       subcategory: sub.subcategory,
@@ -178,15 +180,32 @@ const AdminPage = () => {
       outdoor_seating: sub.outdoor_seating ?? false,
       water_bowl_provided: sub.water_bowl_provided ?? false,
       opening_hours: sub.opening_hours,
-      verified: false,
+      verified: true,
       source: "user_submission",
-    });
+    }).select("id").single();
+
+    // 2. Copy first submission photo
+    if (newPlace) {
+      const { data: photo } = await supabase
+        .from("submission_photos")
+        .select("url")
+        .eq("submission_id", sub.id)
+        .limit(1)
+        .maybeSingle();
+      if (photo?.url) {
+        await supabase.from("pet_friendly_places").update({ photo_url: photo.url }).eq("id", newPlace.id);
+      }
+    }
+
+    // 3. Update submission status
     await supabase.from("place_submissions").update({
       status: "approved",
+      admin_note: note || null,
       reviewed_at: new Date().toISOString(),
       reviewed_by: user?.id,
     }).eq("id", sub.id);
-    toast.success(`"${sub.name}" approuvé !`);
+
+    toast.success(`✅ "${sub.name}" approuvé et publié sur la carte !`);
     setSubmissions(prev => prev.filter(s => s.id !== sub.id));
     fetchCounts();
   };
@@ -317,7 +336,7 @@ const AdminPage = () => {
                     {sub.outdoor_seating && <Badge variant="outline">🌿 Terrasse</Badge>}
                   </div>
                   <div className="flex gap-2 pt-2">
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => approveSubmission(sub)}>
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => setApproveDialog({ open: true, sub })}>
                       ✅ Approuver
                     </Button>
                     <Button size="sm" variant="outline" className="text-destructive border-destructive" onClick={() => setRejectDialog({ open: true, id: sub.id })}>
@@ -353,6 +372,25 @@ const AdminPage = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Approve dialog */}
+      <Dialog open={approveDialog.open} onOpenChange={(v) => { if (!v) { setApproveDialog({ open: false, sub: null }); setApproveNote(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>✅ Approuver ce lieu</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Ajouter un message de remerciement (optionnel)</p>
+          <Textarea
+            placeholder="Ex: Merci pour cette super contribution !"
+            value={approveNote}
+            onChange={(e) => setApproveNote(e.target.value)}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setApproveDialog({ open: false, sub: null }); setApproveNote(""); }}>Annuler</Button>
+            <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => { if (approveDialog.sub) approveSubmission(approveDialog.sub, approveNote); setApproveDialog({ open: false, sub: null }); setApproveNote(""); }}>Approuver</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Reject dialog */}
       <Dialog open={rejectDialog.open} onOpenChange={(v) => { if (!v) { setRejectDialog({ open: false, id: null }); setRejectNote(""); } }}>
