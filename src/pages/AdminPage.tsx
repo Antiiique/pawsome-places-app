@@ -129,6 +129,10 @@ const AdminPage = () => {
 
   const [places, setPlaces] = useState<PublishedPlace[]>([]);
   const [placesLoading, setPlacesLoading] = useState(false);
+  const [publishedPlaces, setPublishedPlaces] = useState<Array<{
+    id: string; name: string; category: string; city: string | null;
+    created_at: string; verified: boolean; source: string | null;
+  }>>([]);
   const [placesSearch, setPlacesSearch] = useState("");
   const [placesPage, setPlacesPage] = useState(0);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; place: PublishedPlace | null }>({ open: false, place: null });
@@ -217,7 +221,7 @@ const AdminPage = () => {
   };
 
   const approveSubmission = async (sub: Submission, note: string) => {
-    const { data: newPlace } = await supabase.from("pet_friendly_places").insert({
+    const { data: newPlace, error: insertError } = await supabase.from("pet_friendly_places").insert({
       name: sub.name, category: sub.category, subcategory: sub.subcategory,
       address: sub.address, city: sub.city, country: sub.country || "France",
       latitude: sub.latitude, longitude: sub.longitude, phone: sub.phone,
@@ -228,7 +232,12 @@ const AdminPage = () => {
       verified: true, source: "user_submission",
     }).select("id").single();
 
-    if (newPlace) {
+    if (insertError || !newPlace) {
+      toast.error(`Erreur lors de la publication : ${insertError?.message || "Insertion échouée"}`);
+      return;
+    }
+
+    {
       const { data: photo } = await supabase.from("submission_photos").select("url").eq("submission_id", sub.id).limit(1).maybeSingle();
       if (photo?.url) await supabase.from("pet_friendly_places").update({ photo_url: photo.url }).eq("id", newPlace.id);
     }
