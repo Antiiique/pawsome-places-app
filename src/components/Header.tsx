@@ -9,7 +9,7 @@ import AuthModal from "@/components/AuthModal";
 import SubmitPlaceModal from "@/components/SubmitPlaceModal";
 import NotificationPanel from "@/components/NotificationPanel";
 import { useUserNotifications } from "@/hooks/useUserNotifications";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface HeaderProps {
   onItineraryClick?: () => void;
