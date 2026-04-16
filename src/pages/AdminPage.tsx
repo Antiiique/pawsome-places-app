@@ -262,6 +262,7 @@ const AdminPage = () => {
     setSubmissions(prev => prev.filter(s => s.id !== sub.id));
     fetchCounts();
     fetchPlaces();
+    fetchPublishedPlaces();
   };
 
   const rejectSubmission = async () => {
