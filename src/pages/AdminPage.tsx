@@ -204,15 +204,26 @@ const AdminPage = () => {
     setPlacesLoading(false);
   }, []);
 
+  const fetchPublishedPlaces = useCallback(async () => {
+    const { data } = await supabase
+      .from("pet_friendly_places")
+      .select("id, name, category, city, created_at, verified, source")
+      .eq("source", "user_submission")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (data) setPublishedPlaces(data);
+  }, []);
+
   useEffect(() => {
     fetchCounts();
     fetchNotifications();
     fetchSubmissions();
     fetchReports();
     fetchPlaces();
+    fetchPublishedPlaces();
     const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
-  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces]);
+  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces, fetchPublishedPlaces]);
 
   const markNotifRead = async (id: string) => {
     await supabase.from("admin_notifications").update({ is_read: true }).eq("id", id);
