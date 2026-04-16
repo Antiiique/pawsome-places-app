@@ -1,7 +1,12 @@
 import logo from "@/assets/logo-wpf.png";
-import { Menu, Navigation, Heart } from "lucide-react";
+import { Menu, Navigation, Heart, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
+import { useAuthContext } from "@/contexts/AuthContext";
+import AuthModal from "@/components/AuthModal";
+import { toast } from "@/hooks/use-toast";
 
 interface HeaderProps {
   onItineraryClick?: () => void;
@@ -11,6 +16,15 @@ interface HeaderProps {
 
 const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: HeaderProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { user, profile, signOut } = useAuthContext();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast({ title: "À bientôt ! 👋" });
+  };
+
+  const initial = profile?.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border" style={{ height: 56 }}>
@@ -40,9 +54,56 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
           <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent-soft" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
             <Navigation className="w-5 h-5" />
           </Button>
-          <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-accent-hover text-sm">
-            Ajouter un lieu
-          </Button>
+
+          {user ? (
+            <>
+              <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-accent-hover text-sm">
+                Ajouter un lieu
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring"
+                    style={{ backgroundColor: "#FF6B35" }}
+                    title={profile?.display_name || "Mon compte"}
+                  >
+                    {initial}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2" align="end">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium">👤 {profile?.display_name || "Utilisateur"}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                  <Separator className="my-1" />
+                  <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={onFavoritesClick}>
+                    ❤️ Mes favoris
+                  </button>
+                  <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={onItineraryClick}>
+                    🗺️ Mes itinéraires
+                  </button>
+                  {profile?.is_admin && (
+                    <>
+                      <Separator className="my-1" />
+                      <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { window.location.href = "/admin"; }}>
+                        ⚙️ Administration
+                      </button>
+                    </>
+                  )}
+                  <Separator className="my-1" />
+                  <button className="w-full text-left px-2 py-1.5 text-sm text-destructive hover:bg-muted rounded-sm transition-colors" onClick={handleSignOut}>
+                    Se déconnecter
+                  </button>
+                </PopoverContent>
+              </Popover>
+            </>
+          ) : (
+            <Button variant="outline" className="hidden md:flex gap-2 text-sm" onClick={() => setShowAuthModal(true)}>
+              <UserCircle className="w-4 h-4" />
+              Se connecter
+            </Button>
+          )}
+
           <Button variant="ghost" size="icon" className="md:hidden text-foreground" onClick={() => setMenuOpen(!menuOpen)}>
             <Menu className="w-5 h-5" />
           </Button>
@@ -60,9 +121,21 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
           <Button className="w-full bg-primary text-primary-foreground" onClick={onItineraryClick}>
             🐾 Itinéraire Pet-Friendly
           </Button>
-          <Button className="w-full bg-primary text-primary-foreground">Ajouter un lieu</Button>
+          {user ? (
+            <>
+              <Button className="w-full bg-primary text-primary-foreground">Ajouter un lieu</Button>
+              <Button variant="destructive" className="w-full" onClick={handleSignOut}>Se déconnecter</Button>
+            </>
+          ) : (
+            <Button variant="outline" className="w-full gap-2" onClick={() => { setMenuOpen(false); setShowAuthModal(true); }}>
+              <UserCircle className="w-4 h-4" />
+              Se connecter
+            </Button>
+          )}
         </div>
       )}
+
+      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </header>
   );
 };
