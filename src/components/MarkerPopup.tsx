@@ -274,7 +274,7 @@ export default function MarkerPopup({
                 </button>
               )}
 
-              {isInDatabase && (
+              {place.isPetFriendly && onReport && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onReport?.(); }}
                   className="w-full text-xs h-9 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800 transition-colors"
