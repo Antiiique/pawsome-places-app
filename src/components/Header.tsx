@@ -28,7 +28,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
 
   const handleSignOut = async () => {
     await signOut();
-    toast({ title: "À bientôt ! 👋" });
+    toast("À bientôt ! 👋");
   };
 
   const initial = profile?.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
