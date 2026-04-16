@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          related_id: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          related_id?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          related_id?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       pet_friendly_places: {
         Row: {
           accepts_cats: boolean
@@ -45,6 +75,7 @@ export type Database = {
           housenumber: string | null
           id: string
           instagram: string | null
+          is_flagged: boolean | null
           last_updated: string | null
           latitude: number
           location: unknown
@@ -72,6 +103,7 @@ export type Database = {
           price_range: string | null
           rating: number | null
           region: string | null
+          report_count: number | null
           rooms: number | null
           source: string | null
           source_id: string | null
@@ -119,6 +151,7 @@ export type Database = {
           housenumber?: string | null
           id?: string
           instagram?: string | null
+          is_flagged?: boolean | null
           last_updated?: string | null
           latitude: number
           location?: unknown
@@ -146,6 +179,7 @@ export type Database = {
           price_range?: string | null
           rating?: number | null
           region?: string | null
+          report_count?: number | null
           rooms?: number | null
           source?: string | null
           source_id?: string | null
@@ -193,6 +227,7 @@ export type Database = {
           housenumber?: string | null
           id?: string
           instagram?: string | null
+          is_flagged?: boolean | null
           last_updated?: string | null
           latitude?: number
           location?: unknown
@@ -220,6 +255,7 @@ export type Database = {
           price_range?: string | null
           rating?: number | null
           region?: string | null
+          report_count?: number | null
           rooms?: number | null
           source?: string | null
           source_id?: string | null
@@ -236,6 +272,231 @@ export type Database = {
           website?: string | null
           wheelchair?: string | null
           wifi?: boolean
+        }
+        Relationships: []
+      }
+      place_reports: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          place_id: string | null
+          reason: string
+          reported_by: string | null
+          status: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          place_id?: string | null
+          reason: string
+          reported_by?: string | null
+          status?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          place_id?: string | null
+          reason?: string
+          reported_by?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "place_reports_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "pet_friendly_places"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "place_reports_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      place_submissions: {
+        Row: {
+          accepts_cats: boolean | null
+          accepts_dogs: boolean | null
+          address: string | null
+          admin_note: string | null
+          category: string
+          city: string | null
+          country: string | null
+          created_at: string | null
+          description: string | null
+          dogs_on_leash_only: boolean | null
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          opening_hours: string | null
+          outdoor_seating: boolean | null
+          phone: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          subcategory: string | null
+          submitted_by: string | null
+          water_bowl_provided: boolean | null
+          website: string | null
+        }
+        Insert: {
+          accepts_cats?: boolean | null
+          accepts_dogs?: boolean | null
+          address?: string | null
+          admin_note?: string | null
+          category: string
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          dogs_on_leash_only?: boolean | null
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          opening_hours?: string | null
+          outdoor_seating?: boolean | null
+          phone?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          subcategory?: string | null
+          submitted_by?: string | null
+          water_bowl_provided?: boolean | null
+          website?: string | null
+        }
+        Update: {
+          accepts_cats?: boolean | null
+          accepts_dogs?: boolean | null
+          address?: string | null
+          admin_note?: string | null
+          category?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          dogs_on_leash_only?: boolean | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          opening_hours?: string | null
+          outdoor_seating?: boolean | null
+          phone?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          subcategory?: string | null
+          submitted_by?: string | null
+          water_bowl_provided?: boolean | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "place_submissions_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "place_submissions_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      submission_photos: {
+        Row: {
+          created_at: string | null
+          id: string
+          storage_path: string
+          submission_id: string | null
+          uploaded_by: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          storage_path: string
+          submission_id?: string | null
+          uploaded_by?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          storage_path?: string
+          submission_id?: string | null
+          uploaded_by?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submission_photos_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "place_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submission_photos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -276,9 +537,16 @@ export type Database = {
           website: string
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -405,6 +673,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
