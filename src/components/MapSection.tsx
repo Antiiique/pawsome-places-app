@@ -486,6 +486,38 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
     markersRef.current = newMarkers;
     clustererRef.current?.addMarkers(newMarkers);
+
+    // Load flagged places
+    const existingIds = results.map(p => p.id);
+    if (existingIds.length > 0) {
+      const { data: flaggedData } = await supabase
+        .from("pet_friendly_places")
+        .select("id, name, latitude, longitude, report_count")
+        .eq("is_flagged", true)
+        .not("id", "in", `(${existingIds.join(",")})`);
+
+      if (flaggedData && flaggedData.length > 0 && map) {
+        const flaggedMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
+        flaggedData.forEach((fp) => {
+          const el = document.createElement("div");
+          el.style.cssText = "position:relative;cursor:pointer;";
+          el.innerHTML = `
+            <div style="font-size:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))">⚠️</div>
+            <div style="position:absolute;top:-4px;right:-6px;background:#E53935;color:white;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid white">${fp.report_count || 0}</div>
+          `;
+          const marker = new google.maps.marker.AdvancedMarkerElement({
+            position: { lat: fp.latitude, lng: fp.longitude }, content: el, map,
+          });
+          marker.addEventListener("gmp-click", () => {
+            toast.warning(`⚠️ Ce lieu a été signalé ${fp.report_count || 0} fois par la communauté comme potentiellement non pet-friendly.`);
+          });
+          flaggedMarkers.push(marker);
+        });
+        markersRef.current.push(...flaggedMarkers);
+        clustererRef.current?.addMarkers(flaggedMarkers);
+      }
+    }
+
     setSearching(false);
   }, [clearMarkers]);
 
