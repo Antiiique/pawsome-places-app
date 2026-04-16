@@ -75,10 +75,11 @@ interface MarkerPopupProps {
   onToggleFavorite?: () => void;
   isFavorite?: boolean;
   onClose: () => void;
+  onReport?: () => void;
 }
 
 export default function MarkerPopup({
-  place, position, onSetOrigin, onSetDestination, onShowInfo, onAddWaypoint, onToggleFavorite, isFavorite, onClose,
+  place, position, onSetOrigin, onSetDestination, onShowInfo, onAddWaypoint, onToggleFavorite, isFavorite, onClose, onReport,
 }: MarkerPopupProps) {
   const emoji = getPlaceEmoji(place);
   const typeLabel = getPlaceTypeLabel(place);
@@ -271,6 +272,13 @@ export default function MarkerPopup({
                   ℹ️ Voir les détails
                 </button>
               )}
+
+              <button
+                onClick={(e) => { e.stopPropagation(); onReport?.(); }}
+                className="w-full text-xs h-9 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800 transition-colors"
+              >
+                ⚠️ Signaler un problème
+              </button>
             </div>
 
             {/* Reviews section */}

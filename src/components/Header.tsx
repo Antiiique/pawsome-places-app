@@ -3,7 +3,7 @@ import { Menu, Navigation, Heart, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { toast } from "@/hooks/use-toast";
@@ -25,6 +25,12 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
   };
 
   const initial = profile?.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
+
+  useEffect(() => {
+    const handler = () => setShowAuthModal(true);
+    window.addEventListener("open-auth-modal", handler);
+    return () => window.removeEventListener("open-auth-modal", handler);
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border" style={{ height: 56 }}>
