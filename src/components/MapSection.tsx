@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
 import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
+import ReportModal from "./ReportModal";
 import { toast } from "sonner";
 import type { FavoritePlace } from "@/hooks/useFavorites";
 import { detectCategoryFromTypes } from "@/hooks/useFavorites";
@@ -114,6 +115,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [popupData, setPopupData] = useState<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
   const [originPoint, setOriginPoint] = useState<{ lat: number; lng: number } | null>(null);
   const [destPoint, setDestPoint] = useState<{ lat: number; lng: number } | null>(null);
+  const [reportModal, setReportModal] = useState<{ open: boolean; placeId: string | null; placeName: string }>({ open: false, placeId: null, placeName: "" });
 
   // Load Google Maps
   useEffect(() => {
@@ -678,6 +680,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             setPopupData(null);
             onOpenItinerary?.();
           }}
+          onReport={() => setReportModal({ open: true, placeId: popupData.petPlace?.id || null, placeName: popupData.place.name })}
         />
       )}
 
@@ -689,9 +692,21 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             onClose={() => setSelectedPlace(null)}
             isFavorite={isFavorite?.(selectedPlace.id)}
             onToggleFavorite={() => handleToggleFav(selectedPlace)}
+            onReport={() => setReportModal({ open: true, placeId: selectedPlace.id, placeName: selectedPlace.name })}
           />
         </>
       )}
+
+      <ReportModal
+        open={reportModal.open}
+        onClose={() => setReportModal({ open: false, placeId: null, placeName: "" })}
+        placeId={reportModal.placeId}
+        placeName={reportModal.placeName}
+        onLoginRequired={() => {
+          setReportModal({ open: false, placeId: null, placeName: "" });
+          window.dispatchEvent(new CustomEvent("open-auth-modal"));
+        }}
+      />
     </section>
   );
 };

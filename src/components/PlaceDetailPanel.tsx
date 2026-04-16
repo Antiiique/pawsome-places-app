@@ -50,9 +50,10 @@ interface PlaceDetailPanelProps {
   onClose: () => void;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
+  onReport?: () => void;
 }
 
-const PlaceDetailPanel = ({ place, onClose, isFavorite, onToggleFavorite }: PlaceDetailPanelProps) => {
+const PlaceDetailPanel = ({ place, onClose, isFavorite, onToggleFavorite, onReport }: PlaceDetailPanelProps) => {
   if (!place) return null;
 
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
@@ -162,6 +163,15 @@ const PlaceDetailPanel = ({ place, onClose, isFavorite, onToggleFavorite }: Plac
             <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Description</p>
             <p className="text-sm text-foreground leading-relaxed">{place.description}</p>
           </div>
+        )}
+
+        {onReport && (
+          <button
+            onClick={onReport}
+            className="w-full text-xs h-9 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800 transition-colors"
+          >
+            ⚠️ Signaler un problème
+          </button>
         )}
 
         <Button className="w-full gap-2" onClick={() => window.open(directionsUrl, "_blank")}>
