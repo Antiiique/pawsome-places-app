@@ -129,6 +129,10 @@ const AdminPage = () => {
 
   const [places, setPlaces] = useState<PublishedPlace[]>([]);
   const [placesLoading, setPlacesLoading] = useState(false);
+  const [publishedPlaces, setPublishedPlaces] = useState<Array<{
+    id: string; name: string; category: string; city: string | null;
+    created_at: string; verified: boolean; source: string | null;
+  }>>([]);
   const [placesSearch, setPlacesSearch] = useState("");
   const [placesPage, setPlacesPage] = useState(0);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; place: PublishedPlace | null }>({ open: false, place: null });
@@ -200,15 +204,26 @@ const AdminPage = () => {
     setPlacesLoading(false);
   }, []);
 
+  const fetchPublishedPlaces = useCallback(async () => {
+    const { data } = await supabase
+      .from("pet_friendly_places")
+      .select("id, name, category, city, created_at, verified, source")
+      .eq("source", "user_submission")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (data) setPublishedPlaces(data);
+  }, []);
+
   useEffect(() => {
     fetchCounts();
     fetchNotifications();
     fetchSubmissions();
     fetchReports();
     fetchPlaces();
+    fetchPublishedPlaces();
     const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
-  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces]);
+  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces, fetchPublishedPlaces]);
 
   const markNotifRead = async (id: string) => {
     await supabase.from("admin_notifications").update({ is_read: true }).eq("id", id);
@@ -217,7 +232,7 @@ const AdminPage = () => {
   };
 
   const approveSubmission = async (sub: Submission, note: string) => {
-    const { data: newPlace } = await supabase.from("pet_friendly_places").insert({
+    const { data: newPlace, error: insertError } = await supabase.from("pet_friendly_places").insert({
       name: sub.name, category: sub.category, subcategory: sub.subcategory,
       address: sub.address, city: sub.city, country: sub.country || "France",
       latitude: sub.latitude, longitude: sub.longitude, phone: sub.phone,
@@ -228,7 +243,12 @@ const AdminPage = () => {
       verified: true, source: "user_submission",
     }).select("id").single();
 
-    if (newPlace) {
+    if (insertError || !newPlace) {
+      toast.error(`Erreur lors de la publication : ${insertError?.message || "Insertion échouée"}`);
+      return;
+    }
+
+    {
       const { data: photo } = await supabase.from("submission_photos").select("url").eq("submission_id", sub.id).limit(1).maybeSingle();
       if (photo?.url) await supabase.from("pet_friendly_places").update({ photo_url: photo.url }).eq("id", newPlace.id);
     }
@@ -242,6 +262,7 @@ const AdminPage = () => {
     setSubmissions(prev => prev.filter(s => s.id !== sub.id));
     fetchCounts();
     fetchPlaces();
+    fetchPublishedPlaces();
   };
 
   const rejectSubmission = async () => {
@@ -341,11 +362,12 @@ const AdminPage = () => {
         </div>
 
         <Tabs defaultValue="notifications">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="notifications">🔔 Notifs</TabsTrigger>
             <TabsTrigger value="submissions">📍 À valider</TabsTrigger>
             <TabsTrigger value="reports">⚠️ Signalements</TabsTrigger>
             <TabsTrigger value="places">🗺️ Lieux</TabsTrigger>
+            <TabsTrigger value="published">🗺️ Publiés</TabsTrigger>
           </TabsList>
 
           <TabsContent value="notifications" className="space-y-2 mt-4">
@@ -525,6 +547,29 @@ const AdminPage = () => {
                 </Button>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="published" className="space-y-4 mt-4">
+            {publishedPlaces.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun lieu publié via soumission</p>}
+            {publishedPlaces.map(place => (
+              <Card key={place.id}>
+                <CardContent className="pt-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-semibold text-foreground">{place.name}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary">{place.category}</Badge>
+                        {place.city && <span className="text-sm text-muted-foreground">{place.city}</span>}
+                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">✅ Publié</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Publié le {new Date(place.created_at).toLocaleDateString("fr-FR")}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
           </TabsContent>
         </Tabs>
       </div>
