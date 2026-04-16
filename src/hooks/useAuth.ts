@@ -19,12 +19,12 @@ export function useAuth() {
   const fetchProfile = async (userId: string) => {
     const { data: prof } = await supabase
       .from("profiles")
-      .select("id, email, display_name, avatar_url")
+      .select("id, email, display_name, avatar_url, is_admin")
       .eq("id", userId)
       .single();
 
     if (prof) {
-      setProfile({ ...prof, is_admin: false });
+      setProfile({ ...prof, is_admin: prof.is_admin ?? false });
     }
   };
 
