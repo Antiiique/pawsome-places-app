@@ -38,7 +38,11 @@ export default function ReportModal({ open, onClose, placeId, placeName, onLogin
   };
 
   const handleSubmit = async () => {
-    if (!user || !placeId || !reason) return;
+    if (!user || !reason) return;
+    if (!placeId) {
+      setError("Ce lieu n'est pas encore dans notre base de données. Utilisez 'Ajouter un lieu' pour le soumettre.");
+      return;
+    }
     setLoading(true);
     setError(null);
     const { error: err } = await supabase.from("place_reports").insert({
