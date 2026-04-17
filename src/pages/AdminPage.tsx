@@ -208,9 +208,8 @@ const AdminPage = () => {
     const { data } = await supabase
       .from("pet_friendly_places")
       .select("id, name, category, city, created_at, verified, source")
-      .eq("source", "user_submission")
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(100);
     if (data) setPublishedPlaces(data);
   }, []);
 
@@ -550,26 +549,38 @@ const AdminPage = () => {
           </TabsContent>
 
           <TabsContent value="published" className="space-y-4 mt-4">
-            {publishedPlaces.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun lieu publié via soumission</p>}
-            {publishedPlaces.map(place => (
-              <Card key={place.id}>
-                <CardContent className="pt-4 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="font-semibold text-foreground">{place.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="secondary">{place.category}</Badge>
-                        {place.city && <span className="text-sm text-muted-foreground">{place.city}</span>}
-                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">✅ Publié</Badge>
+            {publishedPlaces.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun lieu publié</p>}
+            {publishedPlaces.map(place => {
+              const isOSM = place.source === "openstreetmap";
+              const isSubmission = place.source === "user_submission";
+              return (
+                <Card key={place.id}>
+                  <CardContent className="pt-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="font-semibold text-foreground">{place.name}</h3>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <Badge variant="secondary">{place.category}</Badge>
+                          {place.city && <span className="text-sm text-muted-foreground">{place.city}</span>}
+                          {isOSM && (
+                            <Badge variant="outline" className="bg-muted text-muted-foreground border-border">OSM</Badge>
+                          )}
+                          {isSubmission && !place.verified && (
+                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Soumis</Badge>
+                          )}
+                          {isSubmission && place.verified && (
+                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">✅ Validé</Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Publié le {new Date(place.created_at).toLocaleDateString("fr-FR")}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+                    <p className="text-xs text-muted-foreground">
+                      Publié le {new Date(place.created_at).toLocaleDateString("fr-FR")}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </TabsContent>
         </Tabs>
       </div>
