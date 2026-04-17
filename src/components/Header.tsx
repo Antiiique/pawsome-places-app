@@ -8,6 +8,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import SubmitPlaceModal from "@/components/SubmitPlaceModal";
 import NotificationPanel from "@/components/NotificationPanel";
+import UserProfileModal from "@/components/UserProfileModal";
 import { useUserNotifications } from "@/hooks/useUserNotifications";
 import { toast } from "sonner";
 
@@ -22,6 +23,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const { user, profile, signOut } = useAuthContext();
   const { unreadCount } = useUserNotifications();
   const notifRef = useRef<HTMLDivElement>(null);
@@ -122,6 +124,9 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                   <Separator className="my-1" />
+                  <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => setShowProfileModal(true)}>
+                    👤 Mon profil
+                  </button>
                   <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={onFavoritesClick}>
                     ❤️ Mes favoris
                   </button>
@@ -183,6 +188,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
 
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
       <SubmitPlaceModal open={showSubmitModal} onClose={() => setShowSubmitModal(false)} onLoginRequired={() => { setShowSubmitModal(false); setShowAuthModal(true); }} />
+      <UserProfileModal open={showProfileModal} onClose={() => setShowProfileModal(false)} />
     </header>
   );
 };
