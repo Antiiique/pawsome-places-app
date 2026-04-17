@@ -208,9 +208,8 @@ const AdminPage = () => {
     const { data } = await supabase
       .from("pet_friendly_places")
       .select("id, name, category, city, created_at, verified, source")
-      .eq("source", "user_submission")
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(100);
     if (data) setPublishedPlaces(data);
   }, []);
 
