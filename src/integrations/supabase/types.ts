@@ -275,6 +275,38 @@ export type Database = {
         }
         Relationships: []
       }
+      pet_photos: {
+        Row: {
+          created_at: string | null
+          id: string
+          pet_name: string | null
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          pet_name?: string | null
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          pet_name?: string | null
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_photos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       place_reports: {
         Row: {
           comment: string | null
@@ -418,28 +450,40 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age: number | null
           avatar_url: string | null
+          bio: string | null
+          city: string | null
           created_at: string | null
           display_name: string | null
           email: string | null
           id: string
           is_admin: boolean
+          points: number
         }
         Insert: {
+          age?: number | null
           avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
           created_at?: string | null
           display_name?: string | null
           email?: string | null
           id: string
           is_admin?: boolean
+          points?: number
         }
         Update: {
+          age?: number | null
           avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
           created_at?: string | null
           display_name?: string | null
           email?: string | null
           id?: string
           is_admin?: boolean
+          points?: number
         }
         Relationships: []
       }
