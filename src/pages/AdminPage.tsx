@@ -129,15 +129,25 @@ const AdminPage = () => {
 
   const [places, setPlaces] = useState<PublishedPlace[]>([]);
   const [placesLoading, setPlacesLoading] = useState(false);
-  const [publishedPlaces, setPublishedPlaces] = useState<Array<{
-    id: string; name: string; category: string; city: string | null;
-    created_at: string; verified: boolean; source: string | null;
-  }>>([]);
   const [placesSearch, setPlacesSearch] = useState("");
   const [placesPage, setPlacesPage] = useState(0);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; place: PublishedPlace | null }>({ open: false, place: null });
   const [editDialog, setEditDialog] = useState<{ open: boolean; place: PublishedPlace | null }>({ open: false, place: null });
   const [editForm, setEditForm] = useState<Partial<PublishedPlace>>({});
+
+  // Users tab
+  const [users, setUsers] = useState<Array<{
+    id: string;
+    email: string | null;
+    display_name: string | null;
+    avatar_url: string | null;
+    city: string | null;
+    points: number;
+    is_admin: boolean;
+  }>>([]);
+  const [usersSearch, setUsersSearch] = useState("");
+  const [userEditDialog, setUserEditDialog] = useState<{ open: boolean; user: typeof users[0] | null }>({ open: false, user: null });
+  const [userEditForm, setUserEditForm] = useState<{ display_name: string; city: string; points: number; is_admin: boolean }>({ display_name: "", city: "", points: 0, is_admin: false });
 
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
@@ -204,13 +214,13 @@ const AdminPage = () => {
     setPlacesLoading(false);
   }, []);
 
-  const fetchPublishedPlaces = useCallback(async () => {
+  const fetchUsers = useCallback(async () => {
     const { data } = await supabase
-      .from("pet_friendly_places")
-      .select("id, name, category, city, created_at, verified, source")
-      .order("created_at", { ascending: false })
+      .from("profiles")
+      .select("id, email, display_name, avatar_url, city, points, is_admin")
+      .order("points", { ascending: false })
       .limit(100);
-    if (data) setPublishedPlaces(data);
+    if (data) setUsers(data as any);
   }, []);
 
   useEffect(() => {
@@ -219,10 +229,10 @@ const AdminPage = () => {
     fetchSubmissions();
     fetchReports();
     fetchPlaces();
-    fetchPublishedPlaces();
+    fetchUsers();
     const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
-  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces, fetchPublishedPlaces]);
+  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces, fetchUsers]);
 
   const markNotifRead = async (id: string) => {
     await supabase.from("admin_notifications").update({ is_read: true }).eq("id", id);
@@ -261,7 +271,6 @@ const AdminPage = () => {
     setSubmissions(prev => prev.filter(s => s.id !== sub.id));
     fetchCounts();
     fetchPlaces();
-    fetchPublishedPlaces();
   };
 
   const rejectSubmission = async () => {
