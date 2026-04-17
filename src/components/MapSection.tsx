@@ -165,84 +165,86 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     map.addListener("click", (event: google.maps.MapMouseEvent & { placeId?: string }) => {
       console.log("🗺️ Clic carte:", event);
       if (pickMode) return;
-      if (markerClickedRef.current) return;
-      
-      if (event.placeId) {
-        (event as any).stop?.();
-        console.log("🔍 Clic POI détecté, placeId:", event.placeId);
-        const service = new google.maps.places.PlacesService(map);
-        service.getDetails({
-          placeId: event.placeId,
-          fields: ["name", "geometry", "formatted_address", "types", "rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos"],
-        }, (place, status) => {
-          console.log('--- DIAGNOSTIC PLACES API ---');
-          console.log('Status:', status);
-          console.log('Nom du lieu:', place?.name);
-          console.log('Nombre de photos:', place?.photos?.length ?? 0);
-          console.log('Nombre d\'avis:', place?.reviews?.length ?? 0);
-          console.log('Premier avis:', place?.reviews?.[0] ?? 'aucun');
-          console.log('Première photo URL:', place?.photos?.[0]?.getUrl({ maxWidth: 400 }) ?? 'aucune');
-          console.log('-----------------------------');
-          if (status === 'REQUEST_DENIED') {
-            console.error('❌ Places API non activée ou clé API invalide');
-          }
-          if (status === 'OVER_QUERY_LIMIT') {
-            console.error('❌ Quota dépassé');
-          }
-          if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
-            const photos = place.photos
-              ? place.photos.slice(0, 5).map(p => p.getUrl({ maxWidth: 400, maxHeight: 300 }))
-              : [];
-            const reviews = place.reviews
-              ? place.reviews.slice(0, 5).map(r => ({
-                  author: r.author_name || "Anonyme",
-                  avatar: r.profile_photo_url || null,
-                  rating: r.rating,
-                  text: r.text || "",
-                  time: r.relative_time_description || "",
-                }))
-              : [];
-            const universalPlace: UniversalPlace = {
-              name: place.name || "Lieu",
-              address: place.formatted_address || "",
-              lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng(),
-              types: place.types || [],
-              rating: place.rating,
-              reviewsTotal: (place as any).user_ratings_total || 0,
-              phone: place.formatted_phone_number || undefined,
-              website: place.website || undefined,
-              opening_hours: place.opening_hours?.isOpen?.()
-                ? "🟢 Ouvert maintenant"
-                : place.opening_hours?.weekday_text?.join(" • ") || undefined,
-              isPetFriendly: false,
-              photos,
-              reviews,
-            };
-            const pixel = event.latLng ? getPixelFromLatLng(map, event.latLng) : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-            setPopupData({ place: universalPlace, position: pixel });
-          } else {
-            console.error("❌ Erreur Places API:", status);
-          }
-        });
-      } else if (event.latLng) {
-        // Empty area click
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ location: event.latLng }, (results, status) => {
-          if (status === "OK" && results?.[0]) {
-            const universalPlace: UniversalPlace = {
-              name: results[0].formatted_address,
-              address: results[0].formatted_address,
-              lat: event.latLng!.lat(),
-              lng: event.latLng!.lng(),
-              types: ["point_on_map"],
-              isPetFriendly: false,
-            };
-            const pixel = getPixelFromLatLng(map, event.latLng!);
-            setPopupData({ place: universalPlace, position: pixel });
-          }
-        });
-      }
+      setTimeout(() => {
+        if (markerClickedRef.current) return;
+
+        if (event.placeId) {
+          (event as any).stop?.();
+          console.log("🔍 Clic POI détecté, placeId:", event.placeId);
+          const service = new google.maps.places.PlacesService(map);
+          service.getDetails({
+            placeId: event.placeId,
+            fields: ["name", "geometry", "formatted_address", "types", "rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos"],
+          }, (place, status) => {
+            console.log('--- DIAGNOSTIC PLACES API ---');
+            console.log('Status:', status);
+            console.log('Nom du lieu:', place?.name);
+            console.log('Nombre de photos:', place?.photos?.length ?? 0);
+            console.log('Nombre d\'avis:', place?.reviews?.length ?? 0);
+            console.log('Premier avis:', place?.reviews?.[0] ?? 'aucun');
+            console.log('Première photo URL:', place?.photos?.[0]?.getUrl({ maxWidth: 400 }) ?? 'aucune');
+            console.log('-----------------------------');
+            if (status === 'REQUEST_DENIED') {
+              console.error('❌ Places API non activée ou clé API invalide');
+            }
+            if (status === 'OVER_QUERY_LIMIT') {
+              console.error('❌ Quota dépassé');
+            }
+            if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
+              const photos = place.photos
+                ? place.photos.slice(0, 5).map(p => p.getUrl({ maxWidth: 400, maxHeight: 300 }))
+                : [];
+              const reviews = place.reviews
+                ? place.reviews.slice(0, 5).map(r => ({
+                    author: r.author_name || "Anonyme",
+                    avatar: r.profile_photo_url || null,
+                    rating: r.rating,
+                    text: r.text || "",
+                    time: r.relative_time_description || "",
+                  }))
+                : [];
+              const universalPlace: UniversalPlace = {
+                name: place.name || "Lieu",
+                address: place.formatted_address || "",
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng(),
+                types: place.types || [],
+                rating: place.rating,
+                reviewsTotal: (place as any).user_ratings_total || 0,
+                phone: place.formatted_phone_number || undefined,
+                website: place.website || undefined,
+                opening_hours: place.opening_hours?.isOpen?.()
+                  ? "🟢 Ouvert maintenant"
+                  : place.opening_hours?.weekday_text?.join(" • ") || undefined,
+                isPetFriendly: false,
+                photos,
+                reviews,
+              };
+              const pixel = event.latLng ? getPixelFromLatLng(map, event.latLng) : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+              setPopupData({ place: universalPlace, position: pixel });
+            } else {
+              console.error("❌ Erreur Places API:", status);
+            }
+          });
+        } else if (event.latLng) {
+          // Empty area click
+          const geocoder = new google.maps.Geocoder();
+          geocoder.geocode({ location: event.latLng }, (results, status) => {
+            if (status === "OK" && results?.[0]) {
+              const universalPlace: UniversalPlace = {
+                name: results[0].formatted_address,
+                address: results[0].formatted_address,
+                lat: event.latLng!.lat(),
+                lng: event.latLng!.lng(),
+                types: ["point_on_map"],
+                isPetFriendly: false,
+              };
+              const pixel = getPixelFromLatLng(map, event.latLng!);
+              setPopupData({ place: universalPlace, position: pixel });
+            }
+          });
+        }
+      }, 50);
     });
 
     // Right-click for point selection
