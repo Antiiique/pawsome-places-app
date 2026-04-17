@@ -414,6 +414,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       const marker = new google.maps.marker.AdvancedMarkerElement({
         position: { lat: place.latitude, lng: place.longitude }, title: place.name, content,
       });
+      content.addEventListener("mousedown", () => { markerClickedRef.current = true; });
       marker.addEventListener("gmp-click", () => {
         markerClickedRef.current = true;
         setTimeout(() => { markerClickedRef.current = false; }, 300);
