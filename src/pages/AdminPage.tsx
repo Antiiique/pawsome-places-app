@@ -333,10 +333,40 @@ const AdminPage = () => {
     setEditDialog({ open: false, place: null });
   };
 
+  const openUserEdit = (u: typeof users[0]) => {
+    setUserEditForm({
+      display_name: u.display_name || "",
+      city: u.city || "",
+      points: u.points ?? 0,
+      is_admin: !!u.is_admin,
+    });
+    setUserEditDialog({ open: true, user: u });
+  };
+
+  const saveUserEdit = async () => {
+    if (!userEditDialog.user) return;
+    const { error } = await supabase.from("profiles").update({
+      display_name: userEditForm.display_name,
+      city: userEditForm.city,
+      points: userEditForm.points,
+      is_admin: userEditForm.is_admin,
+    }).eq("id", userEditDialog.user.id);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    toast.success("Profil mis à jour");
+    setUserEditDialog({ open: false, user: null });
+    fetchUsers();
+  };
+
   const filteredPlaces = places.filter(p => {
     if (!placesSearch) return true;
     const q = placesSearch.toLowerCase();
     return p.name.toLowerCase().includes(q) || p.city?.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || p.address?.toLowerCase().includes(q);
+  });
+
+  const filteredUsers = users.filter(u => {
+    if (!usersSearch) return true;
+    const q = usersSearch.toLowerCase();
+    return (u.display_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.city?.toLowerCase().includes(q));
   });
   const totalPages = Math.ceil(filteredPlaces.length / PLACES_PER_PAGE);
   const paginatedPlaces = filteredPlaces.slice(placesPage * PLACES_PER_PAGE, (placesPage + 1) * PLACES_PER_PAGE);
