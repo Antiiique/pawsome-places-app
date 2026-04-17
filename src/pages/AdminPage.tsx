@@ -404,8 +404,8 @@ const AdminPage = () => {
             <TabsTrigger value="notifications">🔔 Notifs</TabsTrigger>
             <TabsTrigger value="submissions">📍 À valider</TabsTrigger>
             <TabsTrigger value="reports">⚠️ Signalements</TabsTrigger>
-            <TabsTrigger value="places">🗺️ Lieux</TabsTrigger>
-            <TabsTrigger value="published">🗺️ Publiés</TabsTrigger>
+            <TabsTrigger value="places">🗺️ Tous les lieux</TabsTrigger>
+            <TabsTrigger value="users">👥 Utilisateurs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="notifications" className="space-y-2 mt-4">
@@ -520,7 +520,18 @@ const AdminPage = () => {
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <Badge variant="secondary">{place.category}</Badge>
                         {place.subcategory && <Badge variant="outline" className="text-[10px]">{place.subcategory}</Badge>}
-                        {place.source && <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{place.source}</span>}
+                        {place.source === "openstreetmap" && (
+                          <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[10px]">OSM</Badge>
+                        )}
+                        {place.source === "user_submission" && !place.verified && (
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 text-[10px]">Soumis</Badge>
+                        )}
+                        {place.source === "user_submission" && place.verified && (
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 text-[10px]">✅ Validé</Badge>
+                        )}
+                        {place.source && place.source !== "openstreetmap" && place.source !== "user_submission" && (
+                          <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{place.source}</span>
+                        )}
                       </div>
                     </div>
                     {place.photo_url && (
