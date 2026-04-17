@@ -103,6 +103,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const originMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const destMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const previewLineRef = useRef<google.maps.Polyline | null>(null);
+  const markerClickedRef = useRef(false);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -164,6 +165,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     map.addListener("click", (event: google.maps.MapMouseEvent & { placeId?: string }) => {
       console.log("🗺️ Clic carte:", event);
       if (pickMode) return;
+      if (markerClickedRef.current) return;
       
       if (event.placeId) {
         (event as any).stop?.();
@@ -413,6 +415,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         position: { lat: place.latitude, lng: place.longitude }, title: place.name, content,
       });
       marker.addEventListener("gmp-click", () => {
+        markerClickedRef.current = true;
+        setTimeout(() => { markerClickedRef.current = false; }, 300);
         const googlePlaceId = place.google_place_id || null;
         
         const fallbackPlace: UniversalPlace = {
