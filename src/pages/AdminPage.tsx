@@ -598,35 +598,48 @@ const AdminPage = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="published" className="space-y-4 mt-4">
-            {publishedPlaces.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun lieu publié</p>}
-            {publishedPlaces.map(place => {
-              const isOSM = place.source === "openstreetmap";
-              const isSubmission = place.source === "user_submission";
+          <TabsContent value="users" className="space-y-3 mt-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher par nom, email, ville…"
+                value={usersSearch}
+                onChange={(e) => setUsersSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">{filteredUsers.length} utilisateur{filteredUsers.length > 1 ? "s" : ""}</p>
+
+            {filteredUsers.length === 0 && (
+              <p className="text-muted-foreground text-center py-8">Aucun utilisateur trouvé</p>
+            )}
+
+            {filteredUsers.map(u => {
+              const initial = (u.display_name?.[0] || u.email?.[0] || "?").toUpperCase();
               return (
-                <Card key={place.id}>
-                  <CardContent className="pt-4 space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-semibold text-foreground">{place.name}</h3>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <Badge variant="secondary">{place.category}</Badge>
-                          {place.city && <span className="text-sm text-muted-foreground">{place.city}</span>}
-                          {isOSM && (
-                            <Badge variant="outline" className="bg-muted text-muted-foreground border-border">OSM</Badge>
-                          )}
-                          {isSubmission && !place.verified && (
-                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Soumis</Badge>
-                          )}
-                          {isSubmission && place.verified && (
-                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">✅ Validé</Badge>
-                          )}
+                <Card key={u.id}>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-3">
+                      {u.avatar_url ? (
+                        <img src={u.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border border-border shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-sm shrink-0">
+                          {initial}
                         </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-semibold text-foreground truncate">{u.display_name || "Sans nom"}</p>
+                          {u.is_admin && <Badge className="bg-primary/15 text-primary border-primary/30 text-[10px]">Admin</Badge>}
+                          <Badge variant="outline" className="text-[10px] gap-1">⭐ {u.points ?? 0}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{u.email || "—"}</p>
+                        {u.city && <p className="text-xs text-muted-foreground">📍 {u.city}</p>}
                       </div>
+                      <Button size="sm" variant="outline" className="h-8 gap-1 text-xs shrink-0" onClick={() => openUserEdit(u)}>
+                        <Pencil className="w-3 h-3" /> Modifier
+                      </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Publié le {new Date(place.created_at).toLocaleDateString("fr-FR")}
-                    </p>
                   </CardContent>
                 </Card>
               );
