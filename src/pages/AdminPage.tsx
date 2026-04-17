@@ -129,15 +129,25 @@ const AdminPage = () => {
 
   const [places, setPlaces] = useState<PublishedPlace[]>([]);
   const [placesLoading, setPlacesLoading] = useState(false);
-  const [publishedPlaces, setPublishedPlaces] = useState<Array<{
-    id: string; name: string; category: string; city: string | null;
-    created_at: string; verified: boolean; source: string | null;
-  }>>([]);
   const [placesSearch, setPlacesSearch] = useState("");
   const [placesPage, setPlacesPage] = useState(0);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; place: PublishedPlace | null }>({ open: false, place: null });
   const [editDialog, setEditDialog] = useState<{ open: boolean; place: PublishedPlace | null }>({ open: false, place: null });
   const [editForm, setEditForm] = useState<Partial<PublishedPlace>>({});
+
+  // Users tab
+  const [users, setUsers] = useState<Array<{
+    id: string;
+    email: string | null;
+    display_name: string | null;
+    avatar_url: string | null;
+    city: string | null;
+    points: number;
+    is_admin: boolean;
+  }>>([]);
+  const [usersSearch, setUsersSearch] = useState("");
+  const [userEditDialog, setUserEditDialog] = useState<{ open: boolean; user: typeof users[0] | null }>({ open: false, user: null });
+  const [userEditForm, setUserEditForm] = useState<{ display_name: string; city: string; points: number; is_admin: boolean }>({ display_name: "", city: "", points: 0, is_admin: false });
 
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
@@ -204,13 +214,13 @@ const AdminPage = () => {
     setPlacesLoading(false);
   }, []);
 
-  const fetchPublishedPlaces = useCallback(async () => {
+  const fetchUsers = useCallback(async () => {
     const { data } = await supabase
-      .from("pet_friendly_places")
-      .select("id, name, category, city, created_at, verified, source")
-      .order("created_at", { ascending: false })
+      .from("profiles")
+      .select("id, email, display_name, avatar_url, city, points, is_admin")
+      .order("points", { ascending: false })
       .limit(100);
-    if (data) setPublishedPlaces(data);
+    if (data) setUsers(data as any);
   }, []);
 
   useEffect(() => {
@@ -219,10 +229,10 @@ const AdminPage = () => {
     fetchSubmissions();
     fetchReports();
     fetchPlaces();
-    fetchPublishedPlaces();
+    fetchUsers();
     const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
-  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces, fetchPublishedPlaces]);
+  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces, fetchUsers]);
 
   const markNotifRead = async (id: string) => {
     await supabase.from("admin_notifications").update({ is_read: true }).eq("id", id);
@@ -261,7 +271,6 @@ const AdminPage = () => {
     setSubmissions(prev => prev.filter(s => s.id !== sub.id));
     fetchCounts();
     fetchPlaces();
-    fetchPublishedPlaces();
   };
 
   const rejectSubmission = async () => {
@@ -324,10 +333,40 @@ const AdminPage = () => {
     setEditDialog({ open: false, place: null });
   };
 
+  const openUserEdit = (u: typeof users[0]) => {
+    setUserEditForm({
+      display_name: u.display_name || "",
+      city: u.city || "",
+      points: u.points ?? 0,
+      is_admin: !!u.is_admin,
+    });
+    setUserEditDialog({ open: true, user: u });
+  };
+
+  const saveUserEdit = async () => {
+    if (!userEditDialog.user) return;
+    const { error } = await supabase.from("profiles").update({
+      display_name: userEditForm.display_name,
+      city: userEditForm.city,
+      points: userEditForm.points,
+      is_admin: userEditForm.is_admin,
+    }).eq("id", userEditDialog.user.id);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    toast.success("Profil mis à jour");
+    setUserEditDialog({ open: false, user: null });
+    fetchUsers();
+  };
+
   const filteredPlaces = places.filter(p => {
     if (!placesSearch) return true;
     const q = placesSearch.toLowerCase();
     return p.name.toLowerCase().includes(q) || p.city?.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || p.address?.toLowerCase().includes(q);
+  });
+
+  const filteredUsers = users.filter(u => {
+    if (!usersSearch) return true;
+    const q = usersSearch.toLowerCase();
+    return (u.display_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.city?.toLowerCase().includes(q));
   });
   const totalPages = Math.ceil(filteredPlaces.length / PLACES_PER_PAGE);
   const paginatedPlaces = filteredPlaces.slice(placesPage * PLACES_PER_PAGE, (placesPage + 1) * PLACES_PER_PAGE);
@@ -365,8 +404,8 @@ const AdminPage = () => {
             <TabsTrigger value="notifications">🔔 Notifs</TabsTrigger>
             <TabsTrigger value="submissions">📍 À valider</TabsTrigger>
             <TabsTrigger value="reports">⚠️ Signalements</TabsTrigger>
-            <TabsTrigger value="places">🗺️ Lieux</TabsTrigger>
-            <TabsTrigger value="published">🗺️ Publiés</TabsTrigger>
+            <TabsTrigger value="places">🗺️ Tous les lieux</TabsTrigger>
+            <TabsTrigger value="users">👥 Utilisateurs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="notifications" className="space-y-2 mt-4">
@@ -481,7 +520,18 @@ const AdminPage = () => {
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <Badge variant="secondary">{place.category}</Badge>
                         {place.subcategory && <Badge variant="outline" className="text-[10px]">{place.subcategory}</Badge>}
-                        {place.source && <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{place.source}</span>}
+                        {place.source === "openstreetmap" && (
+                          <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[10px]">OSM</Badge>
+                        )}
+                        {place.source === "user_submission" && !place.verified && (
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 text-[10px]">Soumis</Badge>
+                        )}
+                        {place.source === "user_submission" && place.verified && (
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 text-[10px]">✅ Validé</Badge>
+                        )}
+                        {place.source && place.source !== "openstreetmap" && place.source !== "user_submission" && (
+                          <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{place.source}</span>
+                        )}
                       </div>
                     </div>
                     {place.photo_url && (
@@ -548,35 +598,48 @@ const AdminPage = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="published" className="space-y-4 mt-4">
-            {publishedPlaces.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun lieu publié</p>}
-            {publishedPlaces.map(place => {
-              const isOSM = place.source === "openstreetmap";
-              const isSubmission = place.source === "user_submission";
+          <TabsContent value="users" className="space-y-3 mt-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher par nom, email, ville…"
+                value={usersSearch}
+                onChange={(e) => setUsersSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">{filteredUsers.length} utilisateur{filteredUsers.length > 1 ? "s" : ""}</p>
+
+            {filteredUsers.length === 0 && (
+              <p className="text-muted-foreground text-center py-8">Aucun utilisateur trouvé</p>
+            )}
+
+            {filteredUsers.map(u => {
+              const initial = (u.display_name?.[0] || u.email?.[0] || "?").toUpperCase();
               return (
-                <Card key={place.id}>
-                  <CardContent className="pt-4 space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-semibold text-foreground">{place.name}</h3>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <Badge variant="secondary">{place.category}</Badge>
-                          {place.city && <span className="text-sm text-muted-foreground">{place.city}</span>}
-                          {isOSM && (
-                            <Badge variant="outline" className="bg-muted text-muted-foreground border-border">OSM</Badge>
-                          )}
-                          {isSubmission && !place.verified && (
-                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Soumis</Badge>
-                          )}
-                          {isSubmission && place.verified && (
-                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">✅ Validé</Badge>
-                          )}
+                <Card key={u.id}>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-3">
+                      {u.avatar_url ? (
+                        <img src={u.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border border-border shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-sm shrink-0">
+                          {initial}
                         </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-semibold text-foreground truncate">{u.display_name || "Sans nom"}</p>
+                          {u.is_admin && <Badge className="bg-primary/15 text-primary border-primary/30 text-[10px]">Admin</Badge>}
+                          <Badge variant="outline" className="text-[10px] gap-1">⭐ {u.points ?? 0}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{u.email || "—"}</p>
+                        {u.city && <p className="text-xs text-muted-foreground">📍 {u.city}</p>}
                       </div>
+                      <Button size="sm" variant="outline" className="h-8 gap-1 text-xs shrink-0" onClick={() => openUserEdit(u)}>
+                        <Pencil className="w-3 h-3" /> Modifier
+                      </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Publié le {new Date(place.created_at).toLocaleDateString("fr-FR")}
-                    </p>
                   </CardContent>
                 </Card>
               );
@@ -681,6 +744,51 @@ const AdminPage = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialog({ open: false, place: null })}>Annuler</Button>
             <Button variant="destructive" onClick={() => deleteDialog.place && deletePlace(deleteDialog.place)}>Supprimer définitivement</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={userEditDialog.open} onOpenChange={(v) => { if (!v) setUserEditDialog({ open: false, user: null }); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>✏️ Modifier le profil</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-foreground">Email</label>
+              <Input value={userEditDialog.user?.email || ""} disabled className="bg-muted" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground">Nom affiché</label>
+              <Input
+                value={userEditForm.display_name}
+                onChange={(e) => setUserEditForm(f => ({ ...f, display_name: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground">Ville</label>
+              <Input
+                value={userEditForm.city}
+                onChange={(e) => setUserEditForm(f => ({ ...f, city: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground">Points ⭐</label>
+              <Input
+                type="number"
+                value={userEditForm.points}
+                onChange={(e) => setUserEditForm(f => ({ ...f, points: Number(e.target.value) || 0 }))}
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <label className="text-sm text-foreground">👑 Administrateur</label>
+              <Switch
+                checked={userEditForm.is_admin}
+                onCheckedChange={(v) => setUserEditForm(f => ({ ...f, is_admin: v }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUserEditDialog({ open: false, user: null })}>Annuler</Button>
+            <Button onClick={saveUserEdit}>Enregistrer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
