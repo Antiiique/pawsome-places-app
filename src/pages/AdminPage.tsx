@@ -747,6 +747,51 @@ const AdminPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={userEditDialog.open} onOpenChange={(v) => { if (!v) setUserEditDialog({ open: false, user: null }); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>✏️ Modifier le profil</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-foreground">Email</label>
+              <Input value={userEditDialog.user?.email || ""} disabled className="bg-muted" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground">Nom affiché</label>
+              <Input
+                value={userEditForm.display_name}
+                onChange={(e) => setUserEditForm(f => ({ ...f, display_name: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground">Ville</label>
+              <Input
+                value={userEditForm.city}
+                onChange={(e) => setUserEditForm(f => ({ ...f, city: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground">Points ⭐</label>
+              <Input
+                type="number"
+                value={userEditForm.points}
+                onChange={(e) => setUserEditForm(f => ({ ...f, points: Number(e.target.value) || 0 }))}
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <label className="text-sm text-foreground">👑 Administrateur</label>
+              <Switch
+                checked={userEditForm.is_admin}
+                onCheckedChange={(v) => setUserEditForm(f => ({ ...f, is_admin: v }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUserEditDialog({ open: false, user: null })}>Annuler</Button>
+            <Button onClick={saveUserEdit}>Enregistrer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
