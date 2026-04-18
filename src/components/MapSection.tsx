@@ -415,7 +415,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       const marker = new google.maps.marker.AdvancedMarkerElement({
         position: { lat: place.latitude, lng: place.longitude }, title: place.name, content,
       });
-      marker.addEventListener("gmp-click", () => {
+      content.addEventListener("click", (e) => {
+        e.stopPropagation();
         markerClickedRef.current = true;
         setTimeout(() => { markerClickedRef.current = false; }, 300);
         const googlePlaceId = place.google_place_id || null;
