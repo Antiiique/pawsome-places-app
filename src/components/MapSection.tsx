@@ -141,6 +141,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     const map = new google.maps.Map(mapRef.current, {
       center, zoom: 13, mapId: "DEMO_MAP_ID",
       disableDefaultUI: false, zoomControl: true, mapTypeControl: false, streetViewControl: false, fullscreenControl: true,
+      clickableIcons: false,
     });
     mapInstanceRef.current = map;
 
@@ -166,6 +167,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     map.addListener("click", (event: google.maps.MapMouseEvent & { placeId?: string }) => {
       console.log("🗺️ Clic carte:", event);
       if (pickMode) return;
+      if (event.placeId) (event as any).stop?.();
       setTimeout(() => {
         if (markerClickedRef.current) return;
 
