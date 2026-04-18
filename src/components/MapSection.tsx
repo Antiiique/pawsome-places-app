@@ -47,6 +47,7 @@ function createMarkerContent(category: string, acceptsDogs: boolean): HTMLElemen
   div.style.cssText = `width: 40px; height: 46px; position: relative; cursor: pointer;`;
   div.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="46" viewBox="0 0 44 52">
+      <rect width="44" height="52" fill="transparent"/>
       <filter id="s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/></filter>
       <path filter="url(#s)" d="M22 50 C22 50 4 34 4 20 A18 18 0 0 1 40 20 C40 34 22 50 22 50Z" fill="${color}" stroke="white" stroke-width="2"/>
       <text x="22" y="24" text-anchor="middle" font-size="18" dominant-baseline="central">${emoji}</text>
@@ -140,6 +141,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     const map = new google.maps.Map(mapRef.current, {
       center, zoom: 13, mapId: "DEMO_MAP_ID",
       disableDefaultUI: false, zoomControl: true, mapTypeControl: false, streetViewControl: false, fullscreenControl: true,
+      clickableIcons: false,
     });
     mapInstanceRef.current = map;
 
@@ -165,6 +167,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     map.addListener("click", (event: google.maps.MapMouseEvent & { placeId?: string }) => {
       console.log("🗺️ Clic carte:", event);
       if (pickMode) return;
+      if (event.placeId) (event as any).stop?.();
       setTimeout(() => {
         if (markerClickedRef.current) return;
 
