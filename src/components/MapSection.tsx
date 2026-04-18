@@ -141,7 +141,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     const map = new google.maps.Map(mapRef.current, {
       center, zoom: 13, mapId: "DEMO_MAP_ID",
       disableDefaultUI: false, zoomControl: true, mapTypeControl: false, streetViewControl: false, fullscreenControl: true,
-      clickableIcons: false,
+      
     });
     mapInstanceRef.current = map;
 
