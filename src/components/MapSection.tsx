@@ -419,8 +419,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         e.stopPropagation();
         markerClickedRef.current = true;
         setTimeout(() => { markerClickedRef.current = false; }, 300);
-        const googlePlaceId = place.google_place_id || null;
-        
+
         const fallbackPlace: UniversalPlace = {
           name: place.name,
           address: place.address || place.city || "",
@@ -430,40 +429,39 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           city: place.city || undefined,
           phone: place.phone || undefined,
           opening_hours: place.opening_hours || undefined,
-          rating: place.rating || undefined,
+          rating: (place as any).google_rating || place.rating || undefined,
           website: place.website || undefined,
           isPetFriendly: true,
+          photos: [],
+          reviews: [],
         };
 
+        // Affiche les données DB immédiatement
         map.panTo({ lat: place.latitude, lng: place.longitude });
+        setPopupData({ place: fallbackPlace, position: { x: window.innerWidth / 2, y: window.innerHeight / 2 }, petPlace: place });
 
-        if (googlePlaceId && map) {
-          // Fetch enriched data from Places API
-          const service = new google.maps.places.PlacesService(map);
-          service.getDetails({
-            placeId: googlePlaceId,
-            fields: ["name", "geometry", "formatted_address", "types", "rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos"],
+        // Enrichissement avec données Google
+        const enrichWithGoogle = (placeId: string) => {
+          const svc = new google.maps.places.PlacesService(map);
+          svc.getDetails({
+            placeId,
+            fields: ["rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos"],
           }, (gPlace, status) => {
-            console.log('--- DIAGNOSTIC PLACES API (pet-friendly) ---');
-            console.log('Status:', status);
-            console.log('Photos:', gPlace?.photos?.length ?? 0);
-            console.log('Avis:', gPlace?.reviews?.length ?? 0);
-            console.log('--------------------------------------------');
-
-            if (status === google.maps.places.PlacesServiceStatus.OK && gPlace) {
-              const photos = gPlace.photos
-                ? gPlace.photos.slice(0, 5).map(p => p.getUrl({ maxWidth: 400, maxHeight: 300 }))
-                : [];
-              const reviews = gPlace.reviews
-                ? gPlace.reviews.slice(0, 5).map(r => ({
-                    author: r.author_name || "Anonyme",
-                    avatar: r.profile_photo_url || null,
-                    rating: r.rating,
-                    text: r.text || "",
-                    time: r.relative_time_description || "",
-                  }))
-                : [];
-              const enriched: UniversalPlace = {
+            if (status !== google.maps.places.PlacesServiceStatus.OK || !gPlace) return;
+            const photos = gPlace.photos
+              ? gPlace.photos.slice(0, 5).map(p => p.getUrl({ maxWidth: 400, maxHeight: 300 }))
+              : [];
+            const reviews = gPlace.reviews
+              ? gPlace.reviews.slice(0, 5).map(r => ({
+                  author: r.author_name || "Anonyme",
+                  avatar: r.profile_photo_url || null,
+                  rating: r.rating,
+                  text: r.text || "",
+                  time: r.relative_time_description || "",
+                }))
+              : [];
+            setPopupData({
+              place: {
                 ...fallbackPlace,
                 rating: gPlace.rating || fallbackPlace.rating,
                 reviewsTotal: (gPlace as any).user_ratings_total || 0,
@@ -474,17 +472,29 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
                   : gPlace.opening_hours?.weekday_text?.join(" • ") || fallbackPlace.opening_hours,
                 photos,
                 reviews,
-                placeId: googlePlaceId,
-              };
-              setPopupData({ place: enriched, position: { x: window.innerWidth / 2, y: window.innerHeight / 2 }, petPlace: place });
-            } else {
-              // Fallback to DB data
-              setPopupData({ place: fallbackPlace, position: { x: window.innerWidth / 2, y: window.innerHeight / 2 }, petPlace: place });
+                placeId,
+              },
+              position: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+              petPlace: place,
+            });
+          });
+        };
+
+        const googlePlaceId = (place as any).google_place_id || null;
+        if (googlePlaceId) {
+          enrichWithGoogle(googlePlaceId);
+        } else {
+          // Pas de google_place_id → recherche par proximité
+          const svc = new google.maps.places.PlacesService(map);
+          svc.nearbySearch({
+            location: { lat: place.latitude, lng: place.longitude },
+            radius: 80,
+            keyword: place.name,
+          }, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && results?.[0]?.place_id) {
+              enrichWithGoogle(results[0].place_id);
             }
           });
-        } else {
-          // No placeId — show DB data directly
-          setPopupData({ place: fallbackPlace, position: { x: window.innerWidth / 2, y: window.innerHeight / 2 }, petPlace: place });
         }
       });
       newMarkers.push(marker);
