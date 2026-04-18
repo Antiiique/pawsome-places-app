@@ -172,7 +172,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         if (markerClickedRef.current) return;
 
         if (event.placeId) {
-          (event as any).stop?.();
           console.log("🔍 Clic POI détecté, placeId:", event.placeId);
           const service = new google.maps.places.PlacesService(map);
           service.getDetails({
