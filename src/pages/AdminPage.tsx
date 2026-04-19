@@ -138,12 +138,13 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss }: {
+function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss, onDelete }: {
   reports: Report[];
   onEdit: (placeId: string) => void;
   onUnpublish: (placeId: string, ids: string[]) => void;
   onReview: (placeId: string | null, ids: string[]) => void;
   onDismiss: (placeId: string | null, ids: string[]) => void;
+  onDelete: (ids: string[]) => void;
 }) {
   const groups: Record<string, { place_id: string | null; place_name: string | undefined; reports: Report[] }> = {};
   for (const r of reports) {
@@ -192,6 +193,14 @@ function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss }: {
                 </Button>
                 <Button size="sm" variant="outline" className="text-xs h-9" onClick={() => onDismiss(group.place_id, ids)}>
                   🚫 Infondé{ids.length > 1 ? "s" : ""}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-destructive border-destructive/40 hover:bg-destructive/10 h-9 text-xs"
+                  onClick={() => onDelete(ids)}
+                >
+                  🗑 Supprimer
                 </Button>
               </div>
             </CardContent>
