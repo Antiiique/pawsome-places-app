@@ -296,6 +296,23 @@ const AdminPage = () => {
   const [exportCountry, setExportCountry] = useState("");
   const [exportOnlyVerified, setExportOnlyVerified] = useState(false);
 
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [globalResults, setGlobalResults] = useState<{
+    places: Array<{ id: string; name: string; city: string | null; category: string }>;
+    users: Array<{ id: string; display_name: string | null; email: string | null }>;
+    submissions: Array<{ id: string; name: string; city: string | null }>;
+  } | null>(null);
+  const [globalSearching, setGlobalSearching] = useState(false);
+  const globalSearchRef = useRef<HTMLDivElement>(null);
+
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [submissionCursor, setSubmissionCursor] = useState(0);
+
+  const [savedFilters, setSavedFilters] = useState<Array<{ name: string; filter: typeof placesFilter }>>(() => {
+    try { return JSON.parse(localStorage.getItem("admin_saved_filters") || "[]"); } catch { return []; }
+  });
+  const [saveFilterName, setSaveFilterName] = useState("");
+
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
       supabase.from("place_submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
@@ -982,6 +999,66 @@ const AdminPage = () => {
     toast.success(`✅ ${data.length.toLocaleString("fr-FR")} lieux exportés`);
   };
 
+  const runGlobalSearch = useCallback(async (q: string) => {
+    if (q.trim().length < 2) { setGlobalResults(null); return; }
+    setGlobalSearching(true);
+    const [p, u, s] = await Promise.all([
+      supabase.from("pet_friendly_places").select("id, name, city, category").ilike("name", `%${q}%`).limit(5),
+      supabase.from("profiles").select("id, display_name, email").or(`display_name.ilike.%${q}%,email.ilike.%${q}%`).limit(5),
+      supabase.from("place_submissions").select("id, name, city").ilike("name", `%${q}%`).eq("status", "pending").limit(5),
+    ]);
+    setGlobalResults({ places: p.data || [], users: u.data || [], submissions: s.data || [] });
+    setGlobalSearching(false);
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => { if (globalSearch) runGlobalSearch(globalSearch); else setGlobalResults(null); }, 350);
+    return () => clearTimeout(t);
+  }, [globalSearch, runGlobalSearch]);
+
+  useEffect(() => {
+    if (activeTab !== "submissions") return;
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setSubmissionCursor(c => Math.min(c + 1, filteredSubmissions.length - 1));
+      }
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setSubmissionCursor(c => Math.max(c - 1, 0));
+      }
+      if ((e.key === "a" || e.key === "A") && !approveDialog.open && !rejectDialog.open) {
+        const sub = filteredSubmissions[submissionCursor];
+        if (sub) setApproveDialog({ open: true, sub });
+      }
+      if ((e.key === "r" || e.key === "R") && !approveDialog.open && !rejectDialog.open) {
+        const sub = filteredSubmissions[submissionCursor];
+        if (sub) setRejectDialog({ open: true, id: sub.id });
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [activeTab, filteredSubmissions, submissionCursor, approveDialog.open, rejectDialog.open]);
+
+  const saveFilter = () => {
+    if (!saveFilterName.trim()) return;
+    const updated = [...savedFilters, { name: saveFilterName.trim(), filter: { ...placesFilter } }];
+    setSavedFilters(updated);
+    localStorage.setItem("admin_saved_filters", JSON.stringify(updated));
+    setSaveFilterName("");
+    toast.success(`Preset "${saveFilterName.trim()}" sauvegardé`);
+  };
+
+  const loadFilter = (f: typeof placesFilter) => { setPlacesFilter(f); setPlacesPage(0); };
+
+  const deleteFilter = (i: number) => {
+    const updated = savedFilters.filter((_, idx) => idx !== i);
+    setSavedFilters(updated);
+    localStorage.setItem("admin_saved_filters", JSON.stringify(updated));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
@@ -989,6 +1066,60 @@ const AdminPage = () => {
           <Button variant="ghost" onClick={() => navigate("/")}>← Retour</Button>
           <h1 className="text-xl font-bold text-foreground flex-1">⚙️ Administration — World Pet Friendly</h1>
           {notifCount > 0 && <Badge className="bg-orange-500 text-white">{notifCount}</Badge>}
+        </div>
+
+        <div ref={globalSearchRef} className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Recherche globale — lieux, utilisateurs, soumissions…"
+            value={globalSearch}
+            onChange={e => setGlobalSearch(e.target.value)}
+            onBlur={() => setTimeout(() => setGlobalResults(null), 200)}
+            className="pl-9"
+          />
+          {globalSearching && <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />}
+          {globalResults && (globalResults.places.length > 0 || globalResults.users.length > 0 || globalResults.submissions.length > 0) && (
+            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-xl shadow-lg overflow-hidden">
+              {globalResults.places.length > 0 && (
+                <div>
+                  <p className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">🗺️ Lieux</p>
+                  {globalResults.places.map(p => (
+                    <button key={p.id} className="w-full text-left px-3 py-2 hover:bg-muted transition-colors" onClick={() => { setActiveTab("places"); setPlacesSearch(p.name); setGlobalSearch(""); setGlobalResults(null); }}>
+                      <span className="text-sm font-medium text-foreground">{p.name}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{p.city || "—"} · {p.category}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {globalResults.users.length > 0 && (
+                <div>
+                  <p className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">👥 Utilisateurs</p>
+                  {globalResults.users.map(u => (
+                    <button key={u.id} className="w-full text-left px-3 py-2 hover:bg-muted transition-colors" onClick={() => { setActiveTab("users"); setUsersSearch(u.display_name || u.email || ""); setGlobalSearch(""); setGlobalResults(null); }}>
+                      <span className="text-sm font-medium text-foreground">{u.display_name || "Sans nom"}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{u.email}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {globalResults.submissions.length > 0 && (
+                <div>
+                  <p className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">📍 Soumissions en attente</p>
+                  {globalResults.submissions.map(s => (
+                    <button key={s.id} className="w-full text-left px-3 py-2 hover:bg-muted transition-colors" onClick={() => { setActiveTab("submissions"); setGlobalSearch(""); setGlobalResults(null); }}>
+                      <span className="text-sm font-medium text-foreground">{s.name}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{s.city || "—"}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {globalResults && globalResults.places.length === 0 && globalResults.users.length === 0 && globalResults.submissions.length === 0 && (
+            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-xl shadow-lg px-4 py-3">
+              <p className="text-sm text-muted-foreground">Aucun résultat pour "{globalSearch}"</p>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -1010,7 +1141,7 @@ const AdminPage = () => {
           </CardContent></Card>
         </div>
 
-        <Tabs defaultValue="dashboard">
+        <Tabs defaultValue="dashboard" value={activeTab} onValueChange={v => { setActiveTab(v); setSubmissionCursor(0); }}>
           <TabsList className="grid w-full grid-cols-6 lg:grid-cols-11 h-auto">
             <TabsTrigger value="dashboard">📊 Stats</TabsTrigger>
             <TabsTrigger value="notifications">🔔 Notifs</TabsTrigger>
@@ -1230,6 +1361,14 @@ const AdminPage = () => {
           </TabsContent>
 
           <TabsContent value="submissions" className="space-y-4 mt-4">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/60 border border-border text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">⌨️ Raccourcis :</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-background border border-border font-mono">A</kbd><span>Approuver</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-background border border-border font-mono">R</kbd><span>Rejeter</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-background border border-border font-mono">→</kbd><span>Suivant</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-background border border-border font-mono">←</kbd><span>Précédent</span>
+              {filteredSubmissions.length > 0 && <span className="ml-auto text-primary font-medium">{submissionCursor + 1} / {filteredSubmissions.length}</span>}
+            </div>
 
             {/* Filtres */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -1292,7 +1431,7 @@ const AdminPage = () => {
               const isSelected = selectedSubmissions.has(sub.id);
               const mapOpen = submissionMapOpen === sub.id;
               return (
-                <Card key={sub.id} className={isSelected ? "border-primary" : ""}>
+                <Card key={sub.id} className={isSelected ? "border-primary" : filteredSubmissions[submissionCursor]?.id === sub.id ? "border-blue-400 ring-1 ring-blue-400 shadow-sm" : ""}>
                   <CardContent className="pt-4 space-y-3">
                     <div className="flex items-start gap-3">
                       <input
@@ -1400,6 +1539,33 @@ const AdminPage = () => {
               </select>
               {(placesFilter.flagged || placesFilter.unverified || placesFilter.noPhoto || placesFilter.source || placesFilter.country) && (
                 <button onClick={() => setPlacesFilter({ flagged: false, unverified: false, noPhoto: false, source: "", country: "" })} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border text-muted-foreground hover:bg-muted">✕ Réinitialiser</button>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Nom du preset…"
+                  value={saveFilterName}
+                  onChange={e => setSaveFilterName(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && saveFilter()}
+                  className="h-8 text-xs flex-1"
+                />
+                <Button size="sm" variant="outline" className="h-8 text-xs shrink-0" onClick={saveFilter} disabled={!saveFilterName.trim()}>
+                  💾 Sauvegarder le filtre actuel
+                </Button>
+              </div>
+              {savedFilters.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {savedFilters.map((sf, i) => (
+                    <div key={i} className="flex items-center gap-0.5 rounded-lg border border-border bg-background overflow-hidden">
+                      <button className="px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors" onClick={() => loadFilter(sf.filter)}>
+                        🏷️ {sf.name}
+                      </button>
+                      <button className="px-1.5 py-1 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors" onClick={() => deleteFilter(i)}>✕</button>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
