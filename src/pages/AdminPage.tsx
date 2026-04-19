@@ -128,6 +128,70 @@ function timeAgo(dateStr: string) {
 
 const PLACES_PER_PAGE = 15;
 
+function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss }: {
+  reports: Report[];
+  onEdit: (placeId: string) => void;
+  onUnpublish: (placeId: string, ids: string[]) => void;
+  onReview: (placeId: string | null, ids: string[]) => void;
+  onDismiss: (placeId: string | null, ids: string[]) => void;
+}) {
+  const groups: Record<string, { place_id: string | null; place_name: string | undefined; reports: Report[] }> = {};
+  for (const r of reports) {
+    const key = r.place_id || `no-place-${r.id}`;
+    if (!groups[key]) groups[key] = { place_id: r.place_id, place_name: r.place_name, reports: [] };
+    groups[key].reports.push(r);
+  }
+  return (
+    <>
+      {Object.entries(groups).map(([key, group]) => {
+        const ids = group.reports.map(r => r.id);
+        const hasPlace = !!group.place_id;
+        return (
+          <Card key={key} className="border-orange-300 dark:border-orange-700">
+            <CardContent className="pt-4 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="font-semibold text-foreground">{group.place_name || "Lieu inconnu"}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{group.reports.length} signalement{group.reports.length > 1 ? "s" : ""}</p>
+                </div>
+                {group.reports.length > 1 && <Badge className="bg-orange-500 text-white shrink-0">{group.reports.length}</Badge>}
+              </div>
+              <div className="space-y-2">
+                {group.reports.map(report => (
+                  <div key={report.id} className="rounded-lg bg-secondary border border-border p-3 space-y-1">
+                    <Badge variant="outline" className="text-xs">{reasonLabels[report.reason] || report.reason}</Badge>
+                    {report.comment && <p className="text-sm text-muted-foreground">"{report.comment}"</p>}
+                    <p className="text-xs text-muted-foreground">{timeAgo(report.created_at || "")}</p>
+                  </div>
+                ))}
+              </div>
+              <Separator />
+              <div className="grid grid-cols-2 gap-2">
+                {hasPlace && (
+                  <Button size="sm" variant="outline" className="text-xs h-9" onClick={() => onEdit(group.place_id!)}>
+                    ✏️ Corriger le lieu
+                  </Button>
+                )}
+                {hasPlace && (
+                  <Button size="sm" variant="outline" className="text-xs h-9 border-orange-400 text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:border-orange-700" onClick={() => onUnpublish(group.place_id!, ids)}>
+                    🔒 Dépublier temporairement
+                  </Button>
+                )}
+                <Button size="sm" className="text-xs h-9 bg-green-600 hover:bg-green-700 text-white" onClick={() => onReview(group.place_id, ids)}>
+                  ✅ Marquer traité{ids.length > 1 ? "s" : ""}
+                </Button>
+                <Button size="sm" variant="outline" className="text-xs h-9" onClick={() => onDismiss(group.place_id, ids)}>
+                  🚫 Infondé{ids.length > 1 ? "s" : ""}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </>
+  );
+}
+
 const AdminPage = () => {
   const navigate = useNavigate();
   const { user } = useAuthContext();
@@ -433,6 +497,41 @@ const AdminPage = () => {
     }
     toast.success(action === "reviewed" ? "Signalement traité" : "Signalement ignoré");
     setReports(prev => prev.filter(r => r.id !== report.id));
+    fetchCounts();
+  };
+
+  const openEditFromReport = async (placeId: string) => {
+    let found = places.find(p => p.id === placeId);
+    if (!found) {
+      const { data } = await supabase.from("pet_friendly_places").select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, description, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided, rating, photo_url, verified, is_flagged, report_count, source, last_updated, google_place_id, created_at").eq("id", placeId).maybeSingle();
+      if (data) found = data as PublishedPlace;
+    }
+    if (found) openEdit(found);
+    else toast.error("Lieu introuvable");
+  };
+
+  const unpublishFromReport = async (placeId: string, reportIds: string[]) => {
+    await supabase.from("pet_friendly_places").update({ verified: false, is_flagged: true }).eq("id", placeId);
+    await Promise.all(reportIds.map(id => supabase.from("place_reports").update({ status: "reviewed" }).eq("id", id)));
+    toast.success("🔒 Lieu dépublié temporairement");
+    setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
+    setPlaces(prev => prev.map(p => p.id === placeId ? { ...p, verified: false, is_flagged: true } : p));
+    fetchCounts();
+  };
+
+  const reviewGroup = async (placeId: string | null, reportIds: string[]) => {
+    await Promise.all(reportIds.map(id => supabase.from("place_reports").update({ status: "reviewed" }).eq("id", id)));
+    if (placeId) await supabase.from("pet_friendly_places").update({ is_flagged: true }).eq("id", placeId);
+    toast.success("✅ Signalements traités");
+    setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
+    fetchCounts();
+  };
+
+  const dismissGroup = async (placeId: string | null, reportIds: string[]) => {
+    await Promise.all(reportIds.map(id => supabase.from("place_reports").update({ status: "dismissed" }).eq("id", id)));
+    if (placeId) await supabase.from("pet_friendly_places").update({ report_count: 0, is_flagged: false }).eq("id", placeId);
+    toast.success("🚫 Signalements marqués comme infondés");
+    setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
     fetchCounts();
   };
 
@@ -792,18 +891,7 @@ const AdminPage = () => {
 
           <TabsContent value="reports" className="space-y-4 mt-4">
             {reports.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun signalement en attente</p>}
-            {reports.map(report => (
-              <Card key={report.id}><CardContent className="pt-4 space-y-3">
-                <h3 className="font-semibold text-foreground">{report.place_name}</h3>
-                <Badge variant="outline">{reasonLabels[report.reason] || report.reason}</Badge>
-                {report.comment && <p className="text-sm text-muted-foreground">"{report.comment}"</p>}
-                <p className="text-xs text-muted-foreground">{timeAgo(report.created_at || "")}</p>
-                <div className="flex gap-2 pt-2">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleReport(report, "reviewed")}>✅ Traité</Button>
-                  <Button size="sm" variant="outline" onClick={() => handleReport(report, "dismissed")}>🚫 Ignorer</Button>
-                </div>
-              </CardContent></Card>
-            ))}
+            {reports.length > 0 && <ReportGroups reports={reports} onEdit={openEditFromReport} onUnpublish={unpublishFromReport} onReview={reviewGroup} onDismiss={dismissGroup} />}
           </TabsContent>
 
           <TabsContent value="places" className="space-y-4 mt-4">
