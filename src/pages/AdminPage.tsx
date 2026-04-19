@@ -257,6 +257,10 @@ const AdminPage = () => {
   const [submissionMapOpen, setSubmissionMapOpen] = useState<string | null>(null);
   const [bulkRejectDialog, setBulkRejectDialog] = useState(false);
   const [bulkRejectNote, setBulkRejectNote] = useState("");
+  const [placesFilter, setPlacesFilter] = useState({ flagged: false, unverified: false, noPhoto: false, source: "", country: "" });
+  const [banDialog, setBanDialog] = useState<{ open: boolean; userId: string | null; name: string }>({ open: false, userId: null, name: "" });
+  const [banReason, setBanReason] = useState("");
+  const [banDuration, setBanDuration] = useState("permanent");
 
   const [enriching, setEnriching] = useState(false);
   const [enrichedData, setEnrichedData] = useState<{
@@ -679,6 +683,38 @@ const AdminPage = () => {
     fetchCounts();
   };
 
+  const exportCSV = () => {
+    const headers = ["Nom","Catégorie","Ville","Pays","Adresse","Téléphone","Site web","Horaires","Note","Chiens","Chats","Vérifié","Source","Lat","Lng"];
+    const rows = filteredPlaces.map(p => [
+      p.name, p.category, p.city||"", p.country||"", p.address||"",
+      p.phone||"", p.website||"", p.opening_hours||"", p.rating||"",
+      p.accepts_dogs?"Oui":"Non", p.accepts_cats?"Oui":"Non",
+      p.verified?"Oui":"Non", p.source||"", p.latitude, p.longitude
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(","));
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob(["\uFEFF"+csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `lieux-wpf-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success(`✅ ${filteredPlaces.length} lieux exportés`);
+  };
+
+  const banUser = async () => {
+    if (!banDialog.userId) return;
+    await supabase.from("profiles").update({ is_banned: true }).eq("id", banDialog.userId);
+    toast.success(`🔒 ${banDialog.name} suspendu`);
+    setBanDialog({ open: false, userId: null, name: "" });
+    setBanReason(""); setBanDuration("permanent");
+    fetchUsers();
+  };
+
+  const unbanUser = async (userId: string) => {
+    await supabase.from("profiles").update({ is_banned: false }).eq("id", userId);
+    toast.success("✅ Compte réactivé");
+    fetchUsers();
+  };
+
   const deletePlace = async (place: PublishedPlace) => {
     const { error } = await supabase.from("pet_friendly_places").delete().eq("id", place.id);
     if (error) { toast.error("Erreur : " + error.message); return; }
@@ -749,10 +785,20 @@ const AdminPage = () => {
     return true;
   });
 
+  const uniqueSources = [...new Set(places.map(p => p.source).filter(Boolean))];
+  const uniqueCountries = [...new Set(places.map(p => p.country).filter(Boolean))].sort() as string[];
+
   const filteredPlaces = places.filter(p => {
-    if (!placesSearch) return true;
-    const q = placesSearch.toLowerCase();
-    return p.name.toLowerCase().includes(q) || p.city?.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || p.address?.toLowerCase().includes(q);
+    if (placesSearch) {
+      const q = placesSearch.toLowerCase();
+      if (!p.name.toLowerCase().includes(q) && !p.city?.toLowerCase().includes(q) && !p.category.toLowerCase().includes(q) && !p.address?.toLowerCase().includes(q)) return false;
+    }
+    if (placesFilter.flagged && !p.is_flagged) return false;
+    if (placesFilter.unverified && p.verified) return false;
+    if (placesFilter.noPhoto && p.photo_url) return false;
+    if (placesFilter.source && p.source !== placesFilter.source) return false;
+    if (placesFilter.country && p.country !== placesFilter.country) return false;
+    return true;
   });
 
   const filteredUsers = users.filter(u => {
@@ -1167,16 +1213,30 @@ const AdminPage = () => {
           <TabsContent value="places" className="space-y-4 mt-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher par nom, ville, catégorie…"
-                value={placesSearch}
-                onChange={(e) => { setPlacesSearch(e.target.value); setPlacesPage(0); }}
-                className="pl-9"
-              />
+              <Input placeholder="Rechercher par nom, ville, catégorie…" value={placesSearch} onChange={(e) => { setPlacesSearch(e.target.value); setPlacesPage(0); }} className="pl-9" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => setPlacesFilter(f => ({ ...f, flagged: !f.flagged }))} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${placesFilter.flagged ? "bg-orange-500 text-white border-orange-500" : "bg-background border-border text-muted-foreground hover:border-orange-400"}`}>⚠️ Signalés</button>
+              <button onClick={() => setPlacesFilter(f => ({ ...f, unverified: !f.unverified }))} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${placesFilter.unverified ? "bg-destructive text-white border-destructive" : "bg-background border-border text-muted-foreground hover:border-destructive"}`}>❌ Non vérifiés</button>
+              <button onClick={() => setPlacesFilter(f => ({ ...f, noPhoto: !f.noPhoto }))} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${placesFilter.noPhoto ? "bg-primary text-white border-primary" : "bg-background border-border text-muted-foreground hover:border-primary"}`}>📷 Sans photo</button>
+              <select value={placesFilter.source} onChange={(e) => setPlacesFilter(f => ({ ...f, source: e.target.value }))} className="h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground">
+                <option value="">Toutes sources</option>
+                {uniqueSources.map(s => <option key={String(s)} value={String(s)}>{String(s)}</option>)}
+              </select>
+              <select value={placesFilter.country} onChange={(e) => setPlacesFilter(f => ({ ...f, country: e.target.value }))} className="h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground">
+                <option value="">Tous pays</option>
+                {uniqueCountries.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              {(placesFilter.flagged || placesFilter.unverified || placesFilter.noPhoto || placesFilter.source || placesFilter.country) && (
+                <button onClick={() => setPlacesFilter({ flagged: false, unverified: false, noPhoto: false, source: "", country: "" })} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border text-muted-foreground hover:bg-muted">✕ Réinitialiser</button>
+              )}
             </div>
 
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>{filteredPlaces.length} lieu{filteredPlaces.length > 1 ? "x" : ""} trouvé{filteredPlaces.length > 1 ? "s" : ""}</span>
+              <div className="flex items-center gap-2">
+                <span>{filteredPlaces.length} lieu{filteredPlaces.length > 1 ? "x" : ""} trouvé{filteredPlaces.length > 1 ? "s" : ""}</span>
+                <button onClick={exportCSV} className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-border bg-background text-muted-foreground hover:bg-muted transition-colors">⬇️ Export CSV</button>
+              </div>
               {totalPages > 1 && (
                 <div className="flex items-center gap-2">
                   <Button size="icon" variant="ghost" disabled={placesPage === 0} onClick={() => setPlacesPage(p => p - 1)} className="h-8 w-8">
@@ -1370,13 +1430,11 @@ const AdminPage = () => {
                       >
                         📊 Contributions
                       </Button>
-                      <Button
-                        size="sm" variant="outline"
-                        className={`h-7 gap-1 text-xs ${u.is_banned ? "text-green-600 border-green-500 hover:bg-green-50" : "text-orange-600 border-orange-400 hover:bg-orange-50"}`}
-                        onClick={() => toggleSuspendUser(u.id, u.is_banned)}
-                      >
-                        {u.is_banned ? "✅ Réactiver" : "🚫 Suspendre"}
-                      </Button>
+                      {u.is_banned ? (
+                        <Button size="sm" variant="outline" className="h-7 text-xs text-green-600 border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30" onClick={() => unbanUser(u.id)}>✅ Réactiver</Button>
+                      ) : (
+                        <Button size="sm" variant="outline" className="h-7 text-xs text-destructive border-destructive hover:bg-destructive/10" onClick={() => setBanDialog({ open: true, userId: u.id, name: u.display_name || u.email || "" })}>🔒 Suspendre</Button>
+                      )}
                       {u.email && (
                         <Button
                           size="sm" variant="outline" className="h-7 gap-1 text-xs text-blue-600 border-blue-400 hover:bg-blue-50"
@@ -1642,6 +1700,29 @@ const AdminPage = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={banDialog.open} onOpenChange={(v) => { if (!v) { setBanDialog({ open: false, userId: null, name: "" }); setBanReason(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>🔒 Suspendre {banDialog.name}</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-foreground">Motif (pour référence)</label>
+              <Textarea placeholder="Ex: spam, comportement inapproprié…" value={banReason} onChange={(e) => setBanReason(e.target.value)} rows={2} />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground">Durée</label>
+              <select value={banDuration} onChange={(e) => setBanDuration(e.target.value)} className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground mt-1">
+                <option value="7d">7 jours</option>
+                <option value="30d">30 jours</option>
+                <option value="permanent">Permanent</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setBanDialog({ open: false, userId: null, name: "" }); setBanReason(""); }}>Annuler</Button>
+            <Button variant="destructive" onClick={banUser}>Suspendre le compte</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div ref={placesServiceDivRef} style={{ display: "none" }} />
     </div>
   );
