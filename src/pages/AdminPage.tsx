@@ -1123,6 +1123,29 @@ const AdminPage = () => {
     localStorage.setItem("admin_saved_filters", JSON.stringify(updated));
   };
 
+  async function fetchAdminReviews() {
+    setAdminReviewsLoading(true);
+    const { data } = await supabase
+      .from("place_reviews")
+      .select("*, profiles(display_name, email), pet_friendly_places(name)")
+      .order("created_at", { ascending: false });
+    setAdminReviews(data || []);
+    setAdminReviewsLoading(false);
+  }
+
+  async function hideReview(id: string, currentlyHidden: boolean) {
+    await supabase.from("place_reviews").update({ is_hidden: !currentlyHidden }).eq("id", id);
+    toast.success(currentlyHidden ? "Avis restauré" : "Avis masqué");
+    fetchAdminReviews();
+  }
+
+  async function adminDeleteReview(id: string) {
+    await supabase.from("place_reviews").delete().eq("id", id);
+    toast.success("Avis supprimé");
+    fetchAdminReviews();
+  }
+
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
