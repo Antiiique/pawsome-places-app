@@ -432,7 +432,8 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
           </p>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
