@@ -348,10 +348,20 @@ export default function MarkerPopup({
               )}
             </div>
 
-            {/* Reviews section */}
-            {reviews.length > 0 && (
-              <div className="pt-2 border-t border-border">
-                <h4 className="text-sm font-bold text-foreground mb-3">💬 Avis Google</h4>
+            {/* Reviews section avec onglets */}
+            <div className="pt-2 border-t border-border space-y-3">
+              <div className="flex rounded-xl overflow-hidden border border-border">
+                <button onClick={() => setReviewTab("google")} className={`flex-1 py-2 text-xs font-semibold transition-colors ${reviewTab === "google" ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" : "text-muted-foreground hover:bg-muted"}`}>
+                  ⭐ Google{place.rating ? ` · ${place.rating}` : ""}
+                </button>
+                {dbId && (
+                  <button onClick={() => setReviewTab("community")} className={`flex-1 py-2 text-xs font-semibold transition-colors ${reviewTab === "community" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}>
+                    💬 Communauté{communityReviews.length > 0 ? ` · ${communityReviews.length}` : ""}
+                  </button>
+                )}
+              </div>
+
+              {reviewTab === "google" && (reviews.length > 0 ? (
                 <div className="space-y-2.5">
                   {reviews.map((r, i) => (
                     <div key={i} className="bg-secondary rounded-xl p-3 border border-border">
@@ -391,12 +401,77 @@ export default function MarkerPopup({
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : <p className="text-xs text-muted-foreground text-center py-2">Aucun avis Google disponible</p>)}
 
-            {reviews.length === 0 && (
-              <p className="text-xs text-muted-foreground text-center py-2">Aucun avis disponible</p>
-            )}
+              {reviewTab === "community" && dbId && (
+                <div className="space-y-3">
+                  {communityReviews.length > 0 && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-warning">{"★".repeat(Math.round(avgCR))}{"☆".repeat(5 - Math.round(avgCR))}</span>
+                      <span className="font-semibold text-foreground">{avgCR.toFixed(1)}</span>
+                      <span className="text-muted-foreground">({communityReviews.length} avis)</span>
+                    </div>
+                  )}
+                  {loadingCR ? (
+                    <p className="text-xs text-muted-foreground text-center py-2">Chargement…</p>
+                  ) : communityReviews.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-2">Aucun avis communauté. Sois le premier !</p>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {communityReviews.map(r => (
+                        <div key={r.id} className="bg-secondary rounded-xl p-3 border border-border space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {r.profiles?.avatar_url ? (
+                                <img src={r.profiles.avatar_url} className="w-7 h-7 rounded-full object-cover flex-shrink-0" alt="" />
+                              ) : (
+                                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-xs font-bold flex-shrink-0">
+                                  {(r.profiles?.display_name?.[0] ?? "?").toUpperCase()}
+                                </div>
+                              )}
+                              <p className="text-xs font-semibold text-foreground truncate">{r.profiles?.display_name ?? "Anonyme"}</p>
+                            </div>
+                            <span className="text-warning text-xs flex-shrink-0">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                          </div>
+                          {r.visited_with_pet && <p className="text-[10px] text-success">🐾 Avec animal</p>}
+                          {r.body && <p className="text-xs text-muted-foreground leading-relaxed break-words">{r.body}</p>}
+                          <div className="flex items-center justify-between pt-1">
+                            <span className="text-[10px] text-muted-foreground">{timeSince(r.created_at)}</span>
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => markHelpfulCR(r.id, r.helpful_count)} className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary">👍{r.helpful_count > 0 && ` ${r.helpful_count}`}</button>
+                              {user && user.id !== r.user_id && !r.is_reported && (
+                                <button onClick={() => reportCR(r.id)} className="text-[10px] text-muted-foreground hover:text-orange-500">🚩</button>
+                              )}
+                              {user && user.id === r.user_id && (
+                                <button onClick={() => deleteCR(r.id)} className="text-[10px] text-muted-foreground hover:text-destructive">🗑</button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {user ? (
+                    <div className="space-y-2 pt-2 border-t border-border">
+                      <p className="text-xs font-semibold text-foreground">{userReview ? "Modifier ton avis" : "Laisser un avis"}</p>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map(s => (
+                          <button key={s} onMouseEnter={() => setHoverRating(s)} onMouseLeave={() => setHoverRating(0)} onClick={() => setNewRating(s)} className={`text-lg transition-colors ${(hoverRating || newRating) >= s ? "text-warning" : "text-muted-foreground"}`}>★</button>
+                        ))}
+                      </div>
+                      <textarea value={newBody} onChange={e => setNewBody(e.target.value)} placeholder="Ton expérience (optionnel)…" rows={2} className="w-full text-xs rounded-lg border border-border bg-muted/40 p-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary" />
+                      <label className="flex items-center gap-2 text-xs cursor-pointer">
+                        <input type="checkbox" checked={visitedWithPet} onChange={e => setVisitedWithPet(e.target.checked)} className="rounded" />
+                        🐾 Visité avec mon animal
+                      </label>
+                      <button onClick={submitCR} disabled={submitting || newRating === 0} className="w-full py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50 hover:bg-primary/90 transition-colors">
+                        {submitting ? "Publication…" : userReview ? "Mettre à jour" : "Publier"}
+                      </button>
+                    </div>
+                  ) : <p className="text-xs text-muted-foreground italic text-center">Connecte-toi pour laisser un avis.</p>}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
