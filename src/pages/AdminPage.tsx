@@ -47,6 +47,7 @@ interface Submission {
   created_at: string;
   submitted_by: string | null;
   submitter_email?: string;
+  photos?: string[];
 }
 
 interface Report {
@@ -127,6 +128,14 @@ function timeAgo(dateStr: string) {
 }
 
 const PLACES_PER_PAGE = 15;
+
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss }: {
   reports: Report[];
@@ -243,6 +252,12 @@ const AdminPage = () => {
   const [userEditDialog, setUserEditDialog] = useState<{ open: boolean; user: typeof users[0] | null }>({ open: false, user: null });
   const [userEditForm, setUserEditForm] = useState<{ display_name: string; city: string; points: number; is_admin: boolean; is_banned: boolean }>({ display_name: "", city: "", points: 0, is_admin: false, is_banned: false });
 
+  const [selectedSubmissions, setSelectedSubmissions] = useState<Set<string>>(new Set());
+  const [submissionsFilter, setSubmissionsFilter] = useState({ category: "", city: "", dateRange: "all" });
+  const [submissionMapOpen, setSubmissionMapOpen] = useState<string | null>(null);
+  const [bulkRejectDialog, setBulkRejectDialog] = useState(false);
+  const [bulkRejectNote, setBulkRejectNote] = useState("");
+
   const [enriching, setEnriching] = useState(false);
   const [enrichedData, setEnrichedData] = useState<{
     photo_url?: string;
@@ -291,7 +306,23 @@ const AdminPage = () => {
         const { data: profiles } = await supabase.from("profiles").select("id, email").in("id", userIds);
         if (profiles) profileMap = Object.fromEntries(profiles.map(p => [p.id, p.email || ""]));
       }
-      setSubmissions(data.map(s => ({ ...s, submitter_email: s.submitted_by ? profileMap[s.submitted_by] || "" : "" })));
+      const subIds = data.map(s => s.id);
+      let photoMap: Record<string, string[]> = {};
+      if (subIds.length) {
+        const { data: photos } = await supabase.from("submission_photos").select("submission_id, url").in("submission_id", subIds);
+        if (photos) {
+          for (const p of photos) {
+            if (!p.submission_id) continue;
+            if (!photoMap[p.submission_id]) photoMap[p.submission_id] = [];
+            photoMap[p.submission_id].push(p.url);
+          }
+        }
+      }
+      setSubmissions(data.map(s => ({
+        ...s,
+        submitter_email: s.submitted_by ? profileMap[s.submitted_by] || "" : "",
+        photos: photoMap[s.id] || [],
+      })));
     }
   }, []);
 
@@ -594,6 +625,60 @@ const AdminPage = () => {
     );
   };
 
+  const findNearbyDuplicates = (sub: Submission) =>
+    places.filter(p => haversineKm(sub.latitude, sub.longitude, p.latitude, p.longitude) < 0.1);
+
+  const toggleSelectSubmission = (id: string) => {
+    setSelectedSubmissions(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const bulkApprove = async () => {
+    const toApprove = submissions.filter(s => selectedSubmissions.has(s.id));
+    let count = 0;
+    for (const sub of toApprove) {
+      const { data: newPlace, error } = await supabase.from("pet_friendly_places").insert({
+        name: sub.name, category: sub.category, subcategory: sub.subcategory,
+        address: sub.address, city: sub.city, country: sub.country || "France",
+        latitude: sub.latitude, longitude: sub.longitude, phone: sub.phone,
+        website: sub.website, description: sub.description,
+        accepts_dogs: sub.accepts_dogs ?? true, accepts_cats: sub.accepts_cats ?? false,
+        dogs_on_leash_only: sub.dogs_on_leash_only ?? false, outdoor_seating: sub.outdoor_seating ?? false,
+        water_bowl_provided: sub.water_bowl_provided ?? false, opening_hours: sub.opening_hours,
+        verified: true, source: "user_submission",
+      }).select("id").single();
+      if (!error && newPlace) {
+        const { data: photo } = await supabase.from("submission_photos").select("url").eq("submission_id", sub.id).limit(1).maybeSingle();
+        if (photo?.url) await supabase.from("pet_friendly_places").update({ photo_url: photo.url }).eq("id", newPlace.id);
+        await supabase.from("place_submissions").update({ status: "approved", reviewed_at: new Date().toISOString(), reviewed_by: user?.id }).eq("id", sub.id);
+        count++;
+      }
+    }
+    toast.success(`✅ ${count} lieu(x) approuvé(s) et publiés !`);
+    setSubmissions(prev => prev.filter(s => !selectedSubmissions.has(s.id)));
+    setSelectedSubmissions(new Set());
+    fetchCounts();
+    fetchPlaces();
+  };
+
+  const bulkReject = async () => {
+    for (const id of selectedSubmissions) {
+      await supabase.from("place_submissions").update({
+        status: "rejected", admin_note: bulkRejectNote || null,
+        reviewed_at: new Date().toISOString(), reviewed_by: user?.id,
+      }).eq("id", id);
+    }
+    toast.success(`${selectedSubmissions.size} soumission(s) rejetée(s)`);
+    setSubmissions(prev => prev.filter(s => !selectedSubmissions.has(s.id)));
+    setSelectedSubmissions(new Set());
+    setBulkRejectDialog(false);
+    setBulkRejectNote("");
+    fetchCounts();
+  };
+
   const deletePlace = async (place: PublishedPlace) => {
     const { error } = await supabase.from("pet_friendly_places").delete().eq("id", place.id);
     if (error) { toast.error("Erreur : " + error.message); return; }
@@ -653,6 +738,16 @@ const AdminPage = () => {
     setUserEditDialog({ open: false, user: null });
     fetchUsers();
   };
+
+  const uniqueCategories = [...new Set(submissions.map(s => s.category))].filter(Boolean);
+
+  const filteredSubmissions = submissions.filter(sub => {
+    if (submissionsFilter.category && sub.category !== submissionsFilter.category) return false;
+    if (submissionsFilter.city && !sub.city?.toLowerCase().includes(submissionsFilter.city.toLowerCase())) return false;
+    if (submissionsFilter.dateRange === "7d" && Date.now() - new Date(sub.created_at).getTime() > 7 * 86400000) return false;
+    if (submissionsFilter.dateRange === "30d" && Date.now() - new Date(sub.created_at).getTime() > 30 * 86400000) return false;
+    return true;
+  });
 
   const filteredPlaces = places.filter(p => {
     if (!placesSearch) return true;
