@@ -105,6 +105,7 @@ export default function MarkerPopup({
   const [photoIndex, setPhotoIndex] = useState(0);
   const [expandedReviews, setExpandedReviews] = useState<Record<number, boolean>>({});
   const [fullPhoto, setFullPhoto] = useState<string | null>(null);
+  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const { user } = useAuthContext();
   const [reviewTab, setReviewTab] = useState<"google" | "community">("google");
   const [communityReviews, setCommunityReviews] = useState<CommunityReview[]>([]);
@@ -194,6 +195,23 @@ export default function MarkerPopup({
 
   return (
     <>
+      {lightboxPhoto && (
+        <div
+          className="fixed inset-0 z-[20001] bg-black/85 flex items-center justify-center p-4 cursor-pointer"
+          onClick={() => setLightboxPhoto(null)}
+        >
+          <img
+            src={lightboxPhoto}
+            className="max-w-[92vw] max-h-[88vh] object-contain rounded-xl shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          />
+          <button
+            className="absolute top-4 right-5 w-9 h-9 rounded-full bg-white/20 hover:bg-white/40 text-white text-lg flex items-center justify-center transition-colors"
+            onClick={() => setLightboxPhoto(null)}
+          >✕</button>
+        </div>
+      )}
+
       {/* Full photo overlay */}
       {fullPhoto && (
         <div
@@ -468,7 +486,14 @@ export default function MarkerPopup({
                           </div>
                           {r.visited_with_pet && <p className="text-[10px] text-success">🐾 Avec animal</p>}
                           {r.body && <p className="text-xs text-muted-foreground leading-relaxed break-words">{r.body}</p>}
-                          {r.photo_url && <img src={r.photo_url} className="w-full h-32 object-cover rounded-lg mt-1" alt="" />}
+                          {r.photo_url && (
+                            <img
+                              src={r.photo_url}
+                              className="w-full object-contain rounded-lg mt-1 cursor-zoom-in max-h-72 bg-muted/20"
+                              onClick={() => setLightboxPhoto(r.photo_url!)}
+                              alt=""
+                            />
+                          )}
                           <div className="flex items-center justify-between pt-1">
                             <span className="text-[10px] text-muted-foreground">{timeSince(r.created_at)}{r.has_been_edited && " · modifié"}</span>
                             <div className="flex items-center gap-2">
@@ -522,14 +547,14 @@ export default function MarkerPopup({
                               <input type="file" accept="image/*" className="hidden" onChange={handlePhotoSelect} />
                             </label>
                             {photoPreview && (
-                              <div className="relative w-full h-28 rounded-lg overflow-hidden border border-border">
-                                <img src={photoPreview} className="w-full h-full object-cover" alt="" />
+                              <div className="relative w-full rounded-lg overflow-hidden border border-border bg-muted/20">
+                                <img src={photoPreview} className="w-full object-contain max-h-64" alt="" />
                                 <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); }} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-xs flex items-center justify-center">✕</button>
                               </div>
                             )}
                             {!photoPreview && userReview?.photo_url && (
-                              <div className="relative w-full h-28 rounded-lg overflow-hidden border border-border opacity-60">
-                                <img src={userReview.photo_url} className="w-full h-full object-cover" alt="" />
+                              <div className="relative w-full rounded-lg overflow-hidden border border-border opacity-60 bg-muted/20">
+                                <img src={userReview.photo_url} className="w-full object-contain max-h-48" alt="" />
                                 <span className="absolute bottom-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded">Photo actuelle</span>
                               </div>
                             )}
