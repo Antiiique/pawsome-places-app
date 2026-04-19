@@ -486,7 +486,14 @@ export default function MarkerPopup({
                           </div>
                           {r.visited_with_pet && <p className="text-[10px] text-success">🐾 Avec animal</p>}
                           {r.body && <p className="text-xs text-muted-foreground leading-relaxed break-words">{r.body}</p>}
-                          {r.photo_url && <img src={r.photo_url} className="w-full h-32 object-cover rounded-lg mt-1" alt="" />}
+                          {r.photo_url && (
+                            <img
+                              src={r.photo_url}
+                              className="w-full object-contain rounded-lg mt-1 cursor-zoom-in max-h-72 bg-muted/20"
+                              onClick={() => setLightboxPhoto(r.photo_url!)}
+                              alt=""
+                            />
+                          )}
                           <div className="flex items-center justify-between pt-1">
                             <span className="text-[10px] text-muted-foreground">{timeSince(r.created_at)}{r.has_been_edited && " · modifié"}</span>
                             <div className="flex items-center gap-2">
