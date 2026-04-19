@@ -1301,6 +1301,11 @@ const AdminPage = () => {
                         </CardContent>
                       </Card>
                     ))}
+                    <div className="rounded-xl border border-border bg-card p-4 space-y-1">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase">Avis communauté</p>
+                      <p className="text-2xl font-bold text-foreground">{reviewCount}</p>
+                      <p className="text-xs text-muted-foreground">avis publiés au total</p>
+                    </div>
                   </div>
                 </div>
 
