@@ -435,7 +435,7 @@ const AdminPage = () => {
 
   const resetUserPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) { toast.error("Erreur : " + error.message); return; }
     toast.success(`📧 Email de réinitialisation envoyé à ${email}`);
