@@ -277,6 +277,25 @@ const AdminPage = () => {
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(false);
 
+  const [completenessData, setCompletenessData] = useState<Array<{ id: string; name: string; city: string | null; category: string; score: number; missing: string[] }>>([]);
+  const [completenessLoading, setCompletenessLoading] = useState(false);
+  const [completenessThreshold, setCompletenessThreshold] = useState(80);
+
+  const [duplicates, setDuplicates] = useState<Array<{ aId: string; aName: string; aCity: string | null; bId: string; bName: string; distM: number }>>([]);
+  const [duplicatesLoading, setDuplicatesLoading] = useState(false);
+
+  const [coverageData, setCoverageData] = useState<Array<{ dept: string; count: number }>>([]);
+  const [coverageLoading, setCoverageLoading] = useState(false);
+
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvPreview, setCsvPreview] = useState<Record<string, string>[]>([]);
+  const [csvImporting, setCsvImporting] = useState(false);
+  const csvInputRef = useRef<HTMLInputElement>(null);
+
+  const [exportCategory, setExportCategory] = useState("");
+  const [exportCountry, setExportCountry] = useState("");
+  const [exportOnlyVerified, setExportOnlyVerified] = useState(false);
+
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
       supabase.from("place_submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
