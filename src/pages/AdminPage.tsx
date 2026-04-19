@@ -1142,18 +1142,28 @@ const AdminPage = () => {
         </div>
 
         <Tabs defaultValue="dashboard" value={activeTab} onValueChange={v => { setActiveTab(v); setSubmissionCursor(0); }}>
-          <TabsList className="grid w-full grid-cols-6 lg:grid-cols-11 h-auto">
-            <TabsTrigger value="dashboard">📊 Stats</TabsTrigger>
-            <TabsTrigger value="notifications">🔔 Notifs</TabsTrigger>
-            <TabsTrigger value="submissions">📍 À valider</TabsTrigger>
-            <TabsTrigger value="reports">⚠️ Signalements</TabsTrigger>
-            <TabsTrigger value="places">🗺️ Lieux</TabsTrigger>
-            <TabsTrigger value="users">👥 Utilisateurs</TabsTrigger>
-            <TabsTrigger value="completeness">✅ Complétude</TabsTrigger>
-            <TabsTrigger value="duplicates">🔍 Doublons</TabsTrigger>
-            <TabsTrigger value="coverage">📡 Couverture</TabsTrigger>
-            <TabsTrigger value="import">📥 Import CSV</TabsTrigger>
-            <TabsTrigger value="export">📤 Export</TabsTrigger>
+          <TabsList className="h-auto w-full bg-muted/40 border border-border rounded-2xl p-3 flex flex-col gap-3">
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest px-1 mb-2">🧭 Gestion</p>
+              <div className="flex flex-wrap gap-1.5">
+                <TabsTrigger value="dashboard" className="rounded-xl px-3 py-2 text-sm font-medium">📊 Statistiques</TabsTrigger>
+                <TabsTrigger value="notifications" className="rounded-xl px-3 py-2 text-sm font-medium">🔔 Notifications</TabsTrigger>
+                <TabsTrigger value="submissions" className="rounded-xl px-3 py-2 text-sm font-medium">📍 À valider</TabsTrigger>
+                <TabsTrigger value="reports" className="rounded-xl px-3 py-2 text-sm font-medium">⚠️ Signalements</TabsTrigger>
+                <TabsTrigger value="places" className="rounded-xl px-3 py-2 text-sm font-medium">🗺️ Lieux publiés</TabsTrigger>
+                <TabsTrigger value="users" className="rounded-xl px-3 py-2 text-sm font-medium">👥 Utilisateurs</TabsTrigger>
+              </div>
+            </div>
+            <div className="border-t border-border/50 pt-2">
+              <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest px-1 mb-2">🔧 Outils</p>
+              <div className="flex flex-wrap gap-1.5">
+                <TabsTrigger value="completeness" className="rounded-xl px-3 py-2 text-sm font-medium">✅ Complétude</TabsTrigger>
+                <TabsTrigger value="duplicates" className="rounded-xl px-3 py-2 text-sm font-medium">🔍 Doublons</TabsTrigger>
+                <TabsTrigger value="coverage" className="rounded-xl px-3 py-2 text-sm font-medium">📡 Couverture</TabsTrigger>
+                <TabsTrigger value="import" className="rounded-xl px-3 py-2 text-sm font-medium">📥 Import CSV</TabsTrigger>
+                <TabsTrigger value="export" className="rounded-xl px-3 py-2 text-sm font-medium">📤 Export</TabsTrigger>
+              </div>
+            </div>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6 mt-4">
