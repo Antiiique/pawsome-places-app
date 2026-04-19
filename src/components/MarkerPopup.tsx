@@ -21,6 +21,8 @@ export interface CommunityReview {
   helpful_count: number;
   is_reported: boolean;
   created_at: string;
+  photo_url: string | null;
+  has_been_edited: boolean;
   profiles?: { display_name: string | null; avatar_url: string | null };
 }
 
@@ -112,6 +114,9 @@ export default function MarkerPopup({
   const [newBody, setNewBody] = useState("");
   const [visitedWithPet, setVisitedWithPet] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const userReview = communityReviews.find(r => r.user_id === user?.id);
   const avgCR = communityReviews.length > 0 ? communityReviews.reduce((s, r) => s + r.rating, 0) / communityReviews.length : 0;
 
@@ -131,16 +136,44 @@ export default function MarkerPopup({
     if (!user || !dbId) { toast.error("Connecte-toi pour laisser un avis"); return; }
     if (newRating === 0) { toast.error("Choisis une note"); return; }
     setSubmitting(true);
-    const { error } = userReview
-      ? await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet }).eq("id", userReview.id)
-      : await supabase.from("place_reviews").insert({ place_id: dbId, user_id: user.id, rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet });
+    let uploadedPhotoUrl: string | null = userReview?.photo_url || null;
+    if (photoFile) {
+      const ext = photoFile.name.split(".").pop();
+      const path = `${dbId}/${user.id}/${Date.now()}.${ext}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage.from("review-photos").upload(path, photoFile, { upsert: true });
+      if (!uploadError && uploadData) {
+        const { data: urlData } = supabase.storage.from("review-photos").getPublicUrl(uploadData.path);
+        uploadedPhotoUrl = urlData.publicUrl;
+      }
+    }
+    const isEditing = !!userReview;
+    const { error } = isEditing
+      ? await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photo_url: uploadedPhotoUrl, has_been_edited: true }).eq("id", userReview.id)
+      : await supabase.from("place_reviews").insert({ place_id: dbId, user_id: user.id, rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photo_url: uploadedPhotoUrl });
     if (error) toast.error("Erreur lors de la publication");
-    else { toast.success(userReview ? "Avis mis à jour !" : "Avis publié !"); await loadCommunityReviews(); }
+    else {
+      toast.success(isEditing ? "Avis mis à jour !" : "Avis publié !");
+      setShowEditForm(false);
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      await loadCommunityReviews();
+    }
     setSubmitting(false);
   }
   async function deleteCR(id: string) { await supabase.from("place_reviews").delete().eq("id", id); toast.success("Avis supprimé"); await loadCommunityReviews(); }
-  async function markHelpfulCR(id: string, n: number) { await supabase.from("place_reviews").update({ helpful_count: n + 1 }).eq("id", id); await loadCommunityReviews(); }
+  async function markHelpfulCR(id: string, n: number, ownerId: string) {
+    if (user?.id === ownerId) return;
+    await supabase.from("place_reviews").update({ helpful_count: n + 1 }).eq("id", id);
+    await loadCommunityReviews();
+  }
   async function reportCR(id: string) { await supabase.from("place_reviews").update({ is_reported: true }).eq("id", id); toast.success("Signalement envoyé !"); await loadCommunityReviews(); }
+  function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Photo trop lourde (max 5 Mo)"); return; }
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  }
 
   function timeSince(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -435,10 +468,11 @@ export default function MarkerPopup({
                           </div>
                           {r.visited_with_pet && <p className="text-[10px] text-success">🐾 Avec animal</p>}
                           {r.body && <p className="text-xs text-muted-foreground leading-relaxed break-words">{r.body}</p>}
+                          {r.photo_url && <img src={r.photo_url} className="w-full h-32 object-cover rounded-lg mt-1" alt="" />}
                           <div className="flex items-center justify-between pt-1">
-                            <span className="text-[10px] text-muted-foreground">{timeSince(r.created_at)}</span>
+                            <span className="text-[10px] text-muted-foreground">{timeSince(r.created_at)}{r.has_been_edited && " · modifié"}</span>
                             <div className="flex items-center gap-2">
-                              <button onClick={() => markHelpfulCR(r.id, r.helpful_count)} className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary">👍{r.helpful_count > 0 && ` ${r.helpful_count}`}</button>
+                              <button onClick={() => markHelpfulCR(r.id, r.helpful_count, r.user_id)} className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary">👍{r.helpful_count > 0 && ` ${r.helpful_count}`}</button>
                               {user && user.id !== r.user_id && !r.is_reported && (
                                 <button onClick={() => reportCR(r.id)} className="text-[10px] text-muted-foreground hover:text-orange-500">🚩</button>
                               )}
@@ -452,22 +486,67 @@ export default function MarkerPopup({
                     </div>
                   )}
                   {user ? (
-                    <div className="space-y-2 pt-2 border-t border-border">
-                      <p className="text-xs font-semibold text-foreground">{userReview ? "Modifier ton avis" : "Laisser un avis"}</p>
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map(s => (
-                          <button key={s} onMouseEnter={() => setHoverRating(s)} onMouseLeave={() => setHoverRating(0)} onClick={() => setNewRating(s)} className={`text-lg transition-colors ${(hoverRating || newRating) >= s ? "text-warning" : "text-muted-foreground"}`}>★</button>
-                        ))}
-                      </div>
-                      <textarea value={newBody} onChange={e => setNewBody(e.target.value)} placeholder="Ton expérience (optionnel)…" rows={2} className="w-full text-xs rounded-lg border border-border bg-muted/40 p-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary" />
-                      <label className="flex items-center gap-2 text-xs cursor-pointer">
-                        <input type="checkbox" checked={visitedWithPet} onChange={e => setVisitedWithPet(e.target.checked)} className="rounded" />
-                        🐾 Visité avec mon animal
-                      </label>
-                      <button onClick={submitCR} disabled={submitting || newRating === 0} className="w-full py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50 hover:bg-primary/90 transition-colors">
-                        {submitting ? "Publication…" : userReview ? "Mettre à jour" : "Publier"}
-                      </button>
-                    </div>
+                    <>
+                      {userReview && !userReview.has_been_edited && !showEditForm && (
+                        <button
+                          onClick={() => setShowEditForm(true)}
+                          className="w-full py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-muted transition-colors"
+                        >
+                          ✏️ Modifier mon avis (une seule fois)
+                        </button>
+                      )}
+                      {(!userReview || showEditForm) && (
+                        <div className="border border-border rounded-xl p-3 space-y-2.5 bg-card">
+                          <p className="text-xs font-semibold">{userReview ? "Modifier ton avis (dernière fois)" : "Laisser un avis"}</p>
+                          <div className="flex gap-1">
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <button key={s} onMouseEnter={() => setHoverRating(s)} onMouseLeave={() => setHoverRating(0)} onClick={() => setNewRating(s)}>
+                                <span className={`text-xl ${s <= (hoverRating || newRating) ? "text-warning" : "text-muted-foreground"}`}>★</span>
+                              </button>
+                            ))}
+                          </div>
+                          <textarea
+                            value={newBody}
+                            onChange={e => setNewBody(e.target.value)}
+                            placeholder="Ton expérience (optionnel)…"
+                            rows={2}
+                            className="w-full text-xs rounded-lg border border-border bg-muted/40 p-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                          <label className="flex items-center gap-2 text-xs cursor-pointer">
+                            <input type="checkbox" checked={visitedWithPet} onChange={e => setVisitedWithPet(e.target.checked)} className="rounded" />
+                            🐾 Visité avec mon animal
+                          </label>
+                          <div className="space-y-1.5">
+                            <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+                              <span className="px-2.5 py-1.5 rounded-lg border border-border bg-muted hover:bg-muted/80 transition-colors">📷 Ajouter une photo</span>
+                              <input type="file" accept="image/*" className="hidden" onChange={handlePhotoSelect} />
+                            </label>
+                            {photoPreview && (
+                              <div className="relative w-full h-28 rounded-lg overflow-hidden border border-border">
+                                <img src={photoPreview} className="w-full h-full object-cover" alt="" />
+                                <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); }} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-xs flex items-center justify-center">✕</button>
+                              </div>
+                            )}
+                            {!photoPreview && userReview?.photo_url && (
+                              <div className="relative w-full h-28 rounded-lg overflow-hidden border border-border opacity-60">
+                                <img src={userReview.photo_url} className="w-full h-full object-cover" alt="" />
+                                <span className="absolute bottom-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded">Photo actuelle</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            {showEditForm && (
+                              <button onClick={() => { setShowEditForm(false); setPhotoFile(null); setPhotoPreview(null); }} className="flex-1 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-muted transition-colors">
+                                Annuler
+                              </button>
+                            )}
+                            <button onClick={submitCR} disabled={submitting || newRating === 0} className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50 hover:bg-primary/90 transition-colors">
+                              {submitting ? "Publication…" : userReview ? "Confirmer la modification" : "Publier"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   ) : <p className="text-xs text-muted-foreground italic text-center">Connecte-toi pour laisser un avis.</p>}
                 </div>
               )}
