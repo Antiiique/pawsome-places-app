@@ -226,12 +226,136 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
           </div>
         </div>
 
-        {place.rating && (
+        {/* Tab toggle */}
+        <div className="flex rounded-xl border border-border overflow-hidden">
+          <button
+            onClick={() => setActiveTab("google")}
+            className={`flex-1 py-2 text-xs font-semibold transition-colors ${activeTab === "google" ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" : "text-muted-foreground hover:bg-muted"}`}
+          >
+            ⭐ Google{place.rating ? ` · ${place.rating}` : ""}
+          </button>
+          <button
+            onClick={() => setActiveTab("community")}
+            className={`flex-1 py-2 text-xs font-semibold transition-colors ${activeTab === "community" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
+          >
+            💬 Communauté{reviews.length > 0 ? ` · ${reviews.length}` : ""}
+          </button>
+        </div>
+
+        {/* Google tab */}
+        {activeTab === "google" && place.rating && (
           <div className="flex items-center gap-2">
             {[...Array(5)].map((_, i) => (
               <Star key={i} className={`w-4 h-4 ${i < Math.round(place.rating!) ? "text-amber-400 fill-amber-400" : "text-muted"}`} />
             ))}
             <span className="text-sm font-semibold text-foreground">{place.rating}</span>
+            <span className="text-xs text-muted-foreground">(Google)</span>
+          </div>
+        )}
+        {activeTab === "google" && !place.rating && (
+          <p className="text-xs text-muted-foreground italic">Aucune note Google disponible.</p>
+        )}
+
+        {/* Community tab */}
+        {activeTab === "community" && (
+          <div className="space-y-4">
+            {/* Average */}
+            {reviews.length > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className={`w-4 h-4 ${i < Math.round(avgRating) ? "text-primary fill-primary" : "text-muted"}`} />
+                  ))}
+                </div>
+                <span className="text-sm font-semibold">{avgRating.toFixed(1)}</span>
+                <span className="text-xs text-muted-foreground">({reviews.length} avis)</span>
+              </div>
+            )}
+
+            {/* Review list */}
+            {loadingReviews ? (
+              <p className="text-xs text-muted-foreground text-center py-2">Chargement…</p>
+            ) : reviews.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic text-center py-2">Aucun avis pour l'instant. Sois le premier !</p>
+            ) : (
+              <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                {reviews.map(r => (
+                  <div key={r.id} className="rounded-xl border border-border bg-muted/40 p-3 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {r.profiles?.avatar_url ? (
+                          <img src={r.profiles.avatar_url} className="w-6 h-6 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+                            {(r.profiles?.display_name?.[0] ?? "?").toUpperCase()}
+                          </div>
+                        )}
+                        <span className="text-xs font-semibold">{r.profiles?.display_name ?? "Anonyme"}</span>
+                      </div>
+                      <div className="flex">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className={`w-3 h-3 ${i < r.rating ? "text-amber-400 fill-amber-400" : "text-muted"}`} />
+                        ))}
+                      </div>
+                    </div>
+                    {r.visited_with_pet && <span className="text-xs bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full">🐾 Visité avec mon animal</span>}
+                    {r.body && <p className="text-xs text-foreground leading-relaxed">{r.body}</p>}
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-xs text-muted-foreground">{timeAgo(r.created_at)}</span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => markHelpful(r.id, r.helpful_count)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
+                          <ThumbsUp className="w-3 h-3" />{r.helpful_count > 0 && r.helpful_count}
+                        </button>
+                        {user && user.id !== r.user_id && !r.is_reported && (
+                          <button onClick={() => reportReview(r.id)} className="text-xs text-muted-foreground hover:text-orange-500 transition-colors" title="Signaler">
+                            <Flag className="w-3 h-3" />
+                          </button>
+                        )}
+                        {user && user.id === r.user_id && (
+                          <button onClick={() => deleteReview(r.id)} className="text-xs text-muted-foreground hover:text-destructive transition-colors" title="Supprimer">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Review form */}
+            {user ? (
+              <div className="border border-border rounded-xl p-3 space-y-3 bg-background">
+                <p className="text-xs font-semibold text-foreground">{userReview ? "Modifier ton avis" : "Laisser un avis"}</p>
+                <div className="flex gap-1">
+                  {[1,2,3,4,5].map(star => (
+                    <button key={star} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} onClick={() => setNewRating(star)}>
+                      <Star className={`w-6 h-6 transition-colors ${star <= (hoverRating || newRating) ? "text-amber-400 fill-amber-400" : "text-muted"}`} />
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={newBody}
+                  onChange={e => setNewBody(e.target.value)}
+                  placeholder="Décris ton expérience (optionnel)…"
+                  rows={3}
+                  className="w-full text-xs rounded-lg border border-border bg-muted/40 p-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer">
+                  <input type="checkbox" checked={visitedWithPet} onChange={e => setVisitedWithPet(e.target.checked)} className="rounded" />
+                  🐾 J'y suis allé(e) avec mon animal
+                </label>
+                <button
+                  onClick={submitReview}
+                  disabled={submitting || newRating === 0}
+                  className="w-full py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50 hover:bg-primary/90 transition-colors"
+                >
+                  {submitting ? "Publication…" : userReview ? "Mettre à jour" : "Publier l'avis"}
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground italic text-center">Connecte-toi pour laisser un avis.</p>
+            )}
           </div>
         )}
 
