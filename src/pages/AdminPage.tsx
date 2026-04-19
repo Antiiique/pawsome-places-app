@@ -317,6 +317,10 @@ const AdminPage = () => {
   const [adminReviews, setAdminReviews] = useState<any[]>([]);
   const [adminReviewsLoading, setAdminReviewsLoading] = useState(false);
   const [reviewsFilter, setReviewsFilter] = useState<"all" | "reported" | "hidden">("all");
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
+  const [editBody, setEditBody] = useState("");
+  const [editRating, setEditRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
 
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
@@ -1125,11 +1129,12 @@ const AdminPage = () => {
 
   async function fetchAdminReviews() {
     setAdminReviewsLoading(true);
-    const { data } = await supabase
+    const { data, count } = await supabase
       .from("place_reviews")
-      .select("*, profiles(display_name, email), pet_friendly_places(name)")
+      .select("*, profiles(display_name, email, avatar_url), pet_friendly_places(name)", { count: "exact" })
       .order("created_at", { ascending: false });
     setAdminReviews(data || []);
+    setReviewCount(count || 0);
     setAdminReviewsLoading(false);
   }
 
@@ -1142,6 +1147,24 @@ const AdminPage = () => {
   async function adminDeleteReview(id: string) {
     await supabase.from("place_reviews").delete().eq("id", id);
     toast.success("Avis supprimé");
+    fetchAdminReviews();
+  }
+
+  async function adminEditReview(id: string) {
+    if (editRating === 0) { toast.error("Note requise"); return; }
+    const { error } = await supabase
+      .from("place_reviews")
+      .update({ body: editBody || null, rating: editRating })
+      .eq("id", id);
+    if (error) toast.error("Erreur lors de la modification");
+    else { toast.success("Avis modifié"); setEditingReviewId(null); fetchAdminReviews(); }
+  }
+
+  async function adminDeleteReviewPhoto(id: string, photoUrl: string) {
+    const path = photoUrl.split("/review-photos/")[1];
+    if (path) await supabase.storage.from("review-photos").remove([path]);
+    await supabase.from("place_reviews").update({ photo_url: null }).eq("id", id);
+    toast.success("Photo supprimée");
     fetchAdminReviews();
   }
 
@@ -2121,27 +2144,74 @@ const AdminPage = () => {
                     return true;
                   })
                   .map(r => (
-                    <div key={r.id} className={`rounded-xl border p-4 space-y-2 ${r.is_hidden ? "opacity-50 border-dashed" : r.is_reported ? "border-orange-400 bg-orange-50 dark:bg-orange-950/20" : "border-border bg-card"}`}>
+                    <div key={r.id} className={`rounded-xl border p-4 space-y-3 ${r.is_hidden ? "opacity-50 border-dashed" : r.is_reported ? "border-orange-400 bg-orange-50 dark:bg-orange-950/20" : "border-border bg-card"}`}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-0.5">
                           <p className="text-sm font-semibold">{r.pet_friendly_places?.name ?? "Lieu inconnu"}</p>
-                          <p className="text-xs text-muted-foreground">{r.profiles?.display_name ?? r.profiles?.email ?? "Utilisateur inconnu"}</p>
+                          <div className="flex items-center gap-2">
+                            {r.profiles?.avatar_url && <img src={r.profiles.avatar_url} className="w-5 h-5 rounded-full object-cover"/>}
+                            <p className="text-xs text-muted-foreground">{r.profiles?.display_name ?? r.profiles?.email ?? "Utilisateur inconnu"}</p>
+                          </div>
                           <div className="flex">
                             {[...Array(5)].map((_,i) => (
                               <span key={i} className={`text-xs ${i < r.rating ? "text-amber-400" : "text-muted-foreground"}`}>★</span>
                             ))}
                           </div>
                         </div>
-                        <div className="flex flex-col gap-1 shrink-0">
+                        <div className="flex flex-col gap-1 shrink-0 items-end">
                           {r.is_reported && <span className="text-xs bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full">⚠️ Signalé</span>}
                           {r.is_hidden && <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">Masqué</span>}
+                          {r.has_been_edited && <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full">Édité</span>}
                         </div>
                       </div>
-                      {r.body && <p className="text-sm text-foreground leading-relaxed border-l-2 border-muted pl-3">{r.body}</p>}
+
+                      {r.photo_url && (
+                        <div className="relative w-full h-36 rounded-lg overflow-hidden border border-border">
+                          <img src={r.photo_url} className="w-full h-full object-cover"/>
+                          <button
+                            onClick={() => adminDeleteReviewPhoto(r.id, r.photo_url)}
+                            className="absolute top-2 right-2 px-2 py-1 rounded-lg bg-destructive/90 text-white text-xs font-semibold hover:bg-destructive transition-colors"
+                          >
+                            🗑 Supprimer la photo
+                          </button>
+                        </div>
+                      )}
+
+                      {editingReviewId === r.id ? (
+                        <div className="space-y-2">
+                          <div className="flex gap-1">
+                            {[1,2,3,4,5].map(s => (
+                              <button key={s} onClick={() => setEditRating(s)}>
+                                <span className={`text-lg ${s <= editRating ? "text-amber-400" : "text-muted-foreground"}`}>★</span>
+                              </button>
+                            ))}
+                          </div>
+                          <textarea
+                            value={editBody}
+                            onChange={e => setEditBody(e.target.value)}
+                            rows={3}
+                            className="w-full text-sm rounded-lg border border-border bg-muted/40 p-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                          <div className="flex gap-2">
+                            <button onClick={() => setEditingReviewId(null)} className="flex-1 py-1.5 rounded-lg border border-border text-xs font-semibold text-muted-foreground hover:bg-muted">Annuler</button>
+                            <button onClick={() => adminEditReview(r.id)} className="flex-1 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90">Enregistrer</button>
+                          </div>
+                        </div>
+                      ) : (
+                        r.body && <p className="text-sm text-foreground leading-relaxed border-l-2 border-muted pl-3">{r.body}</p>
+                      )}
+
                       {r.visited_with_pet && <p className="text-xs text-green-600 dark:text-green-400">🐾 Visité avec animal</p>}
-                      <div className="flex items-center justify-between pt-1">
+
+                      <div className="flex items-center justify-between pt-1 flex-wrap gap-2">
                         <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("fr-FR")}</span>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
+                          <button
+                            onClick={() => { setEditingReviewId(r.id); setEditBody(r.body ?? ""); setEditRating(r.rating); }}
+                            className="text-xs px-2.5 py-1 rounded-lg border border-blue-300 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors"
+                          >
+                            ✏️ Éditer
+                          </button>
                           <button
                             onClick={() => hideReview(r.id, r.is_hidden)}
                             className="text-xs px-2.5 py-1 rounded-lg border border-border hover:bg-muted transition-colors"
