@@ -138,10 +138,9 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss, onDelete }: {
+function ReportGroups({ reports, onEdit, onReview, onDismiss, onDelete }: {
   reports: Report[];
   onEdit: (placeId: string) => void;
-  onUnpublish: (placeId: string, ids: string[]) => void;
   onReview: (placeId: string | null, ids: string[]) => void;
   onDismiss: (placeId: string | null, ids: string[]) => void;
   onDelete: (ids: string[]) => void;
@@ -177,29 +176,19 @@ function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss, onDel
                 ))}
               </div>
               <Separator />
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-wrap gap-2">
                 {hasPlace && (
                   <Button size="sm" variant="outline" className="text-xs h-9" onClick={() => onEdit(group.place_id!)}>
-                    ✏️ Corriger le lieu
-                  </Button>
-                )}
-                {hasPlace && (
-                  <Button size="sm" variant="outline" className="text-xs h-9 border-orange-400 text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:border-orange-700" onClick={() => onUnpublish(group.place_id!, ids)}>
-                    🔒 Dépublier temporairement
+                    ✏️ Corriger
                   </Button>
                 )}
                 <Button size="sm" className="text-xs h-9 bg-green-600 hover:bg-green-700 text-white" onClick={() => onReview(group.place_id, ids)}>
-                  ✅ Marquer traité{ids.length > 1 ? "s" : ""}
+                  ✅ Traité
                 </Button>
                 <Button size="sm" variant="outline" className="text-xs h-9" onClick={() => onDismiss(group.place_id, ids)}>
-                  🚫 Infondé{ids.length > 1 ? "s" : ""}
+                  🚫 Infondé
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-destructive border-destructive/40 hover:bg-destructive/10 h-9 text-xs"
-                  onClick={() => onDelete(ids)}
-                >
+                <Button size="sm" variant="outline" className="text-xs h-9 border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => onDelete(ids)}>
                   🗑 Supprimer
                 </Button>
               </div>
