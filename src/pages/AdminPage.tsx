@@ -868,13 +868,18 @@ const AdminPage = () => {
         </div>
 
         <Tabs defaultValue="dashboard">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-6 lg:grid-cols-11 h-auto">
             <TabsTrigger value="dashboard">📊 Stats</TabsTrigger>
             <TabsTrigger value="notifications">🔔 Notifs</TabsTrigger>
             <TabsTrigger value="submissions">📍 À valider</TabsTrigger>
             <TabsTrigger value="reports">⚠️ Signalements</TabsTrigger>
             <TabsTrigger value="places">🗺️ Lieux</TabsTrigger>
             <TabsTrigger value="users">👥 Utilisateurs</TabsTrigger>
+            <TabsTrigger value="completeness">✅ Complétude</TabsTrigger>
+            <TabsTrigger value="duplicates">🔍 Doublons</TabsTrigger>
+            <TabsTrigger value="coverage">📡 Couverture</TabsTrigger>
+            <TabsTrigger value="import">📥 Import CSV</TabsTrigger>
+            <TabsTrigger value="export">📤 Export</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6 mt-4">
