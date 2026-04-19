@@ -85,6 +85,7 @@ interface PublishedPlace {
   is_flagged: boolean | null;
   report_count: number | null;
   source: string | null;
+  source_id: string | null;
   last_updated: string | null;
   google_place_id: string | null;
   created_at: string;
@@ -387,7 +388,7 @@ const AdminPage = () => {
     setPlacesLoading(true);
     const { data } = await supabase
       .from("pet_friendly_places")
-      .select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, description, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided, rating, photo_url, verified, is_flagged, report_count, source, last_updated, google_place_id, created_at")
+      .select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, description, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided, rating, photo_url, verified, is_flagged, report_count, source, source_id, last_updated, google_place_id, created_at")
       .order("created_at", { ascending: false })
       .limit(500);
     if (data) setPlaces(data as PublishedPlace[]);
@@ -538,7 +539,7 @@ const AdminPage = () => {
       opening_hours: enrichedData?.opening_hours || sub.opening_hours,
       rating: enrichedData?.rating || null,
       google_place_id: enrichedData?.google_place_id || null,
-      verified: true, source: "user_submission",
+      verified: true, source: "user_submission", source_id: sub.id,
     }).select("id").single();
 
     if (insertError || !newPlace) {
@@ -557,6 +558,16 @@ const AdminPage = () => {
       reviewed_at: new Date().toISOString(), reviewed_by: user?.id,
     }).eq("id", sub.id);
 
+    if (sub.submitted_by) {
+      await supabase.from("user_notifications").insert({
+        user_id: sub.submitted_by,
+        type: "submission_approved",
+        title: "🎉 Votre lieu a été publié !",
+        message: `"${sub.name}" a été validé par notre équipe et est désormais visible sur la carte.${note ? ` Message de l'admin : "${note}"` : ""}`,
+        related_id: newPlace.id,
+      });
+    }
+
     toast.success(`✅ "${sub.name}" approuvé et publié sur la carte !`);
     setSubmissions(prev => prev.filter(s => s.id !== sub.id));
     setEnrichedData(null);
@@ -566,10 +577,20 @@ const AdminPage = () => {
 
   const rejectSubmission = async () => {
     if (!rejectDialog.id) return;
+    const rejectedSub = submissions.find(s => s.id === rejectDialog.id);
     await supabase.from("place_submissions").update({
       status: "rejected", admin_note: rejectNote || null,
       reviewed_at: new Date().toISOString(), reviewed_by: user?.id,
     }).eq("id", rejectDialog.id);
+    if (rejectedSub?.submitted_by) {
+      await supabase.from("user_notifications").insert({
+        user_id: rejectedSub.submitted_by,
+        type: "submission_rejected",
+        title: "📋 Résultat de votre soumission",
+        message: `Votre proposition "${rejectedSub.name}" n'a pas pu être publiée.${rejectNote ? ` Motif de l'admin : "${rejectNote}"` : " N'hésitez pas à vérifier les informations et à soumettre à nouveau."}`,
+        related_id: rejectDialog.id,
+      });
+    }
     toast.success("Soumission rejetée");
     setSubmissions(prev => prev.filter(s => s.id !== rejectDialog.id));
     setRejectDialog({ open: false, id: null });
@@ -593,7 +614,7 @@ const AdminPage = () => {
   const openEditFromReport = async (placeId: string) => {
     let found = places.find(p => p.id === placeId);
     if (!found) {
-      const { data } = await supabase.from("pet_friendly_places").select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, description, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided, rating, photo_url, verified, is_flagged, report_count, source, last_updated, google_place_id, created_at").eq("id", placeId).maybeSingle();
+      const { data } = await supabase.from("pet_friendly_places").select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, description, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided, rating, photo_url, verified, is_flagged, report_count, source, source_id, last_updated, google_place_id, created_at").eq("id", placeId).maybeSingle();
       if (data) found = data as PublishedPlace;
     }
     if (found) openEdit(found);
@@ -694,6 +715,15 @@ const AdminPage = () => {
         const { data: photo } = await supabase.from("submission_photos").select("url").eq("submission_id", sub.id).limit(1).maybeSingle();
         if (photo?.url) await supabase.from("pet_friendly_places").update({ photo_url: photo.url }).eq("id", newPlace.id);
         await supabase.from("place_submissions").update({ status: "approved", reviewed_at: new Date().toISOString(), reviewed_by: user?.id }).eq("id", sub.id);
+        if (sub.submitted_by) {
+          await supabase.from("user_notifications").insert({
+            user_id: sub.submitted_by,
+            type: "submission_approved",
+            title: "🎉 Votre lieu a été publié !",
+            message: `"${sub.name}" a été validé et est maintenant visible sur la carte.`,
+            related_id: newPlace.id,
+          });
+        }
         count++;
       }
     }
@@ -706,10 +736,20 @@ const AdminPage = () => {
 
   const bulkReject = async () => {
     for (const id of selectedSubmissions) {
+      const bulkSub = submissions.find(s => s.id === id);
       await supabase.from("place_submissions").update({
         status: "rejected", admin_note: bulkRejectNote || null,
         reviewed_at: new Date().toISOString(), reviewed_by: user?.id,
       }).eq("id", id);
+      if (bulkSub?.submitted_by) {
+        await supabase.from("user_notifications").insert({
+          user_id: bulkSub.submitted_by,
+          type: "submission_rejected",
+          title: "📋 Résultat de votre soumission",
+          message: `Votre proposition "${bulkSub.name}" n'a pas pu être publiée.${bulkRejectNote ? ` Motif : "${bulkRejectNote}"` : ""}`,
+          related_id: id,
+        });
+      }
     }
     toast.success(`${selectedSubmissions.size} soumission(s) rejetée(s)`);
     setSubmissions(prev => prev.filter(s => !selectedSubmissions.has(s.id)));
@@ -780,6 +820,18 @@ const AdminPage = () => {
       last_updated: new Date().toISOString(),
     }).eq("id", editDialog.place.id);
     if (error) { toast.error("Erreur : " + error.message); return; }
+    if (editDialog.place?.source === "user_submission" && editDialog.place?.source_id) {
+      const { data: origSub } = await supabase.from("place_submissions").select("submitted_by").eq("id", editDialog.place.source_id).maybeSingle();
+      if (origSub?.submitted_by) {
+        await supabase.from("user_notifications").insert({
+          user_id: origSub.submitted_by,
+          type: "place_updated",
+          title: "✏️ Votre lieu a été mis à jour",
+          message: `Notre équipe a modifié les informations de "${editForm.name || editDialog.place.name}". Consultez la fiche pour voir les changements.`,
+          related_id: editDialog.place.id,
+        });
+      }
+    }
     toast.success(`✅ "${editForm.name}" mis à jour`);
     setPlaces(prev => prev.map(p => p.id === editDialog.place!.id ? { ...p, ...editForm } as PublishedPlace : p));
     setEditDialog({ open: false, place: null });
