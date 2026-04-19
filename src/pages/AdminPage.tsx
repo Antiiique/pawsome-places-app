@@ -1697,11 +1697,81 @@ const AdminPage = () => {
                 </Card>
               );
             })}
+
+            {/* Historique des soumissions traitées */}
+            <div className="mt-6 border-t border-border pt-4">
+              <button
+                onClick={() => { setShowProcessedSubs(v => !v); if (!showProcessedSubs) fetchProcessedSubmissions(); }}
+                className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showProcessedSubs ? "▼" : "▶"} Soumissions déjà traitées
+              </button>
+              {showProcessedSubs && (
+                <div className="mt-3 space-y-2">
+                  {processedSubmissions.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic text-center py-4">Aucune soumission traitée.</p>
+                  ) : (
+                    processedSubmissions.map(s => (
+                      <div key={s.id} className={`rounded-xl border p-3 flex items-start justify-between gap-3 ${s.status === "approved" ? "border-green-300 bg-green-50 dark:bg-green-950/20" : "border-destructive/30 bg-destructive/5"}`}>
+                        <div className="space-y-0.5 min-w-0">
+                          <p className="text-sm font-semibold truncate">{s.name}{s.city ? ` — ${s.city}` : ""}</p>
+                          {s.admin_note && <p className="text-xs text-muted-foreground italic">Motif : {s.admin_note}</p>}
+                          <p className="text-xs text-muted-foreground">
+                            {s.reviewed_at ? new Date(s.reviewed_at).toLocaleDateString("fr-FR") : new Date(s.created_at).toLocaleDateString("fr-FR")}
+                          </p>
+                        </div>
+                        <span className={`shrink-0 text-xs font-bold px-2 py-1 rounded-full ${s.status === "approved" ? "bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-100" : "bg-destructive/20 text-destructive"}`}>
+                          {s.status === "approved" ? "✅ Approuvé" : "❌ Rejeté"}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-4 mt-4">
             {reports.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun signalement en attente</p>}
-            {reports.length > 0 && <ReportGroups reports={reports} onEdit={openEditFromReport} onUnpublish={unpublishFromReport} onReview={reviewGroup} onDismiss={dismissGroup} />}
+            {reports.length > 0 && <ReportGroups reports={reports} onEdit={openEditFromReport} onUnpublish={unpublishFromReport} onReview={reviewGroup} onDismiss={dismissGroup} onDelete={deleteReportGroup} />}
+
+            {/* Historique des signalements traités */}
+            <div className="mt-6 border-t border-border pt-4">
+              <button
+                onClick={() => { setShowProcessedReports(v => !v); if (!showProcessedReports) fetchProcessedReports(); }}
+                className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showProcessedReports ? "▼" : "▶"} Signalements déjà traités
+              </button>
+              {showProcessedReports && (
+                <div className="mt-3 space-y-2">
+                  {processedReports.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic text-center py-4">Aucun signalement traité.</p>
+                  ) : (
+                    processedReports.map(r => (
+                      <div key={r.id} className={`rounded-xl border p-3 flex items-start justify-between gap-3 ${r.status === "reviewed" ? "border-blue-300 bg-blue-50 dark:bg-blue-950/20" : "border-muted bg-muted/30"}`}>
+                        <div className="space-y-0.5 min-w-0">
+                          <p className="text-sm font-semibold truncate">{r.place_name}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{r.reason?.replace(/_/g, " ")}</p>
+                          <p className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("fr-FR")}</p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2 shrink-0">
+                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${r.status === "reviewed" ? "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-100" : "bg-muted text-muted-foreground"}`}>
+                            {r.status === "reviewed" ? "✅ Traité" : "🚫 Infondé"}
+                          </span>
+                          <button
+                            onClick={async () => { await supabase.from("place_reports").delete().eq("id", r.id); setProcessedReports(prev => prev.filter(p => p.id !== r.id)); toast.success("Supprimé"); }}
+                            className="text-xs text-destructive hover:underline"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="places" className="space-y-4 mt-4">
