@@ -792,18 +792,7 @@ const AdminPage = () => {
 
           <TabsContent value="reports" className="space-y-4 mt-4">
             {reports.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun signalement en attente</p>}
-            {reports.map(report => (
-              <Card key={report.id}><CardContent className="pt-4 space-y-3">
-                <h3 className="font-semibold text-foreground">{report.place_name}</h3>
-                <Badge variant="outline">{reasonLabels[report.reason] || report.reason}</Badge>
-                {report.comment && <p className="text-sm text-muted-foreground">"{report.comment}"</p>}
-                <p className="text-xs text-muted-foreground">{timeAgo(report.created_at || "")}</p>
-                <div className="flex gap-2 pt-2">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleReport(report, "reviewed")}>✅ Traité</Button>
-                  <Button size="sm" variant="outline" onClick={() => handleReport(report, "dismissed")}>🚫 Ignorer</Button>
-                </div>
-              </CardContent></Card>
-            ))}
+            {reports.length > 0 && <ReportGroups reports={reports} onEdit={openEditFromReport} onUnpublish={unpublishFromReport} onReview={reviewGroup} onDismiss={dismissGroup} />}
           </TabsContent>
 
           <TabsContent value="places" className="space-y-4 mt-4">
