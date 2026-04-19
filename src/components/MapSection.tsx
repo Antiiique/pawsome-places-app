@@ -731,6 +731,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             onOpenItinerary?.();
           }}
           isInDatabase={!!popupData.petPlace}
+          dbId={popupData.petPlace?.id}
           onReport={popupData.petPlace ? () => setReportModal({ open: true, placeId: popupData.petPlace!.id, placeName: popupData.place.name }) : undefined}
         />
       )}
