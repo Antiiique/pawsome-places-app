@@ -457,11 +457,16 @@ const AdminPage = () => {
     const { data: newPlace, error: insertError } = await supabase.from("pet_friendly_places").insert({
       name: sub.name, category: sub.category, subcategory: sub.subcategory,
       address: sub.address, city: sub.city, country: sub.country || "France",
-      latitude: sub.latitude, longitude: sub.longitude, phone: sub.phone,
-      website: sub.website, description: sub.description,
+      latitude: sub.latitude, longitude: sub.longitude,
+      phone: enrichedData?.phone || sub.phone,
+      website: enrichedData?.website || sub.website,
+      description: sub.description,
       accepts_dogs: sub.accepts_dogs ?? true, accepts_cats: sub.accepts_cats ?? false,
       dogs_on_leash_only: sub.dogs_on_leash_only ?? false, outdoor_seating: sub.outdoor_seating ?? false,
-      water_bowl_provided: sub.water_bowl_provided ?? false, opening_hours: sub.opening_hours,
+      water_bowl_provided: sub.water_bowl_provided ?? false,
+      opening_hours: enrichedData?.opening_hours || sub.opening_hours,
+      rating: enrichedData?.rating || null,
+      google_place_id: enrichedData?.google_place_id || null,
       verified: true, source: "user_submission",
     }).select("id").single();
 
@@ -472,7 +477,8 @@ const AdminPage = () => {
 
     {
       const { data: photo } = await supabase.from("submission_photos").select("url").eq("submission_id", sub.id).limit(1).maybeSingle();
-      if (photo?.url) await supabase.from("pet_friendly_places").update({ photo_url: photo.url }).eq("id", newPlace.id);
+      const photoUrl = photo?.url || enrichedData?.photo_url;
+      if (photoUrl) await supabase.from("pet_friendly_places").update({ photo_url: photoUrl }).eq("id", newPlace.id);
     }
 
     await supabase.from("place_submissions").update({
@@ -482,6 +488,7 @@ const AdminPage = () => {
 
     toast.success(`✅ "${sub.name}" approuvé et publié sur la carte !`);
     setSubmissions(prev => prev.filter(s => s.id !== sub.id));
+    setEnrichedData(null);
     fetchCounts();
     fetchPlaces();
   };
@@ -545,6 +552,46 @@ const AdminPage = () => {
     toast.success("🚫 Signalements marqués comme infondés");
     setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
     fetchCounts();
+  };
+
+  const getPlacesService = () => {
+    const g = (window as any).google;
+    if (!g?.maps?.places || !placesServiceDivRef.current) return null;
+    if (!placesServiceRef.current) {
+      placesServiceRef.current = new g.maps.places.PlacesService(placesServiceDivRef.current);
+    }
+    return placesServiceRef.current;
+  };
+
+  const fetchGoogleEnrichment = (sub: Submission) => {
+    setEnriching(true);
+    setEnrichedData(null);
+    const svc = getPlacesService();
+    if (!svc) { setEnriching(false); return; }
+    const g = (window as any).google;
+    const query = `${sub.name}${sub.city ? ` ${sub.city}` : ""}`;
+    svc.textSearch(
+      { query, location: new g.maps.LatLng(sub.latitude, sub.longitude), radius: 300 },
+      (results: any[], status: string) => {
+        if (status !== "OK" || !results?.[0]?.place_id) { setEnriching(false); return; }
+        svc.getDetails(
+          { placeId: results[0].place_id, fields: ["photos", "rating", "opening_hours", "formatted_phone_number", "website", "place_id"] },
+          (detail: any, dStatus: string) => {
+            if (dStatus === "OK" && detail) {
+              setEnrichedData({
+                photo_url: detail.photos?.[0]?.getUrl({ maxWidth: 800 }) || undefined,
+                rating: detail.rating || undefined,
+                opening_hours: detail.opening_hours?.weekday_text?.slice(0, 3).join(" • ") || undefined,
+                phone: detail.formatted_phone_number || undefined,
+                website: detail.website || undefined,
+                google_place_id: detail.place_id || undefined,
+              });
+            }
+            setEnriching(false);
+          }
+        );
+      }
+    );
   };
 
   const deletePlace = async (place: PublishedPlace) => {
@@ -894,7 +941,7 @@ const AdminPage = () => {
                   {sub.outdoor_seating && <Badge variant="outline">🌿 Terrasse</Badge>}
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => setApproveDialog({ open: true, sub })}>✅ Approuver</Button>
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => { setApproveDialog({ open: true, sub }); fetchGoogleEnrichment(sub); }}>✅ Approuver</Button>
                   <Button size="sm" variant="outline" className="text-destructive border-destructive" onClick={() => setRejectDialog({ open: true, id: sub.id })}>❌ Rejeter</Button>
                 </div>
               </CardContent></Card>
@@ -1136,14 +1183,47 @@ const AdminPage = () => {
         </Tabs>
       </div>
 
-      <Dialog open={approveDialog.open} onOpenChange={(v) => { if (!v) { setApproveDialog({ open: false, sub: null }); setApproveNote(""); } }}>
+      <Dialog open={approveDialog.open} onOpenChange={(v) => { if (!v) { setApproveDialog({ open: false, sub: null }); setApproveNote(""); setEnrichedData(null); } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>✅ Approuver ce lieu</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground">Ajouter un message de remerciement (optionnel)</p>
+
+          {enriching && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary border border-border text-sm text-muted-foreground">
+              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0" />
+              Recherche des données Google en cours…
+            </div>
+          )}
+
+          {!enriching && enrichedData && (
+            <div className="rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-300 dark:border-green-800 p-3 space-y-2">
+              <p className="text-xs font-bold text-green-700 dark:text-green-400">✅ Données Google trouvées — fusionnées automatiquement</p>
+              <div className="flex gap-3">
+                {enrichedData.photo_url && (
+                  <img src={enrichedData.photo_url} alt="" className="w-16 h-16 rounded-lg object-cover border border-border shrink-0" />
+                )}
+                <div className="space-y-1 text-xs text-muted-foreground min-w-0">
+                  {enrichedData.rating && <p>⭐ Note : {enrichedData.rating}/5</p>}
+                  {enrichedData.phone && <p>📞 {enrichedData.phone}</p>}
+                  {enrichedData.website && <p className="truncate">🌐 {enrichedData.website}</p>}
+                  {enrichedData.opening_hours && <p>🕐 {enrichedData.opening_hours}</p>}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!enriching && !enrichedData && (
+            <div className="p-3 rounded-lg bg-secondary border border-border text-xs text-muted-foreground">
+              ℹ️ Aucune donnée Google trouvée — le lieu sera publié avec les informations soumises uniquement
+            </div>
+          )}
+
+          <p className="text-sm text-muted-foreground">Message de remerciement (optionnel)</p>
           <Textarea placeholder="Ex: Merci pour cette super contribution !" value={approveNote} onChange={(e) => setApproveNote(e.target.value)} />
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setApproveDialog({ open: false, sub: null }); setApproveNote(""); }}>Annuler</Button>
-            <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => { if (approveDialog.sub) approveSubmission(approveDialog.sub, approveNote); setApproveDialog({ open: false, sub: null }); setApproveNote(""); }}>Approuver</Button>
+            <Button variant="outline" onClick={() => { setApproveDialog({ open: false, sub: null }); setApproveNote(""); setEnrichedData(null); }}>Annuler</Button>
+            <Button className="bg-green-600 hover:bg-green-700 text-white" disabled={enriching} onClick={() => { if (approveDialog.sub) approveSubmission(approveDialog.sub, approveNote); setApproveDialog({ open: false, sub: null }); setApproveNote(""); }}>
+              {enriching ? "Enrichissement…" : "Approuver & Publier"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1339,6 +1419,7 @@ const AdminPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <div ref={placesServiceDivRef} style={{ display: "none" }} />
     </div>
   );
 };
