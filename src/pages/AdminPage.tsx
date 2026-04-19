@@ -519,6 +519,7 @@ const AdminPage = () => {
     fetchPlaces();
     fetchUsers();
     fetchDashboardStats();
+    fetchAdminReviews();
     const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
   }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces, fetchUsers, fetchDashboardStats]);
