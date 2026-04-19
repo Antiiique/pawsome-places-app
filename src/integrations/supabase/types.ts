@@ -459,6 +459,7 @@ export type Database = {
           email: string | null
           id: string
           is_admin: boolean
+          is_banned: boolean
           points: number
         }
         Insert: {
@@ -471,6 +472,7 @@ export type Database = {
           email?: string | null
           id: string
           is_admin?: boolean
+          is_banned?: boolean
           points?: number
         }
         Update: {
@@ -483,6 +485,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_admin?: boolean
+          is_banned?: boolean
           points?: number
         }
         Relationships: []
