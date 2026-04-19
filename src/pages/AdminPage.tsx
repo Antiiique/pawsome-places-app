@@ -1239,6 +1239,7 @@ const AdminPage = () => {
                 <TabsTrigger value="reports" className="rounded-xl px-3 py-2 text-sm font-medium">⚠️ Signalements</TabsTrigger>
                 <TabsTrigger value="places" className="rounded-xl px-3 py-2 text-sm font-medium">🗺️ Lieux publiés</TabsTrigger>
                 <TabsTrigger value="users" className="rounded-xl px-3 py-2 text-sm font-medium">👥 Utilisateurs</TabsTrigger>
+                <TabsTrigger value="reviews" className="rounded-xl px-3 py-2 text-sm font-medium">💬 Avis</TabsTrigger>
               </div>
             </div>
             <div className="border-t border-border/50 pt-2">
