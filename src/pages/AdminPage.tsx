@@ -277,6 +277,25 @@ const AdminPage = () => {
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(false);
 
+  const [completenessData, setCompletenessData] = useState<Array<{ id: string; name: string; city: string | null; category: string; score: number; missing: string[] }>>([]);
+  const [completenessLoading, setCompletenessLoading] = useState(false);
+  const [completenessThreshold, setCompletenessThreshold] = useState(80);
+
+  const [duplicates, setDuplicates] = useState<Array<{ aId: string; aName: string; aCity: string | null; bId: string; bName: string; distM: number }>>([]);
+  const [duplicatesLoading, setDuplicatesLoading] = useState(false);
+
+  const [coverageData, setCoverageData] = useState<Array<{ dept: string; count: number }>>([]);
+  const [coverageLoading, setCoverageLoading] = useState(false);
+
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvPreview, setCsvPreview] = useState<Record<string, string>[]>([]);
+  const [csvImporting, setCsvImporting] = useState(false);
+  const csvInputRef = useRef<HTMLInputElement>(null);
+
+  const [exportCategory, setExportCategory] = useState("");
+  const [exportCountry, setExportCountry] = useState("");
+  const [exportOnlyVerified, setExportOnlyVerified] = useState(false);
+
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
       supabase.from("place_submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
@@ -820,6 +839,149 @@ const AdminPage = () => {
   const totalPages = Math.ceil(filteredPlaces.length / PLACES_PER_PAGE);
   const paginatedPlaces = filteredPlaces.slice(placesPage * PLACES_PER_PAGE, (placesPage + 1) * PLACES_PER_PAGE);
 
+  const computeCompleteness = async () => {
+    setCompletenessLoading(true);
+    const { data } = await supabase
+      .from("pet_friendly_places")
+      .select("id, name, city, category, address, phone, website, opening_hours, description, photo_url, accepts_dogs, accepts_cats, outdoor_seating")
+      .eq("verified", true)
+      .limit(10000);
+    if (data) {
+      const scored = data.map(p => {
+        const checks = [
+          { label: "Adresse", ok: !!p.address },
+          { label: "Ville", ok: !!p.city },
+          { label: "Téléphone", ok: !!p.phone },
+          { label: "Site web", ok: !!p.website },
+          { label: "Horaires", ok: !!p.opening_hours },
+          { label: "Description", ok: !!p.description },
+          { label: "Photo", ok: !!p.photo_url },
+          { label: "Chiens/chats", ok: !!(p.accepts_dogs || p.accepts_cats) },
+          { label: "Terrasse", ok: p.outdoor_seating !== null },
+        ];
+        const score = Math.round(checks.filter(c => c.ok).length / checks.length * 100);
+        const missing = checks.filter(c => !c.ok).map(c => c.label);
+        return { id: p.id, name: p.name, city: p.city, category: p.category, score, missing };
+      });
+      setCompletenessData(scored.sort((a, b) => a.score - b.score));
+    }
+    setCompletenessLoading(false);
+  };
+
+  const detectDuplicates = async () => {
+    setDuplicatesLoading(true);
+    const { data } = await supabase
+      .from("pet_friendly_places")
+      .select("id, name, city, latitude, longitude")
+      .eq("verified", true)
+      .limit(5000);
+    if (data) {
+      const found: Array<{ aId: string; aName: string; aCity: string | null; bId: string; bName: string; distM: number }> = [];
+      for (let i = 0; i < data.length; i++) {
+        for (let j = i + 1; j < data.length; j++) {
+          const d = haversineKm(data[i].latitude, data[i].longitude, data[j].latitude, data[j].longitude) * 1000;
+          if (d < 100) {
+            const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+            const na = norm(data[i].name), nb = norm(data[j].name);
+            if (na === nb || na.includes(nb) || nb.includes(na))
+              found.push({ aId: data[i].id, aName: data[i].name, aCity: data[i].city, bId: data[j].id, bName: data[j].name, distM: Math.round(d) });
+          }
+        }
+      }
+      setDuplicates(found);
+    }
+    setDuplicatesLoading(false);
+  };
+
+  const deleteById = async (id: string) => {
+    await supabase.from("pet_friendly_places").delete().eq("id", id);
+    setDuplicates(prev => prev.filter(d => d.aId !== id && d.bId !== id));
+    toast.success("Lieu supprimé");
+  };
+
+  const fetchCoverage = async () => {
+    setCoverageLoading(true);
+    const { data } = await supabase
+      .from("pet_friendly_places")
+      .select("department, region")
+      .eq("verified", true);
+    if (data) {
+      const byDept: Record<string, number> = {};
+      for (const p of data) {
+        const key = p.department || p.region || "Inconnu";
+        byDept[key] = (byDept[key] || 0) + 1;
+      }
+      setCoverageData(Object.entries(byDept).map(([dept, count]) => ({ dept, count })).sort((a, b) => b.count - a.count));
+    }
+    setCoverageLoading(false);
+  };
+
+  const parseCsvText = (text: string): Record<string, string>[] => {
+    const lines = text.trim().split(/\r?\n/);
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ""));
+    return lines.slice(1).map(line => {
+      const values = line.split(",").map(v => v.trim().replace(/^"|"$/g, ""));
+      return Object.fromEntries(headers.map((h, i) => [h, values[i] ?? ""]));
+    });
+  };
+
+  const handleCsvFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCsvFile(file);
+    const reader = new FileReader();
+    reader.onload = ev => setCsvPreview(parseCsvText(ev.target?.result as string).slice(0, 5));
+    reader.readAsText(file, "utf-8");
+  };
+
+  const importCsv = async () => {
+    if (!csvFile) return;
+    setCsvImporting(true);
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const rows = parseCsvText(ev.target?.result as string);
+      const toInsert = rows.map(r => ({
+        name: r.name || r.Name || "",
+        category: r.category || "other",
+        latitude: parseFloat(r.latitude || r.lat || "0"),
+        longitude: parseFloat(r.longitude || r.lon || r.lng || "0"),
+        city: r.city || r.ville || null,
+        address: r.address || r.adresse || null,
+        country: r.country || r.pays || "France",
+        source: "csv_import",
+        verified: false,
+        accepts_dogs: true,
+      })).filter(r => r.name && r.latitude !== 0 && r.longitude !== 0);
+      if (!toInsert.length) { toast.error("Aucune ligne valide (name + latitude + longitude requis)"); setCsvImporting(false); return; }
+      const { error } = await supabase.from("pet_friendly_places").insert(toInsert);
+      if (error) toast.error("Erreur import : " + error.message);
+      else toast.success(`✅ ${toInsert.length} lieux importés (statut : non-vérifiés)`);
+      setCsvImporting(false); setCsvFile(null); setCsvPreview([]);
+      if (csvInputRef.current) csvInputRef.current.value = "";
+    };
+    reader.readAsText(csvFile, "utf-8");
+  };
+
+  const handleExport = async () => {
+    const filters: Record<string, string | boolean> = {};
+    if (exportCategory) filters.category = exportCategory;
+    if (exportCountry) filters.country = exportCountry;
+    if (exportOnlyVerified) filters.verified = true;
+    let q: any = supabase.from("pet_friendly_places")
+      .select("name,category,subcategory,address,city,postcode,country,latitude,longitude,phone,website,opening_hours,accepts_dogs,accepts_cats,outdoor_seating,verified,source,description");
+    for (const [k, v] of Object.entries(filters)) q = q.eq(k, v);
+    const { data, error } = await q.limit(50000);
+    if (error || !data?.length) { toast.error("Aucune donnée à exporter"); return; }
+    const headers = Object.keys(data[0]);
+    const csv = [headers.join(","), ...data.map((row: any) => headers.map(h => { const v = String(row[h] ?? ""); return v.includes(",") ? `"${v}"` : v; }).join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `pawsome_export_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`✅ ${data.length.toLocaleString("fr-FR")} lieux exportés`);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
@@ -849,13 +1011,18 @@ const AdminPage = () => {
         </div>
 
         <Tabs defaultValue="dashboard">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-6 lg:grid-cols-11 h-auto">
             <TabsTrigger value="dashboard">📊 Stats</TabsTrigger>
             <TabsTrigger value="notifications">🔔 Notifs</TabsTrigger>
             <TabsTrigger value="submissions">📍 À valider</TabsTrigger>
             <TabsTrigger value="reports">⚠️ Signalements</TabsTrigger>
             <TabsTrigger value="places">🗺️ Lieux</TabsTrigger>
             <TabsTrigger value="users">👥 Utilisateurs</TabsTrigger>
+            <TabsTrigger value="completeness">✅ Complétude</TabsTrigger>
+            <TabsTrigger value="duplicates">🔍 Doublons</TabsTrigger>
+            <TabsTrigger value="coverage">📡 Couverture</TabsTrigger>
+            <TabsTrigger value="import">📥 Import CSV</TabsTrigger>
+            <TabsTrigger value="export">📤 Export</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6 mt-4">
@@ -1452,6 +1619,215 @@ const AdminPage = () => {
                 </Card>
               );
             })}
+          </TabsContent>
+          <TabsContent value="completeness" className="space-y-4 mt-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Button onClick={computeCompleteness} disabled={completenessLoading}>
+                {completenessLoading ? "Analyse en cours…" : "🔍 Analyser la complétude"}
+              </Button>
+              {completenessData.length > 0 && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Seuil max :</span>
+                  <select
+                    value={completenessThreshold}
+                    onChange={(e) => setCompletenessThreshold(Number(e.target.value))}
+                    className="h-8 px-2 rounded border border-input bg-background text-xs text-foreground"
+                  >
+                    <option value={40}>≤ 40% (très incomplets)</option>
+                    <option value={60}>≤ 60% (incomplets)</option>
+                    <option value={80}>≤ 80% (partiels)</option>
+                    <option value={100}>Tous</option>
+                  </select>
+                  <Badge variant="secondary">
+                    {completenessData.filter(p => p.score <= completenessThreshold).length} lieux
+                  </Badge>
+                </div>
+              )}
+            </div>
+
+            {completenessData.length > 0 && (
+              <ScrollArea className="h-[60vh] rounded-md border border-border">
+                <div className="space-y-2 p-2">
+                  {completenessData.filter(p => p.score <= completenessThreshold).map(p => (
+                    <Card key={p.id}>
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-foreground truncate">{p.name}</p>
+                            <p className="text-xs text-muted-foreground">{p.city || "—"} · {p.category}</p>
+                            {p.missing.length > 0 && (
+                              <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Manque : {p.missing.join(", ")}</p>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <span className={`text-lg font-bold ${p.score < 40 ? "text-destructive" : p.score < 70 ? "text-amber-600" : "text-green-600"}`}>
+                              {p.score}%
+                            </span>
+                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => {
+                              const place = places.find(pl => pl.id === p.id);
+                              if (place) openEdit(place);
+                            }}>
+                              <Pencil className="w-3 h-3 mr-1" /> Modifier
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+            {completenessData.length === 0 && !completenessLoading && (
+              <p className="text-muted-foreground text-center py-8">Clique sur "Analyser" pour voir le score de complétude des lieux vérifiés.</p>
+            )}
+          </TabsContent>
+
+          <TabsContent value="duplicates" className="space-y-4 mt-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Button onClick={detectDuplicates} disabled={duplicatesLoading}>
+                {duplicatesLoading ? "Analyse en cours…" : "🔍 Détecter les doublons"}
+              </Button>
+              {duplicates.length > 0 && (
+                <Badge variant="secondary">
+                  {duplicates.length} paire{duplicates.length > 1 ? "s" : ""} trouvée{duplicates.length > 1 ? "s" : ""}
+                </Badge>
+              )}
+              <span className="text-xs text-muted-foreground">Limite : 5 000 lieux vérifiés — distance &lt; 100m + nom similaire</span>
+            </div>
+
+            {duplicates.length > 0 && (
+              <ScrollArea className="h-[60vh] rounded-md border border-border">
+                <div className="space-y-2 p-2">
+                  {duplicates.map((dup, i) => (
+                    <Card key={i} className="border-orange-300 dark:border-orange-700">
+                      <CardContent className="pt-4 space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs text-muted-foreground">{dup.aCity || "Ville inconnue"} · {dup.distM}m d'écart</p>
+                          <Badge variant="outline" className="text-orange-600 border-orange-400">⚠️ Doublon potentiel</Badge>
+                        </div>
+                        {[{ id: dup.aId, name: dup.aName }, { id: dup.bId, name: dup.bName }].map(p => (
+                          <div key={p.id} className="flex items-center justify-between gap-2 p-2 rounded bg-muted/50">
+                            <p className="font-medium text-foreground text-sm truncate">{p.name}</p>
+                            <Button size="sm" variant="outline" className="h-7 text-xs text-destructive border-destructive shrink-0" onClick={() => deleteById(p.id)}>
+                              🗑️ Supprimer
+                            </Button>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+            {duplicates.length === 0 && !duplicatesLoading && (
+              <p className="text-muted-foreground text-center py-8">Clique sur "Détecter" pour analyser les doublons potentiels parmi les lieux vérifiés.</p>
+            )}
+          </TabsContent>
+
+          <TabsContent value="coverage" className="space-y-4 mt-4">
+            <Button onClick={fetchCoverage} disabled={coverageLoading}>
+              {coverageLoading ? "Chargement…" : "📡 Calculer la couverture"}
+            </Button>
+            {coverageData.length > 0 && (
+              <ScrollArea className="h-[60vh] rounded-md border border-border">
+                <div className="space-y-1 p-2">
+                  {coverageData.map(c => {
+                    const max = coverageData[0].count;
+                    const pct = Math.round((c.count / max) * 100);
+                    return (
+                      <div key={c.dept} className="flex items-center gap-3 p-2 rounded hover:bg-muted/50">
+                        <span className="text-sm text-foreground w-40 truncate">{c.dept}</span>
+                        <div className="flex-1 h-5 bg-muted rounded overflow-hidden">
+                          <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-xs font-semibold text-foreground w-16 text-right">{c.count.toLocaleString("fr-FR")}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            )}
+            {coverageData.length === 0 && !coverageLoading && (
+              <p className="text-muted-foreground text-center py-8">Clique sur "Calculer" pour voir la répartition des lieux vérifiés par département/région.</p>
+            )}
+          </TabsContent>
+
+          <TabsContent value="import" className="space-y-4 mt-4">
+            <Card>
+              <CardContent className="pt-4 space-y-3">
+                <p className="text-sm text-foreground">
+                  📥 Import en masse de lieux via fichier CSV. Colonnes attendues : <code className="text-xs bg-muted px-1 rounded">name, latitude, longitude</code> (obligatoires) + <code className="text-xs bg-muted px-1 rounded">category, city, address, country, phone, website</code> (optionnelles).
+                </p>
+                <p className="text-xs text-muted-foreground">⚠️ Les lieux importés sont marqués comme <strong>non-vérifiés</strong> et devront être validés manuellement.</p>
+                <input
+                  ref={csvInputRef}
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={handleCsvFile}
+                  className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                />
+                {csvFile && (
+                  <p className="text-xs text-muted-foreground">
+                    📄 {csvFile.name} — {(csvFile.size / 1024).toFixed(1)} Ko
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {csvPreview.length > 0 && (
+              <Card>
+                <CardContent className="pt-4 space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">Aperçu (5 premières lignes)</p>
+                  <div className="overflow-x-auto">
+                    <table className="text-xs w-full border-collapse">
+                      <thead>
+                        <tr className="border-b border-border">
+                          {Object.keys(csvPreview[0]).map(h => (
+                            <th key={h} className="text-left p-1.5 font-semibold text-foreground">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {csvPreview.map((row, i) => (
+                          <tr key={i} className="border-b border-border/50">
+                            {Object.keys(csvPreview[0]).map(h => (
+                              <td key={h} className="p-1.5 text-muted-foreground">{row[h]}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <Button onClick={importCsv} disabled={csvImporting} className="w-full">
+                    {csvImporting ? "Import en cours…" : `📥 Importer ${csvPreview.length >= 5 ? "tout le fichier" : `les ${csvPreview.length} ligne(s)`}`}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="export" className="space-y-4 mt-4">
+            <Card>
+              <CardContent className="pt-4 space-y-3">
+                <p className="text-sm text-foreground">📤 Exporter la base de lieux au format CSV (UTF-8 avec BOM).</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-foreground">Catégorie</label>
+                    <Input placeholder="Toutes (laisser vide)" value={exportCategory} onChange={(e) => setExportCategory(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-foreground">Pays</label>
+                    <Input placeholder="Tous (laisser vide)" value={exportCountry} onChange={(e) => setExportCountry(e.target.value)} />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <label className="text-sm text-foreground">✅ Lieux vérifiés uniquement</label>
+                  <Switch checked={exportOnlyVerified} onCheckedChange={setExportOnlyVerified} />
+                </div>
+                <Button onClick={handleExport} className="w-full">📤 Lancer l'export</Button>
+                <p className="text-xs text-muted-foreground">Limite : 50 000 lignes par export.</p>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
