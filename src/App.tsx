@@ -8,6 +8,7 @@ import { AuthProvider, useAuthContext } from "@/contexts/AuthContext";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import { Button } from "@/components/ui/button";
 
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/admin" element={<AdminGuard />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
