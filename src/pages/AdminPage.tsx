@@ -783,6 +783,10 @@ const AdminPage = () => {
     if (submissionsFilter.dateRange === "7d" && Date.now() - new Date(sub.created_at).getTime() > 7 * 86400000) return false;
     if (submissionsFilter.dateRange === "30d" && Date.now() - new Date(sub.created_at).getTime() > 30 * 86400000) return false;
     return true;
+  }).sort((a, b) => {
+    const score = (s: Submission) => (s.photos?.length ? 10 : 0) + (s.accepts_dogs ? 1 : 0) + (s.accepts_cats ? 1 : 0) + (s.outdoor_seating ? 1 : 0);
+    if (score(b) !== score(a)) return score(b) - score(a);
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
   });
 
   const uniqueSources = [...new Set(places.map(p => p.source).filter(Boolean))];
