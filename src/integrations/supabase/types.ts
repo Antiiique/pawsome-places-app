@@ -356,10 +356,12 @@ export type Database = {
         Row: {
           body: string | null
           created_at: string | null
+          has_been_edited: boolean | null
           helpful_count: number | null
           id: string
           is_hidden: boolean | null
           is_reported: boolean | null
+          photo_url: string | null
           place_id: string
           rating: number
           updated_at: string | null
@@ -369,10 +371,12 @@ export type Database = {
         Insert: {
           body?: string | null
           created_at?: string | null
+          has_been_edited?: boolean | null
           helpful_count?: number | null
           id?: string
           is_hidden?: boolean | null
           is_reported?: boolean | null
+          photo_url?: string | null
           place_id: string
           rating: number
           updated_at?: string | null
@@ -382,10 +386,12 @@ export type Database = {
         Update: {
           body?: string | null
           created_at?: string | null
+          has_been_edited?: boolean | null
           helpful_count?: number | null
           id?: string
           is_hidden?: boolean | null
           is_reported?: boolean | null
+          photo_url?: string | null
           place_id?: string
           rating?: number
           updated_at?: string | null
