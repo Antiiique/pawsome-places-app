@@ -138,12 +138,13 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss }: {
+function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss, onDelete }: {
   reports: Report[];
   onEdit: (placeId: string) => void;
   onUnpublish: (placeId: string, ids: string[]) => void;
   onReview: (placeId: string | null, ids: string[]) => void;
   onDismiss: (placeId: string | null, ids: string[]) => void;
+  onDelete: (ids: string[]) => void;
 }) {
   const groups: Record<string, { place_id: string | null; place_name: string | undefined; reports: Report[] }> = {};
   for (const r of reports) {
@@ -192,6 +193,14 @@ function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss }: {
                 </Button>
                 <Button size="sm" variant="outline" className="text-xs h-9" onClick={() => onDismiss(group.place_id, ids)}>
                   🚫 Infondé{ids.length > 1 ? "s" : ""}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-destructive border-destructive/40 hover:bg-destructive/10 h-9 text-xs"
+                  onClick={() => onDelete(ids)}
+                >
+                  🗑 Supprimer
                 </Button>
               </div>
             </CardContent>
@@ -321,6 +330,10 @@ const AdminPage = () => {
   const [editBody, setEditBody] = useState("");
   const [editRating, setEditRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
+  const [processedSubmissions, setProcessedSubmissions] = useState<any[]>([]);
+  const [processedReports, setProcessedReports] = useState<any[]>([]);
+  const [showProcessedSubs, setShowProcessedSubs] = useState(false);
+  const [showProcessedReports, setShowProcessedReports] = useState(false);
 
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
@@ -587,23 +600,32 @@ const AdminPage = () => {
   const rejectSubmission = async () => {
     if (!rejectDialog.id) return;
     const rejectedSub = submissions.find(s => s.id === rejectDialog.id);
-    await supabase.from("place_submissions").update({
+    const { error } = await supabase.from("place_submissions").update({
       status: "rejected", admin_note: rejectNote || null,
       reviewed_at: new Date().toISOString(), reviewed_by: user?.id,
     }).eq("id", rejectDialog.id);
+    if (error) { toast.error("Erreur lors du rejet"); return; }
+    const { data: linkedPlace } = await supabase
+      .from("pet_friendly_places")
+      .select("id")
+      .eq("source_id", rejectDialog.id)
+      .maybeSingle();
+    if (linkedPlace) {
+      await supabase.from("pet_friendly_places").delete().eq("id", linkedPlace.id);
+    }
     if (rejectedSub?.submitted_by) {
       await supabase.from("user_notifications").insert({
         user_id: rejectedSub.submitted_by,
         type: "submission_rejected",
         title: "📋 Résultat de votre soumission",
-        message: `Votre proposition "${rejectedSub.name}" n'a pas pu être publiée.${rejectNote ? ` Motif de l'admin : "${rejectNote}"` : " N'hésitez pas à vérifier les informations et à soumettre à nouveau."}`,
+        message: `Votre proposition "${rejectedSub.name}" n'a pas pu être publiée.${rejectNote ? ` Motif : "${rejectNote}"` : " N'hésitez pas à vérifier les informations et à soumettre à nouveau."}`,
         related_id: rejectDialog.id,
       });
     }
-    toast.success("Soumission rejetée");
-    setSubmissions(prev => prev.filter(s => s.id !== rejectDialog.id));
+    toast.success("Soumission rejetée" + (linkedPlace ? " et lieu supprimé" : ""));
     setRejectDialog({ open: false, id: null });
     setRejectNote("");
+    await fetchSubmissions();
     fetchCounts();
   };
 
@@ -653,6 +675,42 @@ const AdminPage = () => {
     toast.success("🚫 Signalements marqués comme infondés");
     setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
     fetchCounts();
+  };
+
+  const deleteReportGroup = async (reportIds: string[]) => {
+    const { error } = await supabase.from("place_reports").delete().in("id", reportIds);
+    if (error) { toast.error("Erreur lors de la suppression"); return; }
+    toast.success("Signalement(s) supprimé(s) définitivement");
+    setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
+    fetchCounts();
+  };
+
+  const fetchProcessedSubmissions = async () => {
+    const { data } = await supabase
+      .from("place_submissions")
+      .select("id, name, city, status, admin_note, created_at, reviewed_at, submitted_by")
+      .in("status", ["approved", "rejected"])
+      .order("reviewed_at", { ascending: false })
+      .limit(100);
+    setProcessedSubmissions(data || []);
+  };
+
+  const fetchProcessedReports = async () => {
+    const { data } = await supabase
+      .from("place_reports")
+      .select("id, place_id, reason, status, created_at")
+      .in("status", ["reviewed", "dismissed"])
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (data) {
+      const placeIds = data.map(r => r.place_id).filter(Boolean) as string[];
+      let placeMap: Record<string, string> = {};
+      if (placeIds.length) {
+        const { data: places } = await supabase.from("pet_friendly_places").select("id, name").in("id", placeIds);
+        if (places) placeMap = Object.fromEntries(places.map(p => [p.id, p.name]));
+      }
+      setProcessedReports(data.map(r => ({ ...r, place_name: r.place_id ? placeMap[r.place_id] || "Lieu inconnu" : "Inconnu" })));
+    }
   };
 
   const getPlacesService = () => {
@@ -1639,11 +1697,81 @@ const AdminPage = () => {
                 </Card>
               );
             })}
+
+            {/* Historique des soumissions traitées */}
+            <div className="mt-6 border-t border-border pt-4">
+              <button
+                onClick={() => { setShowProcessedSubs(v => !v); if (!showProcessedSubs) fetchProcessedSubmissions(); }}
+                className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showProcessedSubs ? "▼" : "▶"} Soumissions déjà traitées
+              </button>
+              {showProcessedSubs && (
+                <div className="mt-3 space-y-2">
+                  {processedSubmissions.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic text-center py-4">Aucune soumission traitée.</p>
+                  ) : (
+                    processedSubmissions.map(s => (
+                      <div key={s.id} className={`rounded-xl border p-3 flex items-start justify-between gap-3 ${s.status === "approved" ? "border-green-300 bg-green-50 dark:bg-green-950/20" : "border-destructive/30 bg-destructive/5"}`}>
+                        <div className="space-y-0.5 min-w-0">
+                          <p className="text-sm font-semibold truncate">{s.name}{s.city ? ` — ${s.city}` : ""}</p>
+                          {s.admin_note && <p className="text-xs text-muted-foreground italic">Motif : {s.admin_note}</p>}
+                          <p className="text-xs text-muted-foreground">
+                            {s.reviewed_at ? new Date(s.reviewed_at).toLocaleDateString("fr-FR") : new Date(s.created_at).toLocaleDateString("fr-FR")}
+                          </p>
+                        </div>
+                        <span className={`shrink-0 text-xs font-bold px-2 py-1 rounded-full ${s.status === "approved" ? "bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-100" : "bg-destructive/20 text-destructive"}`}>
+                          {s.status === "approved" ? "✅ Approuvé" : "❌ Rejeté"}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-4 mt-4">
             {reports.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun signalement en attente</p>}
-            {reports.length > 0 && <ReportGroups reports={reports} onEdit={openEditFromReport} onUnpublish={unpublishFromReport} onReview={reviewGroup} onDismiss={dismissGroup} />}
+            {reports.length > 0 && <ReportGroups reports={reports} onEdit={openEditFromReport} onUnpublish={unpublishFromReport} onReview={reviewGroup} onDismiss={dismissGroup} onDelete={deleteReportGroup} />}
+
+            {/* Historique des signalements traités */}
+            <div className="mt-6 border-t border-border pt-4">
+              <button
+                onClick={() => { setShowProcessedReports(v => !v); if (!showProcessedReports) fetchProcessedReports(); }}
+                className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showProcessedReports ? "▼" : "▶"} Signalements déjà traités
+              </button>
+              {showProcessedReports && (
+                <div className="mt-3 space-y-2">
+                  {processedReports.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic text-center py-4">Aucun signalement traité.</p>
+                  ) : (
+                    processedReports.map(r => (
+                      <div key={r.id} className={`rounded-xl border p-3 flex items-start justify-between gap-3 ${r.status === "reviewed" ? "border-blue-300 bg-blue-50 dark:bg-blue-950/20" : "border-muted bg-muted/30"}`}>
+                        <div className="space-y-0.5 min-w-0">
+                          <p className="text-sm font-semibold truncate">{r.place_name}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{r.reason?.replace(/_/g, " ")}</p>
+                          <p className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("fr-FR")}</p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2 shrink-0">
+                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${r.status === "reviewed" ? "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-100" : "bg-muted text-muted-foreground"}`}>
+                            {r.status === "reviewed" ? "✅ Traité" : "🚫 Infondé"}
+                          </span>
+                          <button
+                            onClick={async () => { await supabase.from("place_reports").delete().eq("id", r.id); setProcessedReports(prev => prev.filter(p => p.id !== r.id)); toast.success("Supprimé"); }}
+                            className="text-xs text-destructive hover:underline"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="places" className="space-y-4 mt-4">
