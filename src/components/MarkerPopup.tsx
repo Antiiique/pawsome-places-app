@@ -547,9 +547,15 @@ export default function MarkerPopup({
                               <input type="file" accept="image/*" className="hidden" onChange={handlePhotoSelect} />
                             </label>
                             {photoPreview && (
-                              <div className="relative w-full h-28 rounded-lg overflow-hidden border border-border">
-                                <img src={photoPreview} className="w-full h-full object-cover" alt="" />
+                              <div className="relative w-full rounded-lg overflow-hidden border border-border bg-muted/20">
+                                <img src={photoPreview} className="w-full object-contain max-h-64" alt="" />
                                 <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); }} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-xs flex items-center justify-center">✕</button>
+                              </div>
+                            )}
+                            {!photoPreview && userReview?.photo_url && (
+                              <div className="relative w-full rounded-lg overflow-hidden border border-border opacity-60 bg-muted/20">
+                                <img src={userReview.photo_url} className="w-full object-contain max-h-48" alt="" />
+                                <span className="absolute bottom-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded">Photo actuelle</span>
                               </div>
                             )}
                             {!photoPreview && userReview?.photo_url && (
