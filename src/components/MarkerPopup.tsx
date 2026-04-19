@@ -195,6 +195,23 @@ export default function MarkerPopup({
 
   return (
     <>
+      {lightboxPhoto && (
+        <div
+          className="fixed inset-0 z-[20001] bg-black/85 flex items-center justify-center p-4 cursor-pointer"
+          onClick={() => setLightboxPhoto(null)}
+        >
+          <img
+            src={lightboxPhoto}
+            className="max-w-[92vw] max-h-[88vh] object-contain rounded-xl shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          />
+          <button
+            className="absolute top-4 right-5 w-9 h-9 rounded-full bg-white/20 hover:bg-white/40 text-white text-lg flex items-center justify-center transition-colors"
+            onClick={() => setLightboxPhoto(null)}
+          >✕</button>
+        </div>
+      )}
+
       {/* Full photo overlay */}
       {fullPhoto && (
         <div
