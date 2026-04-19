@@ -1665,7 +1665,7 @@ const AdminPage = () => {
                             </span>
                             <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => {
                               const place = places.find(pl => pl.id === p.id);
-                              if (place) openEditDialog(place);
+                              if (place) openEdit(place);
                             }}>
                               <Pencil className="w-3 h-3 mr-1" /> Modifier
                             </Button>
