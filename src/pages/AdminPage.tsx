@@ -89,6 +89,24 @@ interface PublishedPlace {
   created_at: string;
 }
 
+interface DashboardStats {
+  totalPlaces: number;
+  verifiedPlaces: number;
+  flaggedPlaces: number;
+  placesThisMonth: number;
+  totalUsers: number;
+  newUsersThisMonth: number;
+  avgRating: number | null;
+  recentSubmissions: number;
+  recentReports: number;
+  byCategory: Record<string, number>;
+  bySource: Record<string, number>;
+  topCities: Array<{ city: string; count: number }>;
+  topUsers: Array<{ display_name: string | null; email: string | null; points: number; avatar_url: string | null }>;
+  placesWithPhoto: number;
+  placesWithHours: number;
+}
+
 const reasonLabels: Record<string, string> = {
   not_pet_friendly: "🚫 Non pet-friendly",
   closed: "🔒 Fermé définitivement",
@@ -148,6 +166,9 @@ const AdminPage = () => {
   const [usersSearch, setUsersSearch] = useState("");
   const [userEditDialog, setUserEditDialog] = useState<{ open: boolean; user: typeof users[0] | null }>({ open: false, user: null });
   const [userEditForm, setUserEditForm] = useState<{ display_name: string; city: string; points: number; is_admin: boolean }>({ display_name: "", city: "", points: 0, is_admin: false });
+
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
 
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
@@ -223,6 +244,72 @@ const AdminPage = () => {
     if (data) setUsers(data as any);
   }, []);
 
+  const fetchDashboardStats = useCallback(async () => {
+    setDashboardLoading(true);
+    const monthAgo = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const [
+      totalRes, verifiedRes, flaggedRes, monthRes,
+      totalUsersRes, newUsersRes, subWeekRes, repWeekRes,
+      statsRes, topUsersRes, photoRes, hoursRes,
+    ] = await Promise.all([
+      supabase.from("pet_friendly_places").select("*", { count: "exact", head: true }),
+      supabase.from("pet_friendly_places").select("*", { count: "exact", head: true }).eq("verified", true),
+      supabase.from("pet_friendly_places").select("*", { count: "exact", head: true }).eq("is_flagged", true),
+      supabase.from("pet_friendly_places").select("*", { count: "exact", head: true }).gte("created_at", monthAgo),
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", monthAgo),
+      supabase.from("place_submissions").select("*", { count: "exact", head: true }).gte("created_at", weekAgo),
+      supabase.from("place_reports").select("*", { count: "exact", head: true }).gte("created_at", weekAgo),
+      supabase.from("pet_friendly_places").select("category, source, city, rating").limit(10000),
+      supabase.from("profiles").select("display_name, email, points, avatar_url").order("points", { ascending: false }).limit(5),
+      supabase.from("pet_friendly_places").select("*", { count: "exact", head: true }).not("photo_url", "is", null),
+      supabase.from("pet_friendly_places").select("*", { count: "exact", head: true }).not("opening_hours", "is", null),
+    ]);
+
+    const rows = statsRes.data || [];
+    const byCategory: Record<string, number> = {};
+    const bySource: Record<string, number> = {};
+    const cityCount: Record<string, number> = {};
+    const ratings: number[] = [];
+
+    rows.forEach(p => {
+      byCategory[p.category] = (byCategory[p.category] || 0) + 1;
+      const src = p.source || "unknown";
+      bySource[src] = (bySource[src] || 0) + 1;
+      if (p.city) cityCount[p.city] = (cityCount[p.city] || 0) + 1;
+      if (p.rating) ratings.push(p.rating);
+    });
+
+    const topCities = Object.entries(cityCount)
+      .sort((a, b) => b[1] - a[1]).slice(0, 5)
+      .map(([city, count]) => ({ city, count }));
+
+    const avgRating = ratings.length
+      ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
+      : null;
+
+    setDashboardStats({
+      totalPlaces: totalRes.count ?? 0,
+      verifiedPlaces: verifiedRes.count ?? 0,
+      flaggedPlaces: flaggedRes.count ?? 0,
+      placesThisMonth: monthRes.count ?? 0,
+      totalUsers: totalUsersRes.count ?? 0,
+      newUsersThisMonth: newUsersRes.count ?? 0,
+      avgRating,
+      recentSubmissions: subWeekRes.count ?? 0,
+      recentReports: repWeekRes.count ?? 0,
+      byCategory,
+      bySource,
+      topCities,
+      topUsers: topUsersRes.data || [],
+      placesWithPhoto: photoRes.count ?? 0,
+      placesWithHours: hoursRes.count ?? 0,
+    });
+    setDashboardLoading(false);
+  }, []);
+
   useEffect(() => {
     fetchCounts();
     fetchNotifications();
@@ -230,9 +317,10 @@ const AdminPage = () => {
     fetchReports();
     fetchPlaces();
     fetchUsers();
+    fetchDashboardStats();
     const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
-  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces, fetchUsers]);
+  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces, fetchUsers, fetchDashboardStats]);
 
   const markNotifRead = async (id: string) => {
     await supabase.from("admin_notifications").update({ is_read: true }).eq("id", id);
@@ -399,14 +487,197 @@ const AdminPage = () => {
           </CardContent></Card>
         </div>
 
-        <Tabs defaultValue="notifications">
-          <TabsList className="grid w-full grid-cols-5">
+        <Tabs defaultValue="dashboard">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="dashboard">📊 Stats</TabsTrigger>
             <TabsTrigger value="notifications">🔔 Notifs</TabsTrigger>
             <TabsTrigger value="submissions">📍 À valider</TabsTrigger>
             <TabsTrigger value="reports">⚠️ Signalements</TabsTrigger>
-            <TabsTrigger value="places">🗺️ Tous les lieux</TabsTrigger>
+            <TabsTrigger value="places">🗺️ Lieux</TabsTrigger>
             <TabsTrigger value="users">👥 Utilisateurs</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-6 mt-4">
+            {dashboardLoading && <p className="text-muted-foreground text-center py-8">Chargement des statistiques…</p>}
+            {!dashboardLoading && dashboardStats && (
+              <>
+                {/* KPIs principaux */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Vue d'ensemble</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {[
+                      { value: dashboardStats.totalPlaces.toLocaleString("fr-FR"), label: "🗺️ Lieux total", sub: null, color: "text-primary", bg: "bg-primary/5 border-primary/20" },
+                      { value: dashboardStats.verifiedPlaces.toLocaleString("fr-FR"), label: "✅ Lieux vérifiés", sub: `${dashboardStats.totalPlaces > 0 ? Math.round(dashboardStats.verifiedPlaces / dashboardStats.totalPlaces * 100) : 0}% du total`, color: "text-green-600", bg: "bg-green-500/5 border-green-500/20" },
+                      { value: dashboardStats.totalUsers.toLocaleString("fr-FR"), label: "👥 Utilisateurs", sub: `+${dashboardStats.newUsersThisMonth} ce mois`, color: "text-blue-600", bg: "bg-blue-500/5 border-blue-500/20" },
+                      { value: `+${dashboardStats.placesThisMonth}`, label: "📅 Lieux ce mois", sub: null, color: "text-amber-600", bg: "bg-amber-500/5 border-amber-500/20" },
+                      { value: dashboardStats.avgRating?.toString() ?? "—", label: "⭐ Note moyenne", sub: null, color: "text-yellow-600", bg: "bg-yellow-500/5 border-yellow-500/20" },
+                      { value: dashboardStats.flaggedPlaces.toString(), label: "⚠️ Lieux signalés", sub: null, color: "text-orange-600", bg: "bg-orange-500/5 border-orange-500/20" },
+                    ].map((kpi, i) => (
+                      <Card key={i} className={kpi.bg}>
+                        <CardContent className="pt-4 pb-4">
+                          <p className={`text-3xl font-extrabold ${kpi.color}`}>{kpi.value}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{kpi.label}</p>
+                          {kpi.sub && <p className={`text-xs font-medium mt-0.5 ${kpi.color}`}>{kpi.sub}</p>}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Qualité des données */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Qualité des données</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: dashboardStats.placesWithPhoto, label: "📷 Avec photo", color: "bg-purple-500" },
+                      { value: dashboardStats.placesWithHours, label: "🕐 Avec horaires", color: "bg-indigo-500" },
+                    ].map((item, i) => {
+                      const pct = dashboardStats.totalPlaces > 0 ? Math.round(item.value / dashboardStats.totalPlaces * 100) : 0;
+                      return (
+                        <Card key={i}>
+                          <CardContent className="pt-4 pb-4 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-foreground">{item.label}</span>
+                              <span className="text-sm font-bold text-foreground">{pct}%</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-muted overflow-hidden">
+                              <div className={`h-full rounded-full ${item.color}`} style={{ width: `${pct}%` }} />
+                            </div>
+                            <p className="text-xs text-muted-foreground">{item.value.toLocaleString("fr-FR")} lieux</p>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Activité 7j */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">⚡ Activité — 7 derniers jours</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Card>
+                      <CardContent className="pt-4 pb-4 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-lg shrink-0">📍</div>
+                        <div>
+                          <p className="text-2xl font-bold text-foreground">{dashboardStats.recentSubmissions}</p>
+                          <p className="text-xs text-muted-foreground">Soumissions reçues</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="pt-4 pb-4 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-lg shrink-0">⚠️</div>
+                        <div>
+                          <p className="text-2xl font-bold text-foreground">{dashboardStats.recentReports}</p>
+                          <p className="text-xs text-muted-foreground">Signalements reçus</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                {/* Répartition catégories */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">🏷️ Répartition par catégorie</h3>
+                  <Card>
+                    <CardContent className="pt-4 pb-4 space-y-3">
+                      {Object.entries(dashboardStats.byCategory).sort((a, b) => b[1] - a[1]).map(([cat, count]) => {
+                        const pct = dashboardStats.totalPlaces > 0 ? Math.round(count / dashboardStats.totalPlaces * 100) : 0;
+                        const catEmojis: Record<string, string> = { restaurant: "🍽️", hotel: "🛏️", outdoor: "🌿", services: "❤️", shop: "🐾", other: "📍" };
+                        const catColors: Record<string, string> = { restaurant: "bg-orange-500", hotel: "bg-blue-500", outdoor: "bg-green-500", services: "bg-red-500", shop: "bg-purple-500", other: "bg-gray-400" };
+                        return (
+                          <div key={cat} className="space-y-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-foreground font-medium">{catEmojis[cat] || "📍"} {cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
+                              <span className="text-muted-foreground">{count.toLocaleString("fr-FR")} <span className="text-xs opacity-70">({pct}%)</span></span>
+                            </div>
+                            <div className="h-2 rounded-full bg-muted overflow-hidden">
+                              <div className={`h-full rounded-full transition-all ${catColors[cat] || "bg-gray-400"}`} style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Sources */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">🔗 Sources des données</h3>
+                  <Card>
+                    <CardContent className="pt-4 pb-4 space-y-3">
+                      {Object.entries(dashboardStats.bySource).sort((a, b) => b[1] - a[1]).map(([src, count]) => {
+                        const pct = dashboardStats.totalPlaces > 0 ? Math.round(count / dashboardStats.totalPlaces * 100) : 0;
+                        const srcLabels: Record<string, string> = { csv_import: "📂 Import CSV", user_submission: "👤 Soumission utilisateur", openstreetmap: "🗺️ OpenStreetMap", unknown: "❓ Inconnu" };
+                        return (
+                          <div key={src} className="space-y-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-foreground">{srcLabels[src] || `📄 ${src}`}</span>
+                              <span className="text-muted-foreground">{count.toLocaleString("fr-FR")} ({pct}%)</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-muted overflow-hidden">
+                              <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Top villes + Top contributeurs */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">🏙️ Top 5 villes</h3>
+                    <Card>
+                      <CardContent className="pt-4 pb-4 space-y-2">
+                        {dashboardStats.topCities.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">Aucune donnée</p>
+                        ) : dashboardStats.topCities.map(({ city, count }, i) => (
+                          <div key={city} className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-muted-foreground w-5">{i + 1}.</span>
+                            <span className="text-sm text-foreground flex-1 truncate">{city}</span>
+                            <Badge variant="secondary">{count.toLocaleString("fr-FR")}</Badge>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">🏆 Top contributeurs</h3>
+                    <Card>
+                      <CardContent className="pt-4 pb-4 space-y-2">
+                        {dashboardStats.topUsers.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">Aucune donnée</p>
+                        ) : dashboardStats.topUsers.map((u, i) => {
+                          const medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"];
+                          const initial = (u.display_name?.[0] || u.email?.[0] || "?").toUpperCase();
+                          return (
+                            <div key={i} className="flex items-center gap-2">
+                              <span className="text-base w-5">{medals[i]}</span>
+                              {u.avatar_url ? (
+                                <img src={u.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover border border-border shrink-0" />
+                              ) : (
+                                <div className="w-7 h-7 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold shrink-0">{initial}</div>
+                              )}
+                              <span className="text-sm text-foreground flex-1 truncate">{u.display_name || u.email || "Anonyme"}</span>
+                              <Badge variant="secondary">⭐ {u.points ?? 0}</Badge>
+                            </div>
+                          );
+                        })}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button variant="outline" size="sm" onClick={fetchDashboardStats} className="gap-2 text-xs">
+                    🔄 Actualiser les statistiques
+                  </Button>
+                </div>
+              </>
+            )}
+          </TabsContent>
 
           <TabsContent value="notifications" className="space-y-2 mt-4">
             {notifications.length === 0 && <p className="text-muted-foreground text-center py-8">Aucune notification</p>}
