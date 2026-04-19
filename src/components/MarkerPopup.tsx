@@ -21,6 +21,8 @@ export interface CommunityReview {
   helpful_count: number;
   is_reported: boolean;
   created_at: string;
+  photo_url: string | null;
+  has_been_edited: boolean;
   profiles?: { display_name: string | null; avatar_url: string | null };
 }
 
