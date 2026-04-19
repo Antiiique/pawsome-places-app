@@ -599,10 +599,11 @@ const AdminPage = () => {
 
   const rejectSubmission = async () => {
     if (!rejectDialog.id) return;
-    const rejectedSub = submissions.find(s => s.id === rejectDialog.id);
     const { error } = await supabase.from("place_submissions").update({
-      status: "rejected", admin_note: rejectNote || null,
-      reviewed_at: new Date().toISOString(), reviewed_by: user?.id,
+      status: "rejected",
+      admin_note: rejectNote || null,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: user?.id,
     }).eq("id", rejectDialog.id);
     if (error) { toast.error("Erreur lors du rejet"); return; }
     const { data: linkedPlace } = await supabase
@@ -613,18 +614,25 @@ const AdminPage = () => {
     if (linkedPlace) {
       await supabase.from("pet_friendly_places").delete().eq("id", linkedPlace.id);
     }
-    if (rejectedSub?.submitted_by) {
-      await supabase.from("user_notifications").insert({
-        user_id: rejectedSub.submitted_by,
-        type: "submission_rejected",
-        title: "📋 Résultat de votre soumission",
-        message: `Votre proposition "${rejectedSub.name}" n'a pas pu être publiée.${rejectNote ? ` Motif : "${rejectNote}"` : " N'hésitez pas à vérifier les informations et à soumettre à nouveau."}`,
-        related_id: rejectDialog.id,
-      });
-    }
-    toast.success("Soumission rejetée" + (linkedPlace ? " et lieu supprimé" : ""));
+    toast.success("Soumission rejetée — notification envoyée à l'utilisateur");
     setRejectDialog({ open: false, id: null });
     setRejectNote("");
+    await fetchSubmissions();
+    fetchCounts();
+  };
+
+  const deleteSubmission = async (id: string) => {
+    const { error } = await supabase.from("place_submissions").delete().eq("id", id);
+    if (error) { toast.error("Erreur lors de la suppression"); return; }
+    const { data: linkedPlace } = await supabase
+      .from("pet_friendly_places")
+      .select("id")
+      .eq("source_id", id)
+      .maybeSingle();
+    if (linkedPlace) {
+      await supabase.from("pet_friendly_places").delete().eq("id", linkedPlace.id);
+    }
+    toast.success("Soumission supprimée définitivement");
     await fetchSubmissions();
     fetchCounts();
   };
@@ -1687,6 +1695,18 @@ const AdminPage = () => {
                         <div className="flex gap-2 flex-wrap pt-1">
                           <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => { setApproveDialog({ open: true, sub }); fetchGoogleEnrichment(sub); }}>✅ Approuver</Button>
                           <Button size="sm" variant="outline" className="text-destructive border-destructive" onClick={() => setRejectDialog({ open: true, id: sub.id })}>❌ Rejeter</Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-muted-foreground border-border h-8 text-xs hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40 transition-colors"
+                            onClick={() => {
+                              if (window.confirm("Supprimer définitivement cette soumission sans notification ?")) {
+                                deleteSubmission(sub.id);
+                              }
+                            }}
+                          >
+                            🗑 Supprimer
+                          </Button>
                           <Button size="sm" variant="ghost" className="text-xs h-9 text-muted-foreground" onClick={() => setSubmissionMapOpen(mapOpen ? null : sub.id)}>
                             {mapOpen ? "🗺️  Masquer" : "🗺️  Carte"}
                           </Button>
