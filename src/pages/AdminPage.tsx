@@ -243,6 +243,18 @@ const AdminPage = () => {
   const [userEditDialog, setUserEditDialog] = useState<{ open: boolean; user: typeof users[0] | null }>({ open: false, user: null });
   const [userEditForm, setUserEditForm] = useState<{ display_name: string; city: string; points: number; is_admin: boolean; is_banned: boolean }>({ display_name: "", city: "", points: 0, is_admin: false, is_banned: false });
 
+  const [enriching, setEnriching] = useState(false);
+  const [enrichedData, setEnrichedData] = useState<{
+    photo_url?: string;
+    rating?: number;
+    opening_hours?: string;
+    phone?: string;
+    website?: string;
+    google_place_id?: string;
+  } | null>(null);
+  const placesServiceRef = useRef<any>(null);
+  const placesServiceDivRef = useRef<HTMLDivElement>(null);
+
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(false);
 
