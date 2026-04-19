@@ -105,6 +105,7 @@ export default function MarkerPopup({
   const [photoIndex, setPhotoIndex] = useState(0);
   const [expandedReviews, setExpandedReviews] = useState<Record<number, boolean>>({});
   const [fullPhoto, setFullPhoto] = useState<string | null>(null);
+  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const { user } = useAuthContext();
   const [reviewTab, setReviewTab] = useState<"google" | "community">("google");
   const [communityReviews, setCommunityReviews] = useState<CommunityReview[]>([]);
