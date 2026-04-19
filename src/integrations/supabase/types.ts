@@ -352,6 +352,63 @@ export type Database = {
           },
         ]
       }
+      place_reviews: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          helpful_count: number | null
+          id: string
+          is_hidden: boolean | null
+          is_reported: boolean | null
+          place_id: string
+          rating: number
+          updated_at: string | null
+          user_id: string
+          visited_with_pet: boolean | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          helpful_count?: number | null
+          id?: string
+          is_hidden?: boolean | null
+          is_reported?: boolean | null
+          place_id: string
+          rating: number
+          updated_at?: string | null
+          user_id: string
+          visited_with_pet?: boolean | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          helpful_count?: number | null
+          id?: string
+          is_hidden?: boolean | null
+          is_reported?: boolean | null
+          place_id?: string
+          rating?: number
+          updated_at?: string | null
+          user_id?: string
+          visited_with_pet?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "place_reviews_place_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "pet_friendly_places"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "place_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       place_submissions: {
         Row: {
           accepts_cats: boolean | null
