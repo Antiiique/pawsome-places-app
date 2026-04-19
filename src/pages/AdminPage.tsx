@@ -792,9 +792,16 @@ const AdminPage = () => {
   };
 
   const deletePlace = async (place: PublishedPlace) => {
-    const { error } = await supabase.from("pet_friendly_places").delete().eq("id", place.id);
-    if (error) { toast.error("Erreur : " + error.message); return; }
-    toast.success(`🗑️ "${place.name}" supprimé`);
+    const { error, count } = await supabase
+      .from("pet_friendly_places")
+      .delete({ count: "exact" })
+      .eq("id", place.id);
+    if (error) { toast.error("Erreur suppression : " + error.message); return; }
+    if (!count || count === 0) {
+      toast.error("⛔ Suppression bloquée — droits insuffisants ou lieu introuvable.");
+      return;
+    }
+    toast.success(`🗑️ "${place.name}" supprimé définitivement`);
     setDeleteDialog({ open: false, place: null });
     setPlaces(prev => prev.filter(p => p.id !== place.id));
     fetchCounts();
