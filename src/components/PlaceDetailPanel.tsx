@@ -58,7 +58,100 @@ interface PlaceDetailPanelProps {
   onReport?: () => void;
 }
 
+export interface PlaceReview {
+  id: string;
+  place_id: string;
+  user_id: string;
+  rating: number;
+  body: string | null;
+  visited_with_pet: boolean;
+  helpful_count: number;
+  is_hidden: boolean;
+  is_reported: boolean;
+  created_at: string;
+  profiles?: { display_name: string | null; avatar_url: string | null };
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "À l'instant";
+  if (m < 60) return `Il y a ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `Il y a ${h}h`;
+  const d = Math.floor(h / 24);
+  return `Il y a ${d}j`;
+}
+
 const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport }: PlaceDetailPanelProps) => {
+  const { user } = useAuthContext();
+  const [activeTab, setActiveTab] = useState<"google" | "community">("google");
+  const [reviews, setReviews] = useState<PlaceReview[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [newRating, setNewRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [newBody, setNewBody] = useState("");
+  const [visitedWithPet, setVisitedWithPet] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const userReview = reviews.find(r => r.user_id === user?.id);
+  const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
+
+  useEffect(() => {
+    if (!place?.id) return;
+    setActiveTab("google");
+    setReviews([]);
+  }, [place?.id]);
+
+  async function loadReviews() {
+    if (!place?.id) return;
+    setLoadingReviews(true);
+    const { data } = await supabase
+      .from("place_reviews")
+      .select("*, profiles(display_name, avatar_url)")
+      .eq("place_id", place.id)
+      .eq("is_hidden", false)
+      .order("created_at", { ascending: false });
+    setReviews((data as unknown as PlaceReview[]) || []);
+    setLoadingReviews(false);
+  }
+
+  useEffect(() => {
+    if (activeTab === "community") loadReviews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, place?.id]);
+
+  async function submitReview() {
+    if (!place) return;
+    if (!user) { toast.error("Connecte-toi pour laisser un avis"); return; }
+    if (newRating === 0) { toast.error("Choisis une note"); return; }
+    setSubmitting(true);
+    const payload = { place_id: place.id, user_id: user.id, rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet };
+    const { error } = userReview
+      ? await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet }).eq("id", userReview.id)
+      : await supabase.from("place_reviews").insert(payload);
+    if (error) { toast.error("Erreur lors de la publication"); }
+    else { toast.success(userReview ? "Avis mis à jour" : "Avis publié !"); setNewRating(0); setNewBody(""); setVisitedWithPet(false); await loadReviews(); }
+    setSubmitting(false);
+  }
+
+  async function deleteReview(reviewId: string) {
+    await supabase.from("place_reviews").delete().eq("id", reviewId);
+    toast.success("Avis supprimé");
+    await loadReviews();
+  }
+
+  async function markHelpful(reviewId: string, current: number) {
+    await supabase.from("place_reviews").update({ helpful_count: current + 1 }).eq("id", reviewId);
+    await loadReviews();
+  }
+
+  async function reportReview(reviewId: string) {
+    await supabase.from("place_reviews").update({ is_reported: true }).eq("id", reviewId);
+    toast.success("Signalement envoyé, merci !");
+    await loadReviews();
+  }
+
   if (!place) return null;
 
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
