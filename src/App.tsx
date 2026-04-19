@@ -8,6 +8,7 @@ import { AuthProvider, useAuthContext } from "@/contexts/AuthContext";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import { Button } from "@/components/ui/button";
 
 const queryClient = new QueryClient();
