@@ -580,15 +580,7 @@ const AdminPage = () => {
       reviewed_at: new Date().toISOString(), reviewed_by: user?.id,
     }).eq("id", sub.id);
 
-    if (sub.submitted_by) {
-      await supabase.from("user_notifications").insert({
-        user_id: sub.submitted_by,
-        type: "submission_approved",
-        title: "🎉 Votre lieu a été publié !",
-        message: `"${sub.name}" a été validé par notre équipe et est désormais visible sur la carte.${note ? ` Message de l'admin : "${note}"` : ""}`,
-        related_id: newPlace.id,
-      });
-    }
+    // Notification envoyée automatiquement par le trigger DB on_submission_review
 
     toast.success(`✅ "${sub.name}" approuvé et publié sur la carte !`);
     setSubmissions(prev => prev.filter(s => s.id !== sub.id));
