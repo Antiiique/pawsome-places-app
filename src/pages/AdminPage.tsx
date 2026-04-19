@@ -436,6 +436,41 @@ const AdminPage = () => {
     fetchCounts();
   };
 
+  const openEditFromReport = async (placeId: string) => {
+    let found = places.find(p => p.id === placeId);
+    if (!found) {
+      const { data } = await supabase.from("pet_friendly_places").select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, description, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided, rating, photo_url, verified, is_flagged, report_count, source, last_updated, google_place_id, created_at").eq("id", placeId).maybeSingle();
+      if (data) found = data as PublishedPlace;
+    }
+    if (found) openEdit(found);
+    else toast.error("Lieu introuvable");
+  };
+
+  const unpublishFromReport = async (placeId: string, reportIds: string[]) => {
+    await supabase.from("pet_friendly_places").update({ verified: false, is_flagged: true }).eq("id", placeId);
+    await Promise.all(reportIds.map(id => supabase.from("place_reports").update({ status: "reviewed" }).eq("id", id)));
+    toast.success("🔒 Lieu dépublié temporairement");
+    setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
+    setPlaces(prev => prev.map(p => p.id === placeId ? { ...p, verified: false, is_flagged: true } : p));
+    fetchCounts();
+  };
+
+  const reviewGroup = async (placeId: string | null, reportIds: string[]) => {
+    await Promise.all(reportIds.map(id => supabase.from("place_reports").update({ status: "reviewed" }).eq("id", id)));
+    if (placeId) await supabase.from("pet_friendly_places").update({ is_flagged: true }).eq("id", placeId);
+    toast.success("✅ Signalements traités");
+    setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
+    fetchCounts();
+  };
+
+  const dismissGroup = async (placeId: string | null, reportIds: string[]) => {
+    await Promise.all(reportIds.map(id => supabase.from("place_reports").update({ status: "dismissed" }).eq("id", id)));
+    if (placeId) await supabase.from("pet_friendly_places").update({ report_count: 0, is_flagged: false }).eq("id", placeId);
+    toast.success("🚫 Signalements marqués comme infondés");
+    setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
+    fetchCounts();
+  };
+
   const deletePlace = async (place: PublishedPlace) => {
     const { error } = await supabase.from("pet_friendly_places").delete().eq("id", place.id);
     if (error) { toast.error("Erreur : " + error.message); return; }
