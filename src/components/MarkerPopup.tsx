@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, X, ExternalLink, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export interface PlaceReview {
   author: string;
@@ -7,6 +10,18 @@ export interface PlaceReview {
   rating: number;
   text: string;
   time: string;
+}
+
+export interface CommunityReview {
+  id: string;
+  user_id: string;
+  rating: number;
+  body: string | null;
+  visited_with_pet: boolean;
+  helpful_count: number;
+  is_reported: boolean;
+  created_at: string;
+  profiles?: { display_name: string | null; avatar_url: string | null };
 }
 
 export interface UniversalPlace {
@@ -77,16 +92,65 @@ interface MarkerPopupProps {
   onClose: () => void;
   onReport?: () => void;
   isInDatabase?: boolean;
+  dbId?: string;
 }
 
 export default function MarkerPopup({
-  place, position, onSetOrigin, onSetDestination, onShowInfo, onAddWaypoint, onToggleFavorite, isFavorite, onClose, onReport, isInDatabase,
+  place, position, onSetOrigin, onSetDestination, onShowInfo, onAddWaypoint, onToggleFavorite, isFavorite, onClose, onReport, isInDatabase, dbId,
 }: MarkerPopupProps) {
   const emoji = getPlaceEmoji(place);
   const typeLabel = getPlaceTypeLabel(place);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [expandedReviews, setExpandedReviews] = useState<Record<number, boolean>>({});
   const [fullPhoto, setFullPhoto] = useState<string | null>(null);
+  const { user } = useAuthContext();
+  const [reviewTab, setReviewTab] = useState<"google" | "community">("google");
+  const [communityReviews, setCommunityReviews] = useState<CommunityReview[]>([]);
+  const [loadingCR, setLoadingCR] = useState(false);
+  const [newRating, setNewRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [newBody, setNewBody] = useState("");
+  const [visitedWithPet, setVisitedWithPet] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const userReview = communityReviews.find(r => r.user_id === user?.id);
+  const avgCR = communityReviews.length > 0 ? communityReviews.reduce((s, r) => s + r.rating, 0) / communityReviews.length : 0;
+
+  useEffect(() => { setReviewTab("google"); setCommunityReviews([]); setNewRating(0); setNewBody(""); setVisitedWithPet(false); }, [dbId]);
+  useEffect(() => { if (userReview) { setNewRating(userReview.rating); setNewBody(userReview.body ?? ""); setVisitedWithPet(userReview.visited_with_pet); } }, [userReview?.id]);
+
+  async function loadCommunityReviews() {
+    if (!dbId) return;
+    setLoadingCR(true);
+    const { data } = await supabase.from("place_reviews").select("*, profiles(display_name, avatar_url)").eq("place_id", dbId).eq("is_hidden", false).order("created_at", { ascending: false });
+    setCommunityReviews((data as CommunityReview[]) || []);
+    setLoadingCR(false);
+  }
+  useEffect(() => { if (reviewTab === "community") loadCommunityReviews(); }, [reviewTab, dbId]);
+
+  async function submitCR() {
+    if (!user || !dbId) { toast.error("Connecte-toi pour laisser un avis"); return; }
+    if (newRating === 0) { toast.error("Choisis une note"); return; }
+    setSubmitting(true);
+    const { error } = userReview
+      ? await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet }).eq("id", userReview.id)
+      : await supabase.from("place_reviews").insert({ place_id: dbId, user_id: user.id, rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet });
+    if (error) toast.error("Erreur lors de la publication");
+    else { toast.success(userReview ? "Avis mis à jour !" : "Avis publié !"); await loadCommunityReviews(); }
+    setSubmitting(false);
+  }
+  async function deleteCR(id: string) { await supabase.from("place_reviews").delete().eq("id", id); toast.success("Avis supprimé"); await loadCommunityReviews(); }
+  async function markHelpfulCR(id: string, n: number) { await supabase.from("place_reviews").update({ helpful_count: n + 1 }).eq("id", id); await loadCommunityReviews(); }
+  async function reportCR(id: string) { await supabase.from("place_reviews").update({ is_reported: true }).eq("id", id); toast.success("Signalement envoyé !"); await loadCommunityReviews(); }
+
+  function timeSince(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return "À l'instant";
+    if (m < 60) return `Il y a ${m} min`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `Il y a ${h}h`;
+    return `Il y a ${Math.floor(h / 24)}j`;
+  }
 
   const photos = place.photos || [];
   const reviews = place.reviews || [];
