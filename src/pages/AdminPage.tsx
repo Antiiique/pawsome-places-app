@@ -1620,6 +1620,215 @@ const AdminPage = () => {
               );
             })}
           </TabsContent>
+          <TabsContent value="completeness" className="space-y-4 mt-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Button onClick={computeCompleteness} disabled={completenessLoading}>
+                {completenessLoading ? "Analyse en cours…" : "🔍 Analyser la complétude"}
+              </Button>
+              {completenessData.length > 0 && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Seuil max :</span>
+                  <select
+                    value={completenessThreshold}
+                    onChange={(e) => setCompletenessThreshold(Number(e.target.value))}
+                    className="h-8 px-2 rounded border border-input bg-background text-xs text-foreground"
+                  >
+                    <option value={40}>≤ 40% (très incomplets)</option>
+                    <option value={60}>≤ 60% (incomplets)</option>
+                    <option value={80}>≤ 80% (partiels)</option>
+                    <option value={100}>Tous</option>
+                  </select>
+                  <Badge variant="secondary">
+                    {completenessData.filter(p => p.score <= completenessThreshold).length} lieux
+                  </Badge>
+                </div>
+              )}
+            </div>
+
+            {completenessData.length > 0 && (
+              <ScrollArea className="h-[60vh] rounded-md border border-border">
+                <div className="space-y-2 p-2">
+                  {completenessData.filter(p => p.score <= completenessThreshold).map(p => (
+                    <Card key={p.id}>
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-foreground truncate">{p.name}</p>
+                            <p className="text-xs text-muted-foreground">{p.city || "—"} · {p.category}</p>
+                            {p.missing.length > 0 && (
+                              <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Manque : {p.missing.join(", ")}</p>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <span className={`text-lg font-bold ${p.score < 40 ? "text-destructive" : p.score < 70 ? "text-amber-600" : "text-green-600"}`}>
+                              {p.score}%
+                            </span>
+                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => {
+                              const place = places.find(pl => pl.id === p.id);
+                              if (place) openEditDialog(place);
+                            }}>
+                              <Pencil className="w-3 h-3 mr-1" /> Modifier
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+            {completenessData.length === 0 && !completenessLoading && (
+              <p className="text-muted-foreground text-center py-8">Clique sur "Analyser" pour voir le score de complétude des lieux vérifiés.</p>
+            )}
+          </TabsContent>
+
+          <TabsContent value="duplicates" className="space-y-4 mt-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Button onClick={detectDuplicates} disabled={duplicatesLoading}>
+                {duplicatesLoading ? "Analyse en cours…" : "🔍 Détecter les doublons"}
+              </Button>
+              {duplicates.length > 0 && (
+                <Badge variant="secondary">
+                  {duplicates.length} paire{duplicates.length > 1 ? "s" : ""} trouvée{duplicates.length > 1 ? "s" : ""}
+                </Badge>
+              )}
+              <span className="text-xs text-muted-foreground">Limite : 5 000 lieux vérifiés — distance &lt; 100m + nom similaire</span>
+            </div>
+
+            {duplicates.length > 0 && (
+              <ScrollArea className="h-[60vh] rounded-md border border-border">
+                <div className="space-y-2 p-2">
+                  {duplicates.map((dup, i) => (
+                    <Card key={i} className="border-orange-300 dark:border-orange-700">
+                      <CardContent className="pt-4 space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs text-muted-foreground">{dup.aCity || "Ville inconnue"} · {dup.distM}m d'écart</p>
+                          <Badge variant="outline" className="text-orange-600 border-orange-400">⚠️ Doublon potentiel</Badge>
+                        </div>
+                        {[{ id: dup.aId, name: dup.aName }, { id: dup.bId, name: dup.bName }].map(p => (
+                          <div key={p.id} className="flex items-center justify-between gap-2 p-2 rounded bg-muted/50">
+                            <p className="font-medium text-foreground text-sm truncate">{p.name}</p>
+                            <Button size="sm" variant="outline" className="h-7 text-xs text-destructive border-destructive shrink-0" onClick={() => deleteById(p.id)}>
+                              🗑️ Supprimer
+                            </Button>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+            {duplicates.length === 0 && !duplicatesLoading && (
+              <p className="text-muted-foreground text-center py-8">Clique sur "Détecter" pour analyser les doublons potentiels parmi les lieux vérifiés.</p>
+            )}
+          </TabsContent>
+
+          <TabsContent value="coverage" className="space-y-4 mt-4">
+            <Button onClick={fetchCoverage} disabled={coverageLoading}>
+              {coverageLoading ? "Chargement…" : "📡 Calculer la couverture"}
+            </Button>
+            {coverageData.length > 0 && (
+              <ScrollArea className="h-[60vh] rounded-md border border-border">
+                <div className="space-y-1 p-2">
+                  {coverageData.map(c => {
+                    const max = coverageData[0].count;
+                    const pct = Math.round((c.count / max) * 100);
+                    return (
+                      <div key={c.dept} className="flex items-center gap-3 p-2 rounded hover:bg-muted/50">
+                        <span className="text-sm text-foreground w-40 truncate">{c.dept}</span>
+                        <div className="flex-1 h-5 bg-muted rounded overflow-hidden">
+                          <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-xs font-semibold text-foreground w-16 text-right">{c.count.toLocaleString("fr-FR")}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            )}
+            {coverageData.length === 0 && !coverageLoading && (
+              <p className="text-muted-foreground text-center py-8">Clique sur "Calculer" pour voir la répartition des lieux vérifiés par département/région.</p>
+            )}
+          </TabsContent>
+
+          <TabsContent value="import" className="space-y-4 mt-4">
+            <Card>
+              <CardContent className="pt-4 space-y-3">
+                <p className="text-sm text-foreground">
+                  📥 Import en masse de lieux via fichier CSV. Colonnes attendues : <code className="text-xs bg-muted px-1 rounded">name, latitude, longitude</code> (obligatoires) + <code className="text-xs bg-muted px-1 rounded">category, city, address, country, phone, website</code> (optionnelles).
+                </p>
+                <p className="text-xs text-muted-foreground">⚠️ Les lieux importés sont marqués comme <strong>non-vérifiés</strong> et devront être validés manuellement.</p>
+                <input
+                  ref={csvInputRef}
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={handleCsvFile}
+                  className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                />
+                {csvFile && (
+                  <p className="text-xs text-muted-foreground">
+                    📄 {csvFile.name} — {(csvFile.size / 1024).toFixed(1)} Ko
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {csvPreview.length > 0 && (
+              <Card>
+                <CardContent className="pt-4 space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">Aperçu (5 premières lignes)</p>
+                  <div className="overflow-x-auto">
+                    <table className="text-xs w-full border-collapse">
+                      <thead>
+                        <tr className="border-b border-border">
+                          {Object.keys(csvPreview[0]).map(h => (
+                            <th key={h} className="text-left p-1.5 font-semibold text-foreground">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {csvPreview.map((row, i) => (
+                          <tr key={i} className="border-b border-border/50">
+                            {Object.keys(csvPreview[0]).map(h => (
+                              <td key={h} className="p-1.5 text-muted-foreground">{row[h]}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <Button onClick={importCsv} disabled={csvImporting} className="w-full">
+                    {csvImporting ? "Import en cours…" : `📥 Importer ${csvPreview.length >= 5 ? "tout le fichier" : `les ${csvPreview.length} ligne(s)`}`}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="export" className="space-y-4 mt-4">
+            <Card>
+              <CardContent className="pt-4 space-y-3">
+                <p className="text-sm text-foreground">📤 Exporter la base de lieux au format CSV (UTF-8 avec BOM).</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-foreground">Catégorie</label>
+                    <Input placeholder="Toutes (laisser vide)" value={exportCategory} onChange={(e) => setExportCategory(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-foreground">Pays</label>
+                    <Input placeholder="Tous (laisser vide)" value={exportCountry} onChange={(e) => setExportCountry(e.target.value)} />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <label className="text-sm text-foreground">✅ Lieux vérifiés uniquement</label>
+                  <Switch checked={exportOnlyVerified} onCheckedChange={setExportOnlyVerified} />
+                </div>
+                <Button onClick={handleExport} className="w-full">📤 Lancer l'export</Button>
+                <p className="text-xs text-muted-foreground">Limite : 50 000 lignes par export.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
 
