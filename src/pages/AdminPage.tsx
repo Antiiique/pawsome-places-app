@@ -2093,6 +2093,77 @@ const AdminPage = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="reviews" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">Modération des avis</h2>
+              <div className="flex gap-2">
+                {(["all", "reported", "hidden"] as const).map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setReviewsFilter(f)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${reviewsFilter === f ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+                  >
+                    {f === "all" ? "Tous" : f === "reported" ? "⚠️ Signalés" : "🙈 Masqués"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {adminReviewsLoading ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Chargement…</p>
+            ) : (
+              <div className="space-y-3">
+                {adminReviews
+                  .filter(r => {
+                    if (reviewsFilter === "reported") return r.is_reported;
+                    if (reviewsFilter === "hidden") return r.is_hidden;
+                    return true;
+                  })
+                  .map(r => (
+                    <div key={r.id} className={`rounded-xl border p-4 space-y-2 ${r.is_hidden ? "opacity-50 border-dashed" : r.is_reported ? "border-orange-400 bg-orange-50 dark:bg-orange-950/20" : "border-border bg-card"}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-0.5">
+                          <p className="text-sm font-semibold">{r.pet_friendly_places?.name ?? "Lieu inconnu"}</p>
+                          <p className="text-xs text-muted-foreground">{r.profiles?.display_name ?? r.profiles?.email ?? "Utilisateur inconnu"}</p>
+                          <div className="flex">
+                            {[...Array(5)].map((_,i) => (
+                              <span key={i} className={`text-xs ${i < r.rating ? "text-amber-400" : "text-muted-foreground"}`}>★</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1 shrink-0">
+                          {r.is_reported && <span className="text-xs bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full">⚠️ Signalé</span>}
+                          {r.is_hidden && <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">Masqué</span>}
+                        </div>
+                      </div>
+                      {r.body && <p className="text-sm text-foreground leading-relaxed border-l-2 border-muted pl-3">{r.body}</p>}
+                      {r.visited_with_pet && <p className="text-xs text-green-600 dark:text-green-400">🐾 Visité avec animal</p>}
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("fr-FR")}</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => hideReview(r.id, r.is_hidden)}
+                            className="text-xs px-2.5 py-1 rounded-lg border border-border hover:bg-muted transition-colors"
+                          >
+                            {r.is_hidden ? "Restaurer" : "Masquer"}
+                          </button>
+                          <button
+                            onClick={() => adminDeleteReview(r.id)}
+                            className="text-xs px-2.5 py-1 rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                {adminReviews.filter(r => reviewsFilter === "reported" ? r.is_reported : reviewsFilter === "hidden" ? r.is_hidden : true).length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-8">Aucun avis dans cette catégorie.</p>
+                )}
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </div>
 
