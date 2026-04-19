@@ -128,6 +128,70 @@ function timeAgo(dateStr: string) {
 
 const PLACES_PER_PAGE = 15;
 
+function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss }: {
+  reports: Report[];
+  onEdit: (placeId: string) => void;
+  onUnpublish: (placeId: string, ids: string[]) => void;
+  onReview: (placeId: string | null, ids: string[]) => void;
+  onDismiss: (placeId: string | null, ids: string[]) => void;
+}) {
+  const groups: Record<string, { place_id: string | null; place_name: string | undefined; reports: Report[] }> = {};
+  for (const r of reports) {
+    const key = r.place_id || `no-place-${r.id}`;
+    if (!groups[key]) groups[key] = { place_id: r.place_id, place_name: r.place_name, reports: [] };
+    groups[key].reports.push(r);
+  }
+  return (
+    <>
+      {Object.entries(groups).map(([key, group]) => {
+        const ids = group.reports.map(r => r.id);
+        const hasPlace = !!group.place_id;
+        return (
+          <Card key={key} className="border-orange-300 dark:border-orange-700">
+            <CardContent className="pt-4 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="font-semibold text-foreground">{group.place_name || "Lieu inconnu"}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{group.reports.length} signalement{group.reports.length > 1 ? "s" : ""}</p>
+                </div>
+                {group.reports.length > 1 && <Badge className="bg-orange-500 text-white shrink-0">{group.reports.length}</Badge>}
+              </div>
+              <div className="space-y-2">
+                {group.reports.map(report => (
+                  <div key={report.id} className="rounded-lg bg-secondary border border-border p-3 space-y-1">
+                    <Badge variant="outline" className="text-xs">{reasonLabels[report.reason] || report.reason}</Badge>
+                    {report.comment && <p className="text-sm text-muted-foreground">"{report.comment}"</p>}
+                    <p className="text-xs text-muted-foreground">{timeAgo(report.created_at || "")}</p>
+                  </div>
+                ))}
+              </div>
+              <Separator />
+              <div className="grid grid-cols-2 gap-2">
+                {hasPlace && (
+                  <Button size="sm" variant="outline" className="text-xs h-9" onClick={() => onEdit(group.place_id!)}>
+                    ✏️ Corriger le lieu
+                  </Button>
+                )}
+                {hasPlace && (
+                  <Button size="sm" variant="outline" className="text-xs h-9 border-orange-400 text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:border-orange-700" onClick={() => onUnpublish(group.place_id!, ids)}>
+                    🔒 Dépublier temporairement
+                  </Button>
+                )}
+                <Button size="sm" className="text-xs h-9 bg-green-600 hover:bg-green-700 text-white" onClick={() => onReview(group.place_id, ids)}>
+                  ✅ Marquer traité{ids.length > 1 ? "s" : ""}
+                </Button>
+                <Button size="sm" variant="outline" className="text-xs h-9" onClick={() => onDismiss(group.place_id, ids)}>
+                  🚫 Infondé{ids.length > 1 ? "s" : ""}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </>
+  );
+}
+
 const AdminPage = () => {
   const navigate = useNavigate();
   const { user } = useAuthContext();
