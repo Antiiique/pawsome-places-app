@@ -162,10 +162,22 @@ const AdminPage = () => {
     city: string | null;
     points: number;
     is_admin: boolean;
+    is_banned: boolean;
+    created_at: string | null;
   }>>([]);
   const [usersSearch, setUsersSearch] = useState("");
+  const [userSort, setUserSort] = useState<"points" | "created_at" | "is_admin">("points");
+  const [userDetailDialog, setUserDetailDialog] = useState<{ open: boolean; userId: string | null; userName: string }>({ open: false, userId: null, userName: "" });
+  const [userDetail, setUserDetail] = useState<{
+    totalSubmissions: number;
+    approvedSubmissions: number;
+    rejectedSubmissions: number;
+    pendingSubmissions: number;
+    recentSubmissions: Array<{ id: string; name: string; status: string; created_at: string }>;
+  } | null>(null);
+  const [userDetailLoading, setUserDetailLoading] = useState(false);
   const [userEditDialog, setUserEditDialog] = useState<{ open: boolean; user: typeof users[0] | null }>({ open: false, user: null });
-  const [userEditForm, setUserEditForm] = useState<{ display_name: string; city: string; points: number; is_admin: boolean }>({ display_name: "", city: "", points: 0, is_admin: false });
+  const [userEditForm, setUserEditForm] = useState<{ display_name: string; city: string; points: number; is_admin: boolean; is_banned: boolean }>({ display_name: "", city: "", points: 0, is_admin: false, is_banned: false });
 
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(false);
@@ -238,11 +250,48 @@ const AdminPage = () => {
   const fetchUsers = useCallback(async () => {
     const { data } = await supabase
       .from("profiles")
-      .select("id, email, display_name, avatar_url, city, points, is_admin")
-      .order("points", { ascending: false })
-      .limit(100);
+      .select("id, email, display_name, avatar_url, city, points, is_admin, is_banned, created_at")
+      .limit(200);
     if (data) setUsers(data as any);
   }, []);
+
+  const fetchUserDetail = async (userId: string) => {
+    setUserDetailLoading(true);
+    setUserDetail(null);
+    const { data } = await supabase
+      .from("place_submissions")
+      .select("id, name, status, created_at")
+      .eq("submitted_by", userId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    const submissions = data || [];
+    setUserDetail({
+      totalSubmissions: submissions.length,
+      approvedSubmissions: submissions.filter(s => s.status === "approved").length,
+      rejectedSubmissions: submissions.filter(s => s.status === "rejected").length,
+      pendingSubmissions: submissions.filter(s => s.status === "pending").length,
+      recentSubmissions: submissions.slice(0, 10) as any,
+    });
+    setUserDetailLoading(false);
+  };
+
+  const toggleSuspendUser = async (userId: string, currentBanned: boolean) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_banned: !currentBanned })
+      .eq("id", userId);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    toast.success(currentBanned ? "✅ Compte réactivé" : "🚫 Compte suspendu");
+    fetchUsers();
+  };
+
+  const resetUserPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/`,
+    });
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    toast.success(`📧 Email de réinitialisation envoyé à ${email}`);
+  };
 
   const fetchDashboardStats = useCallback(async () => {
     setDashboardLoading(true);
@@ -427,6 +476,7 @@ const AdminPage = () => {
       city: u.city || "",
       points: u.points ?? 0,
       is_admin: !!u.is_admin,
+      is_banned: !!u.is_banned,
     });
     setUserEditDialog({ open: true, user: u });
   };
@@ -438,6 +488,7 @@ const AdminPage = () => {
       city: userEditForm.city,
       points: userEditForm.points,
       is_admin: userEditForm.is_admin,
+      is_banned: userEditForm.is_banned,
     }).eq("id", userEditDialog.user.id);
     if (error) { toast.error("Erreur : " + error.message); return; }
     toast.success("Profil mis à jour");
@@ -455,6 +506,13 @@ const AdminPage = () => {
     if (!usersSearch) return true;
     const q = usersSearch.toLowerCase();
     return (u.display_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.city?.toLowerCase().includes(q));
+  });
+
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (userSort === "points") return (b.points ?? 0) - (a.points ?? 0);
+    if (userSort === "created_at") return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    if (userSort === "is_admin") return (b.is_admin ? 1 : 0) - (a.is_admin ? 1 : 0);
+    return 0;
   });
   const totalPages = Math.ceil(filteredPlaces.length / PLACES_PER_PAGE);
   const paginatedPlaces = filteredPlaces.slice(placesPage * PLACES_PER_PAGE, (placesPage + 1) * PLACES_PER_PAGE);
@@ -872,46 +930,103 @@ const AdminPage = () => {
           </TabsContent>
 
           <TabsContent value="users" className="space-y-3 mt-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher par nom, email, ville…"
-                value={usersSearch}
-                onChange={(e) => setUsersSearch(e.target.value)}
-                className="pl-9"
-              />
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Rechercher par nom, email, ville…"
+                  value={usersSearch}
+                  onChange={(e) => setUsersSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <select
+                value={userSort}
+                onChange={(e) => setUserSort(e.target.value as any)}
+                className="h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
+              >
+                <option value="points">⭐ Trier par points</option>
+                <option value="created_at">📅 Trier par inscription</option>
+                <option value="is_admin">👑 Admins en premier</option>
+              </select>
             </div>
-            <p className="text-xs text-muted-foreground">{filteredUsers.length} utilisateur{filteredUsers.length > 1 ? "s" : ""}</p>
 
-            {filteredUsers.length === 0 && (
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span>{filteredUsers.length} utilisateur{filteredUsers.length > 1 ? "s" : ""}</span>
+              <span>•</span>
+              <span className="text-orange-500">{users.filter(u => u.is_banned).length} suspendu{users.filter(u => u.is_banned).length > 1 ? "s" : ""}</span>
+              <span>•</span>
+              <span className="text-primary">{users.filter(u => u.is_admin).length} admin{users.filter(u => u.is_admin).length > 1 ? "s" : ""}</span>
+            </div>
+
+            {sortedUsers.length === 0 && (
               <p className="text-muted-foreground text-center py-8">Aucun utilisateur trouvé</p>
             )}
 
-            {filteredUsers.map(u => {
+            {sortedUsers.map(u => {
               const initial = (u.display_name?.[0] || u.email?.[0] || "?").toUpperCase();
               return (
-                <Card key={u.id}>
+                <Card key={u.id} className={u.is_banned ? "border-destructive/40 bg-destructive/5" : ""}>
                   <CardContent className="pt-4">
-                    <div className="flex items-center gap-3">
-                      {u.avatar_url ? (
-                        <img src={u.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border border-border shrink-0" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-sm shrink-0">
-                          {initial}
-                        </div>
-                      )}
+                    <div className="flex items-start gap-3">
+                      <div className="relative shrink-0">
+                        {u.avatar_url ? (
+                          <img src={u.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border border-border" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-sm">
+                            {initial}
+                          </div>
+                        )}
+                        {u.is_banned && (
+                          <span className="absolute -bottom-1 -right-1 text-xs">🚫</span>
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-semibold text-foreground truncate">{u.display_name || "Sans nom"}</p>
-                          {u.is_admin && <Badge className="bg-primary/15 text-primary border-primary/30 text-[10px]">Admin</Badge>}
-                          <Badge variant="outline" className="text-[10px] gap-1">⭐ {u.points ?? 0}</Badge>
+                          {u.is_admin && <Badge className="bg-primary/15 text-primary border-primary/30 text-[10px]">👑 Admin</Badge>}
+                          {u.is_banned && <Badge variant="destructive" className="text-[10px]">🚫 Suspendu</Badge>}
+                          <Badge variant="outline" className="text-[10px]">⭐ {u.points ?? 0}</Badge>
                         </div>
                         <p className="text-xs text-muted-foreground truncate">{u.email || "—"}</p>
-                        {u.city && <p className="text-xs text-muted-foreground">📍 {u.city}</p>}
+                        <div className="flex items-center gap-3 mt-0.5">
+                          {u.city && <p className="text-xs text-muted-foreground">📍 {u.city}</p>}
+                          {u.created_at && <p className="text-xs text-muted-foreground">📅 {new Date(u.created_at).toLocaleDateString("fr-FR")}</p>}
+                        </div>
                       </div>
-                      <Button size="sm" variant="outline" className="h-8 gap-1 text-xs shrink-0" onClick={() => openUserEdit(u)}>
+                    </div>
+
+                    <div className="flex gap-1.5 mt-3 flex-wrap">
+                      <Button
+                        size="sm" variant="outline" className="h-7 gap-1 text-xs"
+                        onClick={() => { openUserEdit(u); }}
+                      >
                         <Pencil className="w-3 h-3" /> Modifier
                       </Button>
+                      <Button
+                        size="sm" variant="outline" className="h-7 gap-1 text-xs"
+                        onClick={() => {
+                          setUserDetailDialog({ open: true, userId: u.id, userName: u.display_name || u.email || "Utilisateur" });
+                          fetchUserDetail(u.id);
+                        }}
+                      >
+                        📊 Contributions
+                      </Button>
+                      <Button
+                        size="sm" variant="outline"
+                        className={`h-7 gap-1 text-xs ${u.is_banned ? "text-green-600 border-green-500 hover:bg-green-50" : "text-orange-600 border-orange-400 hover:bg-orange-50"}`}
+                        onClick={() => toggleSuspendUser(u.id, u.is_banned)}
+                      >
+                        {u.is_banned ? "✅ Réactiver" : "🚫 Suspendre"}
+                      </Button>
+                      {u.email && (
+                        <Button
+                          size="sm" variant="outline" className="h-7 gap-1 text-xs text-blue-600 border-blue-400 hover:bg-blue-50"
+                          onClick={() => resetUserPassword(u.email!)}
+                        >
+                          🔑 Reset MDP
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -1058,10 +1173,69 @@ const AdminPage = () => {
                 onCheckedChange={(v) => setUserEditForm(f => ({ ...f, is_admin: v }))}
               />
             </div>
+            <div className="flex items-center justify-between pt-1">
+              <label className="text-sm text-foreground">🚫 Compte suspendu</label>
+              <Switch
+                checked={userEditForm.is_banned}
+                onCheckedChange={(v) => setUserEditForm(f => ({ ...f, is_banned: v }))}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setUserEditDialog({ open: false, user: null })}>Annuler</Button>
             <Button onClick={saveUserEdit}>Enregistrer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={userDetailDialog.open} onOpenChange={(v) => { if (!v) { setUserDetailDialog({ open: false, userId: null, userName: "" }); setUserDetail(null); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>📊 Contributions — {userDetailDialog.userName}</DialogTitle>
+          </DialogHeader>
+          {userDetailLoading && <p className="text-muted-foreground text-center py-6">Chargement…</p>}
+          {!userDetailLoading && userDetail && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { value: userDetail.totalSubmissions, label: "Total soumis", color: "text-foreground", bg: "bg-muted" },
+                  { value: userDetail.approvedSubmissions, label: "✅ Approuvés", color: "text-green-600", bg: "bg-green-500/10" },
+                  { value: userDetail.rejectedSubmissions, label: "❌ Rejetés", color: "text-destructive", bg: "bg-destructive/10" },
+                  { value: userDetail.pendingSubmissions, label: "⏳ En attente", color: "text-amber-600", bg: "bg-amber-500/10" },
+                ].map((stat, i) => (
+                  <div key={i} className={`rounded-lg p-3 ${stat.bg} text-center`}>
+                    <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+              {userDetail.recentSubmissions.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Dernières soumissions</p>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                    {userDetail.recentSubmissions.map(s => (
+                      <div key={s.id} className="flex items-center justify-between gap-2 text-xs p-2 rounded bg-muted/50">
+                        <span className="truncate text-foreground font-medium">{s.name}</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Badge variant={s.status === "approved" ? "default" : s.status === "rejected" ? "destructive" : "secondary"} className="text-[10px] px-1.5 py-0">
+                            {s.status === "approved" ? "✅" : s.status === "rejected" ? "❌" : "⏳"}
+                          </Badge>
+                          <span className="text-muted-foreground">{new Date(s.created_at).toLocaleDateString("fr-FR")}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {userDetail.totalSubmissions === 0 && (
+                <p className="text-center text-muted-foreground text-sm py-2">Aucune soumission pour cet utilisateur</p>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setUserDetailDialog({ open: false, userId: null, userName: "" }); setUserDetail(null); }}>
+              Fermer
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
