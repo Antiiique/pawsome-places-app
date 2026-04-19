@@ -839,6 +839,149 @@ const AdminPage = () => {
   const totalPages = Math.ceil(filteredPlaces.length / PLACES_PER_PAGE);
   const paginatedPlaces = filteredPlaces.slice(placesPage * PLACES_PER_PAGE, (placesPage + 1) * PLACES_PER_PAGE);
 
+  const computeCompleteness = async () => {
+    setCompletenessLoading(true);
+    const { data } = await supabase
+      .from("pet_friendly_places")
+      .select("id, name, city, category, address, phone, website, opening_hours, description, photo_url, accepts_dogs, accepts_cats, outdoor_seating")
+      .eq("verified", true)
+      .limit(10000);
+    if (data) {
+      const scored = data.map(p => {
+        const checks = [
+          { label: "Adresse", ok: !!p.address },
+          { label: "Ville", ok: !!p.city },
+          { label: "Téléphone", ok: !!p.phone },
+          { label: "Site web", ok: !!p.website },
+          { label: "Horaires", ok: !!p.opening_hours },
+          { label: "Description", ok: !!p.description },
+          { label: "Photo", ok: !!p.photo_url },
+          { label: "Chiens/chats", ok: !!(p.accepts_dogs || p.accepts_cats) },
+          { label: "Terrasse", ok: p.outdoor_seating !== null },
+        ];
+        const score = Math.round(checks.filter(c => c.ok).length / checks.length * 100);
+        const missing = checks.filter(c => !c.ok).map(c => c.label);
+        return { id: p.id, name: p.name, city: p.city, category: p.category, score, missing };
+      });
+      setCompletenessData(scored.sort((a, b) => a.score - b.score));
+    }
+    setCompletenessLoading(false);
+  };
+
+  const detectDuplicates = async () => {
+    setDuplicatesLoading(true);
+    const { data } = await supabase
+      .from("pet_friendly_places")
+      .select("id, name, city, latitude, longitude")
+      .eq("verified", true)
+      .limit(5000);
+    if (data) {
+      const found: Array<{ aId: string; aName: string; aCity: string | null; bId: string; bName: string; distM: number }> = [];
+      for (let i = 0; i < data.length; i++) {
+        for (let j = i + 1; j < data.length; j++) {
+          const d = haversineKm(data[i].latitude, data[i].longitude, data[j].latitude, data[j].longitude) * 1000;
+          if (d < 100) {
+            const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+            const na = norm(data[i].name), nb = norm(data[j].name);
+            if (na === nb || na.includes(nb) || nb.includes(na))
+              found.push({ aId: data[i].id, aName: data[i].name, aCity: data[i].city, bId: data[j].id, bName: data[j].name, distM: Math.round(d) });
+          }
+        }
+      }
+      setDuplicates(found);
+    }
+    setDuplicatesLoading(false);
+  };
+
+  const deleteById = async (id: string) => {
+    await supabase.from("pet_friendly_places").delete().eq("id", id);
+    setDuplicates(prev => prev.filter(d => d.aId !== id && d.bId !== id));
+    toast.success("Lieu supprimé");
+  };
+
+  const fetchCoverage = async () => {
+    setCoverageLoading(true);
+    const { data } = await supabase
+      .from("pet_friendly_places")
+      .select("department, region")
+      .eq("verified", true);
+    if (data) {
+      const byDept: Record<string, number> = {};
+      for (const p of data) {
+        const key = p.department || p.region || "Inconnu";
+        byDept[key] = (byDept[key] || 0) + 1;
+      }
+      setCoverageData(Object.entries(byDept).map(([dept, count]) => ({ dept, count })).sort((a, b) => b.count - a.count));
+    }
+    setCoverageLoading(false);
+  };
+
+  const parseCsvText = (text: string): Record<string, string>[] => {
+    const lines = text.trim().split(/\r?\n/);
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ""));
+    return lines.slice(1).map(line => {
+      const values = line.split(",").map(v => v.trim().replace(/^"|"$/g, ""));
+      return Object.fromEntries(headers.map((h, i) => [h, values[i] ?? ""]));
+    });
+  };
+
+  const handleCsvFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCsvFile(file);
+    const reader = new FileReader();
+    reader.onload = ev => setCsvPreview(parseCsvText(ev.target?.result as string).slice(0, 5));
+    reader.readAsText(file, "utf-8");
+  };
+
+  const importCsv = async () => {
+    if (!csvFile) return;
+    setCsvImporting(true);
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const rows = parseCsvText(ev.target?.result as string);
+      const toInsert = rows.map(r => ({
+        name: r.name || r.Name || "",
+        category: r.category || "other",
+        latitude: parseFloat(r.latitude || r.lat || "0"),
+        longitude: parseFloat(r.longitude || r.lon || r.lng || "0"),
+        city: r.city || r.ville || null,
+        address: r.address || r.adresse || null,
+        country: r.country || r.pays || "France",
+        source: "csv_import",
+        verified: false,
+        accepts_dogs: true,
+      })).filter(r => r.name && r.latitude !== 0 && r.longitude !== 0);
+      if (!toInsert.length) { toast.error("Aucune ligne valide (name + latitude + longitude requis)"); setCsvImporting(false); return; }
+      const { error } = await supabase.from("pet_friendly_places").insert(toInsert);
+      if (error) toast.error("Erreur import : " + error.message);
+      else toast.success(`✅ ${toInsert.length} lieux importés (statut : non-vérifiés)`);
+      setCsvImporting(false); setCsvFile(null); setCsvPreview([]);
+      if (csvInputRef.current) csvInputRef.current.value = "";
+    };
+    reader.readAsText(csvFile, "utf-8");
+  };
+
+  const handleExport = async () => {
+    const filters: Record<string, string | boolean> = {};
+    if (exportCategory) filters.category = exportCategory;
+    if (exportCountry) filters.country = exportCountry;
+    if (exportOnlyVerified) filters.verified = true;
+    let q: any = supabase.from("pet_friendly_places")
+      .select("name,category,subcategory,address,city,postcode,country,latitude,longitude,phone,website,opening_hours,accepts_dogs,accepts_cats,outdoor_seating,verified,source,description");
+    for (const [k, v] of Object.entries(filters)) q = q.eq(k, v);
+    const { data, error } = await q.limit(50000);
+    if (error || !data?.length) { toast.error("Aucune donnée à exporter"); return; }
+    const headers = Object.keys(data[0]);
+    const csv = [headers.join(","), ...data.map((row: any) => headers.map(h => { const v = String(row[h] ?? ""); return v.includes(",") ? `"${v}"` : v; }).join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `pawsome_export_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`✅ ${data.length.toLocaleString("fr-FR")} lieux exportés`);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
