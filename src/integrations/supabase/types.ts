@@ -315,6 +315,8 @@ export type Database = {
           place_id: string | null
           reason: string
           reported_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           status: string | null
         }
         Insert: {
@@ -324,6 +326,8 @@ export type Database = {
           place_id?: string | null
           reason: string
           reported_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string | null
         }
         Update: {
@@ -333,6 +337,8 @@ export type Database = {
           place_id?: string | null
           reason?: string
           reported_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string | null
         }
         Relationships: [
@@ -346,6 +352,13 @@ export type Database = {
           {
             foreignKeyName: "place_reports_reported_by_fkey"
             columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "place_reports_reviewed_by_fkey"
+            columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

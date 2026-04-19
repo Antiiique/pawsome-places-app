@@ -138,10 +138,9 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss, onDelete }: {
+function ReportGroups({ reports, onEdit, onReview, onDismiss, onDelete }: {
   reports: Report[];
   onEdit: (placeId: string) => void;
-  onUnpublish: (placeId: string, ids: string[]) => void;
   onReview: (placeId: string | null, ids: string[]) => void;
   onDismiss: (placeId: string | null, ids: string[]) => void;
   onDelete: (ids: string[]) => void;
@@ -177,29 +176,19 @@ function ReportGroups({ reports, onEdit, onUnpublish, onReview, onDismiss, onDel
                 ))}
               </div>
               <Separator />
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-wrap gap-2">
                 {hasPlace && (
                   <Button size="sm" variant="outline" className="text-xs h-9" onClick={() => onEdit(group.place_id!)}>
-                    ✏️ Corriger le lieu
-                  </Button>
-                )}
-                {hasPlace && (
-                  <Button size="sm" variant="outline" className="text-xs h-9 border-orange-400 text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:border-orange-700" onClick={() => onUnpublish(group.place_id!, ids)}>
-                    🔒 Dépublier temporairement
+                    ✏️ Corriger
                   </Button>
                 )}
                 <Button size="sm" className="text-xs h-9 bg-green-600 hover:bg-green-700 text-white" onClick={() => onReview(group.place_id, ids)}>
-                  ✅ Marquer traité{ids.length > 1 ? "s" : ""}
+                  ✅ Traité
                 </Button>
                 <Button size="sm" variant="outline" className="text-xs h-9" onClick={() => onDismiss(group.place_id, ids)}>
-                  🚫 Infondé{ids.length > 1 ? "s" : ""}
+                  🚫 Infondé
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-destructive border-destructive/40 hover:bg-destructive/10 h-9 text-xs"
-                  onClick={() => onDelete(ids)}
-                >
+                <Button size="sm" variant="outline" className="text-xs h-9 border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => onDelete(ids)}>
                   🗑 Supprimer
                 </Button>
               </div>
@@ -332,8 +321,10 @@ const AdminPage = () => {
   const [reviewCount, setReviewCount] = useState(0);
   const [processedSubmissions, setProcessedSubmissions] = useState<any[]>([]);
   const [processedReports, setProcessedReports] = useState<any[]>([]);
+  const [dismissedReports, setDismissedReports] = useState<any[]>([]);
   const [showProcessedSubs, setShowProcessedSubs] = useState(false);
   const [showProcessedReports, setShowProcessedReports] = useState(false);
+  const [showDismissedReports, setShowDismissedReports] = useState(false);
 
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
@@ -652,27 +643,24 @@ const AdminPage = () => {
     else toast.error("Lieu introuvable");
   };
 
-  const unpublishFromReport = async (placeId: string, reportIds: string[]) => {
-    await supabase.from("pet_friendly_places").update({ verified: false, is_flagged: true }).eq("id", placeId);
-    await Promise.all(reportIds.map(id => supabase.from("place_reports").update({ status: "reviewed" }).eq("id", id)));
-    toast.success("🔒 Lieu dépublié temporairement");
-    setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
-    setPlaces(prev => prev.map(p => p.id === placeId ? { ...p, verified: false, is_flagged: true } : p));
-    fetchCounts();
-  };
-
   const reviewGroup = async (placeId: string | null, reportIds: string[]) => {
-    await Promise.all(reportIds.map(id => supabase.from("place_reports").update({ status: "reviewed" }).eq("id", id)));
+    const { error } = await supabase.from("place_reports")
+      .update({ status: "reviewed", reviewed_at: new Date().toISOString(), reviewed_by: user?.id })
+      .in("id", reportIds);
+    if (error) { toast.error("Erreur lors du traitement"); return; }
     if (placeId) await supabase.from("pet_friendly_places").update({ is_flagged: true }).eq("id", placeId);
-    toast.success("✅ Signalements traités");
+    toast.success("✅ Signalement(s) traité(s) — notification envoyée");
     setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
     fetchCounts();
   };
 
   const dismissGroup = async (placeId: string | null, reportIds: string[]) => {
-    await Promise.all(reportIds.map(id => supabase.from("place_reports").update({ status: "dismissed" }).eq("id", id)));
+    const { error } = await supabase.from("place_reports")
+      .update({ status: "dismissed", reviewed_at: new Date().toISOString(), reviewed_by: user?.id })
+      .in("id", reportIds);
+    if (error) { toast.error("Erreur lors du rejet"); return; }
     if (placeId) await supabase.from("pet_friendly_places").update({ report_count: 0, is_flagged: false }).eq("id", placeId);
-    toast.success("🚫 Signalements marqués comme infondés");
+    toast.success("🚫 Signalement(s) marqué(s) infondé(s) — notification envoyée");
     setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
     fetchCounts();
   };
@@ -680,7 +668,7 @@ const AdminPage = () => {
   const deleteReportGroup = async (reportIds: string[]) => {
     const { error } = await supabase.from("place_reports").delete().in("id", reportIds);
     if (error) { toast.error("Erreur lors de la suppression"); return; }
-    toast.success("Signalement(s) supprimé(s) définitivement");
+    toast.success("🗑 Signalement(s) supprimé(s) définitivement");
     setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
     fetchCounts();
   };
@@ -696,21 +684,21 @@ const AdminPage = () => {
   };
 
   const fetchProcessedReports = async () => {
-    const { data } = await supabase
-      .from("place_reports")
-      .select("id, place_id, reason, status, created_at")
-      .in("status", ["reviewed", "dismissed"])
-      .order("created_at", { ascending: false })
+    const { data } = await supabase.from("place_reports")
+      .select("*, pet_friendly_places(name)")
+      .eq("status", "reviewed")
+      .order("reviewed_at", { ascending: false })
       .limit(100);
-    if (data) {
-      const placeIds = data.map(r => r.place_id).filter(Boolean) as string[];
-      let placeMap: Record<string, string> = {};
-      if (placeIds.length) {
-        const { data: places } = await supabase.from("pet_friendly_places").select("id, name").in("id", placeIds);
-        if (places) placeMap = Object.fromEntries(places.map(p => [p.id, p.name]));
-      }
-      setProcessedReports(data.map(r => ({ ...r, place_name: r.place_id ? placeMap[r.place_id] || "Lieu inconnu" : "Inconnu" })));
-    }
+    setProcessedReports(data || []);
+  };
+
+  const fetchDismissedReports = async () => {
+    const { data } = await supabase.from("place_reports")
+      .select("*, pet_friendly_places(name)")
+      .eq("status", "dismissed")
+      .order("reviewed_at", { ascending: false })
+      .limit(100);
+    setDismissedReports(data || []);
   };
 
   const getPlacesService = () => {
@@ -1745,42 +1733,66 @@ const AdminPage = () => {
 
           <TabsContent value="reports" className="space-y-4 mt-4">
             {reports.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun signalement en attente</p>}
-            {reports.length > 0 && <ReportGroups reports={reports} onEdit={openEditFromReport} onUnpublish={unpublishFromReport} onReview={reviewGroup} onDismiss={dismissGroup} onDelete={deleteReportGroup} />}
+            {reports.length > 0 && <ReportGroups reports={reports} onEdit={openEditFromReport} onReview={reviewGroup} onDismiss={dismissGroup} onDelete={deleteReportGroup} />}
 
-            {/* Historique des signalements traités */}
-            <div className="mt-6 border-t border-border pt-4">
+            {/* Historique — Signalements traités */}
+            <div className="mt-6 border-t border-border pt-4 space-y-3">
               <button
                 onClick={() => { setShowProcessedReports(v => !v); if (!showProcessedReports) fetchProcessedReports(); }}
                 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
               >
-                {showProcessedReports ? "▼" : "▶"} Signalements déjà traités
+                {showProcessedReports ? "▼" : "▶"} ✅ Signalements traités
               </button>
               {showProcessedReports && (
-                <div className="mt-3 space-y-2">
+                <div className="space-y-2">
                   {processedReports.length === 0 ? (
                     <p className="text-xs text-muted-foreground italic text-center py-4">Aucun signalement traité.</p>
-                  ) : (
-                    processedReports.map(r => (
-                      <div key={r.id} className={`rounded-xl border p-3 flex items-start justify-between gap-3 ${r.status === "reviewed" ? "border-blue-300 bg-blue-50 dark:bg-blue-950/20" : "border-muted bg-muted/30"}`}>
-                        <div className="space-y-0.5 min-w-0">
-                          <p className="text-sm font-semibold truncate">{r.place_name}</p>
+                  ) : processedReports.map(r => (
+                    <div key={r.id} className="rounded-xl border border-green-300 bg-green-50 dark:bg-green-950/20 p-3 space-y-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold">{r.pet_friendly_places?.name ?? "Lieu inconnu"}</p>
                           <p className="text-xs text-muted-foreground capitalize">{r.reason?.replace(/_/g, " ")}</p>
-                          <p className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("fr-FR")}</p>
+                          {r.comment && <p className="text-xs text-muted-foreground italic">"{r.comment}"</p>}
                         </div>
-                        <div className="flex flex-col items-end gap-2 shrink-0">
-                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${r.status === "reviewed" ? "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-100" : "bg-muted text-muted-foreground"}`}>
-                            {r.status === "reviewed" ? "✅ Traité" : "🚫 Infondé"}
-                          </span>
-                          <button
-                            onClick={async () => { await supabase.from("place_reports").delete().eq("id", r.id); setProcessedReports(prev => prev.filter(p => p.id !== r.id)); toast.success("Supprimé"); }}
-                            className="text-xs text-destructive hover:underline"
-                          >
-                            Supprimer
-                          </button>
-                        </div>
+                        <span className="text-xs bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-100 px-2 py-0.5 rounded-full shrink-0">✅ Traité</span>
                       </div>
-                    ))
-                  )}
+                      <p className="text-[10px] text-muted-foreground">
+                        Traité le {r.reviewed_at ? new Date(r.reviewed_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Historique — Signalements infondés */}
+            <div className="mt-4 border-t border-border pt-4 space-y-3">
+              <button
+                onClick={() => { setShowDismissedReports(v => !v); if (!showDismissedReports) fetchDismissedReports(); }}
+                className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showDismissedReports ? "▼" : "▶"} 🚫 Signalements infondés
+              </button>
+              {showDismissedReports && (
+                <div className="space-y-2">
+                  {dismissedReports.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic text-center py-4">Aucun signalement infondé.</p>
+                  ) : dismissedReports.map(r => (
+                    <div key={r.id} className="rounded-xl border border-muted bg-muted/30 p-3 space-y-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold">{r.pet_friendly_places?.name ?? "Lieu inconnu"}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{r.reason?.replace(/_/g, " ")}</p>
+                          {r.comment && <p className="text-xs text-muted-foreground italic">"{r.comment}"</p>}
+                        </div>
+                        <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full shrink-0">🚫 Infondé</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Rejeté le {r.reviewed_at ? new Date(r.reviewed_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
