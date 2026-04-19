@@ -582,7 +582,8 @@ const AdminPage = () => {
                   <Card>
                     <CardContent className="pt-4 pb-4 space-y-3">
                       {Object.entries(dashboardStats.byCategory).sort((a, b) => b[1] - a[1]).map(([cat, count]) => {
-                        const pct = dashboardStats.totalPlaces > 0 ? Math.round(count / dashboardStats.totalPlaces * 100) : 0;
+                        const categoryTotal = Object.values(dashboardStats.byCategory).reduce((a, b) => a + b, 0);
+                        const pct = categoryTotal > 0 ? Math.round(count / categoryTotal * 100) : 0;
                         const catEmojis: Record<string, string> = { restaurant: "🍽️", hotel: "🛏️", outdoor: "🌿", services: "❤️", shop: "🐾", other: "📍" };
                         const catColors: Record<string, string> = { restaurant: "bg-orange-500", hotel: "bg-blue-500", outdoor: "bg-green-500", services: "bg-red-500", shop: "bg-purple-500", other: "bg-gray-400" };
                         return (
@@ -607,7 +608,8 @@ const AdminPage = () => {
                   <Card>
                     <CardContent className="pt-4 pb-4 space-y-3">
                       {Object.entries(dashboardStats.bySource).sort((a, b) => b[1] - a[1]).map(([src, count]) => {
-                        const pct = dashboardStats.totalPlaces > 0 ? Math.round(count / dashboardStats.totalPlaces * 100) : 0;
+                        const sourceTotal = Object.values(dashboardStats.bySource).reduce((a, b) => a + b, 0);
+                        const pct = sourceTotal > 0 ? Math.round(count / sourceTotal * 100) : 0;
                         const srcLabels: Record<string, string> = { csv_import: "📂 Import CSV", user_submission: "👤 Soumission utilisateur", openstreetmap: "🗺️ OpenStreetMap", unknown: "❓ Inconnu" };
                         return (
                           <div key={src} className="space-y-1">
