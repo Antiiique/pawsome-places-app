@@ -1,4 +1,4 @@
-import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart } from "lucide-react";
+import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -48,12 +48,13 @@ const categoryBgColors: Record<string, string> = {
 interface PlaceDetailPanelProps {
   place: PetPlace | null;
   onClose: () => void;
+  onBack?: () => void;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
   onReport?: () => void;
 }
 
-const PlaceDetailPanel = ({ place, onClose, isFavorite, onToggleFavorite, onReport }: PlaceDetailPanelProps) => {
+const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport }: PlaceDetailPanelProps) => {
   if (!place) return null;
 
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
@@ -61,7 +62,14 @@ const PlaceDetailPanel = ({ place, onClose, isFavorite, onToggleFavorite, onRepo
   return (
     <div className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-card z-50 shadow-2xl overflow-y-auto animate-slide-in-right">
       <div className="sticky top-0 bg-card z-10 flex items-center justify-between p-4 border-b border-border">
-        <h2 className="text-lg font-heading font-bold text-foreground truncate pr-4">{place.name}</h2>
+        <div className="flex items-center gap-2 min-w-0">
+          {onBack && (
+            <button onClick={onBack} className="p-1.5 rounded-full hover:bg-muted transition-colors shrink-0" title="Retour">
+              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+            </button>
+          )}
+          <h2 className="text-lg font-heading font-bold text-foreground truncate">{place.name}</h2>
+        </div>
         <div className="flex items-center gap-1 shrink-0">
           {onToggleFavorite && (
             <button

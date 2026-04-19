@@ -102,6 +102,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const destMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const previewLineRef = useRef<google.maps.Polyline | null>(null);
   const markerClickedRef = useRef(false);
+  const prevPopupDataRef = useRef<typeof popupData>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -677,6 +678,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             onOpenItinerary?.();
           }}
           onShowInfo={popupData.petPlace ? () => {
+            prevPopupDataRef.current = popupData;
             setSelectedPlace(popupData.petPlace!);
             setPopupData(null);
           } : undefined}
@@ -738,7 +740,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setSelectedPlace(null)} />
           <PlaceDetailPanel
             place={selectedPlace}
-            onClose={() => setSelectedPlace(null)}
+            onClose={() => { setSelectedPlace(null); prevPopupDataRef.current = null; }}
+            onBack={prevPopupDataRef.current ? () => {
+              setSelectedPlace(null);
+              setPopupData(prevPopupDataRef.current);
+              prevPopupDataRef.current = null;
+            } : undefined}
             isFavorite={isFavorite?.(selectedPlace.id)}
             onToggleFavorite={() => handleToggleFav(selectedPlace)}
             onReport={() => setReportModal({ open: true, placeId: selectedPlace.id, placeName: selectedPlace.name })}

@@ -72,7 +72,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent-soft" onClick={onFavoritesClick} title="Mes favoris">
+          <Button variant="ghost" size="icon" className="relative text-foreground hover:bg-accent-soft" onClick={onFavoritesClick} title="Mes favoris">
             <Heart className="w-5 h-5" />
             {favoritesCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
