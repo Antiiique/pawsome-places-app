@@ -132,6 +132,25 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     return () => window.removeEventListener("map-pan-to" as any, handler as any);
   }, []);
 
+  // Listen for open-community-reviews event (from notifications)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const placeId = (e as CustomEvent).detail?.placeId;
+      if (!placeId) return;
+      supabase
+        .from("pet_friendly_places")
+        .select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, rating, description, photo_url, verified, google_place_id")
+        .eq("id", placeId)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (!data) return;
+          setSelectedPlace(data as any);
+        });
+    };
+    window.addEventListener("open-community-reviews", handler);
+    return () => window.removeEventListener("open-community-reviews", handler);
+  }, []);
+
   // Init map
   useEffect(() => {
     if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
