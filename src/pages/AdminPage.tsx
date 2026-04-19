@@ -321,6 +321,10 @@ const AdminPage = () => {
   const [editBody, setEditBody] = useState("");
   const [editRating, setEditRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
+  const [processedSubmissions, setProcessedSubmissions] = useState<any[]>([]);
+  const [processedReports, setProcessedReports] = useState<any[]>([]);
+  const [showProcessedSubs, setShowProcessedSubs] = useState(false);
+  const [showProcessedReports, setShowProcessedReports] = useState(false);
 
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
@@ -587,23 +591,32 @@ const AdminPage = () => {
   const rejectSubmission = async () => {
     if (!rejectDialog.id) return;
     const rejectedSub = submissions.find(s => s.id === rejectDialog.id);
-    await supabase.from("place_submissions").update({
+    const { error } = await supabase.from("place_submissions").update({
       status: "rejected", admin_note: rejectNote || null,
       reviewed_at: new Date().toISOString(), reviewed_by: user?.id,
     }).eq("id", rejectDialog.id);
+    if (error) { toast.error("Erreur lors du rejet"); return; }
+    const { data: linkedPlace } = await supabase
+      .from("pet_friendly_places")
+      .select("id")
+      .eq("source_id", rejectDialog.id)
+      .maybeSingle();
+    if (linkedPlace) {
+      await supabase.from("pet_friendly_places").delete().eq("id", linkedPlace.id);
+    }
     if (rejectedSub?.submitted_by) {
       await supabase.from("user_notifications").insert({
         user_id: rejectedSub.submitted_by,
         type: "submission_rejected",
         title: "📋 Résultat de votre soumission",
-        message: `Votre proposition "${rejectedSub.name}" n'a pas pu être publiée.${rejectNote ? ` Motif de l'admin : "${rejectNote}"` : " N'hésitez pas à vérifier les informations et à soumettre à nouveau."}`,
+        message: `Votre proposition "${rejectedSub.name}" n'a pas pu être publiée.${rejectNote ? ` Motif : "${rejectNote}"` : " N'hésitez pas à vérifier les informations et à soumettre à nouveau."}`,
         related_id: rejectDialog.id,
       });
     }
-    toast.success("Soumission rejetée");
-    setSubmissions(prev => prev.filter(s => s.id !== rejectDialog.id));
+    toast.success("Soumission rejetée" + (linkedPlace ? " et lieu supprimé" : ""));
     setRejectDialog({ open: false, id: null });
     setRejectNote("");
+    await fetchSubmissions();
     fetchCounts();
   };
 
@@ -653,6 +666,42 @@ const AdminPage = () => {
     toast.success("🚫 Signalements marqués comme infondés");
     setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
     fetchCounts();
+  };
+
+  const deleteReportGroup = async (reportIds: string[]) => {
+    const { error } = await supabase.from("place_reports").delete().in("id", reportIds);
+    if (error) { toast.error("Erreur lors de la suppression"); return; }
+    toast.success("Signalement(s) supprimé(s) définitivement");
+    setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
+    fetchCounts();
+  };
+
+  const fetchProcessedSubmissions = async () => {
+    const { data } = await supabase
+      .from("place_submissions")
+      .select("id, name, city, status, admin_note, created_at, reviewed_at, submitted_by")
+      .in("status", ["approved", "rejected"])
+      .order("reviewed_at", { ascending: false })
+      .limit(100);
+    setProcessedSubmissions(data || []);
+  };
+
+  const fetchProcessedReports = async () => {
+    const { data } = await supabase
+      .from("place_reports")
+      .select("id, place_id, reason, status, created_at")
+      .in("status", ["reviewed", "dismissed"])
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (data) {
+      const placeIds = data.map(r => r.place_id).filter(Boolean) as string[];
+      let placeMap: Record<string, string> = {};
+      if (placeIds.length) {
+        const { data: places } = await supabase.from("pet_friendly_places").select("id, name").in("id", placeIds);
+        if (places) placeMap = Object.fromEntries(places.map(p => [p.id, p.name]));
+      }
+      setProcessedReports(data.map(r => ({ ...r, place_name: r.place_id ? placeMap[r.place_id] || "Lieu inconnu" : "Inconnu" })));
+    }
   };
 
   const getPlacesService = () => {
