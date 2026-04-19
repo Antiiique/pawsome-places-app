@@ -558,12 +558,6 @@ export default function MarkerPopup({
                                 <span className="absolute bottom-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded">Photo actuelle</span>
                               </div>
                             )}
-                            {!photoPreview && userReview?.photo_url && (
-                              <div className="relative w-full h-28 rounded-lg overflow-hidden border border-border opacity-60">
-                                <img src={userReview.photo_url} className="w-full h-full object-cover" alt="" />
-                                <span className="absolute bottom-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded">Photo actuelle</span>
-                              </div>
-                            )}
                           </div>
                           <div className="flex gap-2">
                             {showEditForm && (
