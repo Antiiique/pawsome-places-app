@@ -314,6 +314,10 @@ const AdminPage = () => {
   });
   const [saveFilterName, setSaveFilterName] = useState("");
 
+  const [adminReviews, setAdminReviews] = useState<any[]>([]);
+  const [adminReviewsLoading, setAdminReviewsLoading] = useState(false);
+  const [reviewsFilter, setReviewsFilter] = useState<"all" | "reported" | "hidden">("all");
+
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
       supabase.from("place_submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
