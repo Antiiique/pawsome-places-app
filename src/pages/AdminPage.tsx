@@ -1013,34 +1013,150 @@ const AdminPage = () => {
           </TabsContent>
 
           <TabsContent value="submissions" className="space-y-4 mt-4">
-            {submissions.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun lieu en attente</p>}
-            {submissions.map(sub => (
-              <Card key={sub.id}><CardContent className="pt-4 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-semibold text-foreground">{sub.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary">{sub.category}</Badge>
-                      {sub.city && <span className="text-sm text-muted-foreground">{sub.city}</span>}
+
+            {/* Filtres */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <select
+                value={submissionsFilter.category}
+                onChange={(e) => setSubmissionsFilter(f => ({ ...f, category: e.target.value }))}
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+              >
+                <option value="">Toutes catégories</option>
+                {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <Input
+                placeholder="Filtrer par ville…"
+                value={submissionsFilter.city}
+                onChange={(e) => setSubmissionsFilter(f => ({ ...f, city: e.target.value }))}
+                className="h-9"
+              />
+              <select
+                value={submissionsFilter.dateRange}
+                onChange={(e) => setSubmissionsFilter(f => ({ ...f, dateRange: e.target.value }))}
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground col-span-2 sm:col-span-1"
+              >
+                <option value="all">Toutes les dates</option>
+                <option value="7d">7 derniers jours</option>
+                <option value="30d">30 derniers jours</option>
+              </select>
+            </div>
+
+            {/* Barre d'actions en masse */}
+            {selectedSubmissions.size > 0 && (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/30 flex-wrap">
+                <span className="text-sm font-semibold text-foreground flex-1">{selectedSubmissions.size} sélectionné(s)</span>
+                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white h-8 text-xs" onClick={bulkApprove}>✅ Tout approuver</Button>
+                <Button size="sm" variant="outline" className="text-destructive border-destructive h-8 text-xs" onClick={() => setBulkRejectDialog(true)}>❌ Tout rejeter</Button>
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setSelectedSubmissions(new Set())}>Annuler</Button>
+              </div>
+            )}
+
+            {/* Sélectionner tout */}
+            {filteredSubmissions.length > 0 && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={selectedSubmissions.size === filteredSubmissions.length}
+                  onChange={(e) => setSelectedSubmissions(e.target.checked ? new Set(filteredSubmissions.map(s => s.id)) : new Set())}
+                  className="rounded"
+                />
+                <span>Tout sélectionner ({filteredSubmissions.length} résultat{filteredSubmissions.length > 1 ? "s" : ""})</span>
+              </div>
+            )}
+
+            {filteredSubmissions.length === 0 && (
+              <p className="text-muted-foreground text-center py-8">
+                {submissions.length === 0 ? "Aucun lieu en attente" : "Aucun résultat pour ces filtres"}
+              </p>
+            )}
+
+            {filteredSubmissions.map(sub => {
+              const nearbyPlaces = findNearbyDuplicates(sub);
+              const isSelected = selectedSubmissions.has(sub.id);
+              const mapOpen = submissionMapOpen === sub.id;
+              return (
+                <Card key={sub.id} className={isSelected ? "border-primary" : ""}>
+                  <CardContent className="pt-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelectSubmission(sub.id)}
+                        className="mt-1 rounded shrink-0"
+                      />
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div>
+                          <h3 className="font-semibold text-foreground">{sub.name}</h3>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <Badge variant="secondary">{sub.category}</Badge>
+                            {sub.city && <span className="text-sm text-muted-foreground">{sub.city}</span>}
+                          </div>
+                        </div>
+
+                        {nearbyPlaces.length > 0 && (
+                          <div className="p-2.5 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-300 dark:border-orange-700">
+                            <p className="text-xs font-semibold text-orange-700 dark:text-orange-400">
+                              ⚠️  {nearbyPlaces.length} lieu(x) similaire(s) à moins de 100m :
+                            </p>
+                            <ul className="mt-1 space-y-0.5">
+                              {nearbyPlaces.slice(0, 3).map(p => (
+                                <li key={p.id} className="text-xs text-orange-600 dark:text-orange-400">
+                                  • {p.name} ({(haversineKm(sub.latitude, sub.longitude, p.latitude, p.longitude) * 1000).toFixed(0)}m)
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {sub.photos && sub.photos.length > 0 && (
+                          <div className="flex gap-2 overflow-x-auto pb-1">
+                            {sub.photos.map((url, i) => (
+                              <img key={i} src={url} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0 border border-border cursor-pointer hover:opacity-90" onClick={() => window.open(url, "_blank")} />
+                            ))}
+                          </div>
+                        )}
+
+                        {sub.description && (
+                          <p className="text-sm text-muted-foreground">
+                            {sub.description.length > 120 ? sub.description.slice(0, 120) + "…" : sub.description}
+                          </p>
+                        )}
+
+                        <p className="text-xs text-muted-foreground">
+                          Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR")}
+                          {sub.submitter_email && ` par ${sub.submitter_email}`}
+                        </p>
+
+                        <div className="flex gap-2 flex-wrap">
+                          {sub.accepts_dogs && <Badge variant="outline">🐕 Chiens</Badge>}
+                          {sub.accepts_cats && <Badge variant="outline">🐈 Chats</Badge>}
+                          {sub.outdoor_seating && <Badge variant="outline">🌿 Terrasse</Badge>}
+                        </div>
+
+                        {mapOpen && (
+                          <div className="rounded-lg overflow-hidden border border-border">
+                            <iframe
+                              title={`map-${sub.id}`}
+                              src={`https://www.openstreetmap.org/export/embed.html?bbox=${sub.longitude - 0.004},${sub.latitude - 0.003},${sub.longitude + 0.004},${sub.latitude + 0.003}&layer=mapnik&marker=${sub.latitude},${sub.longitude}`}
+                              className="w-full h-44 border-0"
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+
+                        <div className="flex gap-2 flex-wrap pt-1">
+                          <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => { setApproveDialog({ open: true, sub }); fetchGoogleEnrichment(sub); }}>✅ Approuver</Button>
+                          <Button size="sm" variant="outline" className="text-destructive border-destructive" onClick={() => setRejectDialog({ open: true, id: sub.id })}>❌ Rejeter</Button>
+                          <Button size="sm" variant="ghost" className="text-xs h-9 text-muted-foreground" onClick={() => setSubmissionMapOpen(mapOpen ? null : sub.id)}>
+                            {mapOpen ? "🗺️  Masquer" : "🗺️  Carte"}
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                {sub.description && <p className="text-sm text-muted-foreground">{sub.description.length > 100 ? sub.description.slice(0, 100) + "…" : sub.description}</p>}
-                <p className="text-xs text-muted-foreground">
-                  Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR")}
-                  {sub.submitter_email && ` par ${sub.submitter_email}`}
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  {sub.accepts_dogs && <Badge variant="outline">🐕 Chiens</Badge>}
-                  {sub.accepts_cats && <Badge variant="outline">🐈 Chats</Badge>}
-                  {sub.outdoor_seating && <Badge variant="outline">🌿 Terrasse</Badge>}
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => { setApproveDialog({ open: true, sub }); fetchGoogleEnrichment(sub); }}>✅ Approuver</Button>
-                  <Button size="sm" variant="outline" className="text-destructive border-destructive" onClick={() => setRejectDialog({ open: true, id: sub.id })}>❌ Rejeter</Button>
-                </div>
-              </CardContent></Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-4 mt-4">
@@ -1514,6 +1630,18 @@ const AdminPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={bulkRejectDialog} onOpenChange={(v) => { if (!v) { setBulkRejectDialog(false); setBulkRejectNote(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>❌ Rejeter {selectedSubmissions.size} soumission(s)</DialogTitle></DialogHeader>
+          <Textarea placeholder="Motif du refus commun (optionnel)" value={bulkRejectNote} onChange={(e) => setBulkRejectNote(e.target.value)} />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setBulkRejectDialog(false); setBulkRejectNote(""); }}>Annuler</Button>
+            <Button variant="destructive" onClick={bulkReject}>Tout rejeter</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div ref={placesServiceDivRef} style={{ display: "none" }} />
     </div>
   );
