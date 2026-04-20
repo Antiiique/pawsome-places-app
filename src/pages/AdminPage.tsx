@@ -1523,7 +1523,7 @@ const AdminPage = () => {
             <p className="text-sm text-muted-foreground mt-1">🔔 Notifications</p>
           </CardContent></Card>
           <Card><CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-foreground">{places.length}</p>
+            <p className="text-3xl font-bold text-foreground">{placesTotalCount > 0 ? placesTotalCount.toLocaleString("fr-FR") : "…"}</p>
             <p className="text-sm text-muted-foreground mt-1">🗺️ Lieux publiés</p>
           </CardContent></Card>
         </div>
