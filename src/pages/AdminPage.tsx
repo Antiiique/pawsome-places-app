@@ -250,6 +250,12 @@ const AdminPage = () => {
   const [placesLoading, setPlacesLoading] = useState(false);
   const [placesSearch, setPlacesSearch] = useState("");
   const [placesPage, setPlacesPage] = useState(0);
+  const [placesTotalCount, setPlacesTotalCount] = useState(0);
+  const [userPlaces, setUserPlaces] = useState<PublishedPlace[]>([]);
+  const [userPlacesLoading, setUserPlacesLoading] = useState(false);
+  const [userPlacesPage, setUserPlacesPage] = useState(0);
+  const [userPlacesTotalCount, setUserPlacesTotalCount] = useState(0);
+  const [userPlacesSearch, setUserPlacesSearch] = useState("");
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; place: PublishedPlace | null }>({ open: false, place: null });
   const [deleteFromReportDialog, setDeleteFromReportDialog] = useState<{ open: boolean; placeId: string; placeName: string; reportIds: string[] }>({ open: false, placeId: "", placeName: "", reportIds: [] });
   const [editDialog, setEditDialog] = useState<{ open: boolean; place: PublishedPlace | null }>({ open: false, place: null });
@@ -437,16 +443,45 @@ const AdminPage = () => {
     }
   }, []);
 
+  const placesQueryRef = useRef({ page: 0, filter: { flagged: false, unverified: false, noPhoto: false, noPhone: false, noWebsite: false, noHours: false, source: "", country: "", category: "" }, search: "" });
+
   const fetchPlaces = useCallback(async () => {
+    const { page, filter, search } = placesQueryRef.current;
     setPlacesLoading(true);
-    const { data } = await supabase
-      .from("pet_friendly_places")
-      .select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, description, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided, rating, photo_url, verified, is_flagged, report_count, source, source_id, last_updated, google_place_id, created_at")
+    const COLS = "id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, description, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided, rating, photo_url, verified, is_flagged, report_count, source, source_id, last_updated, google_place_id, created_at";
+    let q = supabase.from("pet_friendly_places").select(COLS, { count: "exact" })
       .order("created_at", { ascending: false })
-      .limit(500);
+      .range(page * PLACES_PER_PAGE, (page + 1) * PLACES_PER_PAGE - 1);
+    if (search) q = q.or(`name.ilike.%${search}%,city.ilike.%${search}%,category.ilike.%${search}%,address.ilike.%${search}%`);
+    if (filter.flagged) q = q.eq("is_flagged", true);
+    if (filter.unverified) q = q.eq("verified", false);
+    if (filter.noPhoto) q = q.is("photo_url", null);
+    if (filter.noPhone) q = q.is("phone", null);
+    if (filter.noWebsite) q = q.is("website", null);
+    if (filter.noHours) q = q.is("opening_hours", null);
+    if (filter.source) q = q.eq("source", filter.source);
+    if (filter.country) q = q.eq("country", filter.country);
+    if (filter.category) q = q.eq("category", filter.category);
+    const { data, count } = await q;
     if (data) setPlaces(data as PublishedPlace[]);
+    setPlacesTotalCount(count ?? 0);
     setPlacesLoading(false);
   }, []);
+
+  const fetchUserPlaces = useCallback(async () => {
+    setUserPlacesLoading(true);
+    const { page, search } = { page: userPlacesPage, search: userPlacesSearch };
+    const COLS = "id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, description, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided, rating, photo_url, verified, is_flagged, report_count, source, source_id, last_updated, google_place_id, created_at";
+    let q = supabase.from("pet_friendly_places").select(COLS, { count: "exact" })
+      .eq("source", "user_submission")
+      .order("created_at", { ascending: false })
+      .range(page * PLACES_PER_PAGE, (page + 1) * PLACES_PER_PAGE - 1);
+    if (search) q = q.or(`name.ilike.%${search}%,city.ilike.%${search}%,category.ilike.%${search}%`);
+    const { data, count } = await q;
+    if (data) setUserPlaces(data as PublishedPlace[]);
+    setUserPlacesTotalCount(count ?? 0);
+    setUserPlacesLoading(false);
+  }, [userPlacesPage, userPlacesSearch]);
 
   const fetchUsers = useCallback(async () => {
     const { data } = await supabase
@@ -583,14 +618,25 @@ const AdminPage = () => {
     fetchNotifications();
     fetchSubmissions();
     fetchReports();
-    fetchPlaces();
     fetchUsers();
     fetchDashboardStats();
     fetchAdminReviews();
     fetchAdminPets();
     const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
-  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces, fetchUsers, fetchDashboardStats, fetchAdminPets]);
+  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchUsers, fetchDashboardStats, fetchAdminPets]);
+
+  // Re-fetch places whenever page, filter or search changes
+  useEffect(() => {
+    placesQueryRef.current = { page: placesPage, filter: placesFilter, search: placesSearch };
+    fetchPlaces();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [placesPage, placesFilter, placesSearch]);
+
+  // Re-fetch user places whenever page or search changes
+  useEffect(() => {
+    fetchUserPlaces();
+  }, [fetchUserPlaces]);
 
   const markNotifRead = async (id: string) => {
     await supabase.from("admin_notifications").update({ is_read: true }).eq("id", id);
@@ -1043,26 +1089,11 @@ const AdminPage = () => {
     return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
   });
 
-  const uniqueSources = [...new Set(places.map(p => p.source).filter(Boolean))];
-  const uniqueCountries = [...new Set(places.map(p => p.country).filter(Boolean))].sort() as string[];
-  const uniquePlaceCategories = [...new Set(places.map(p => p.category).filter(Boolean))].sort() as string[];
-
-  const filteredPlaces = places.filter(p => {
-    if (placesSearch) {
-      const q = placesSearch.toLowerCase();
-      if (!p.name.toLowerCase().includes(q) && !p.city?.toLowerCase().includes(q) && !p.category.toLowerCase().includes(q) && !p.address?.toLowerCase().includes(q)) return false;
-    }
-    if (placesFilter.flagged && !p.is_flagged) return false;
-    if (placesFilter.unverified && p.verified) return false;
-    if (placesFilter.noPhoto && p.photo_url) return false;
-    if (placesFilter.noPhone && p.phone) return false;
-    if (placesFilter.noWebsite && p.website) return false;
-    if (placesFilter.noHours && p.opening_hours) return false;
-    if (placesFilter.source && p.source !== placesFilter.source) return false;
-    if (placesFilter.country && p.country !== placesFilter.country) return false;
-    if (placesFilter.category && p.category !== placesFilter.category) return false;
-    return true;
-  });
+  // Filters are now server-side — places already contains the current page results
+  const filteredPlaces = places;
+  const uniqueSources: string[] = [];
+  const uniqueCountries: string[] = [];
+  const uniquePlaceCategories: string[] = [];
 
   const filteredUsers = users.filter(u => {
     if (!usersSearch) return true;
@@ -1076,8 +1107,9 @@ const AdminPage = () => {
     if (userSort === "is_admin") return (b.is_admin ? 1 : 0) - (a.is_admin ? 1 : 0);
     return 0;
   });
-  const totalPages = Math.ceil(filteredPlaces.length / PLACES_PER_PAGE);
-  const paginatedPlaces = filteredPlaces.slice(placesPage * PLACES_PER_PAGE, (placesPage + 1) * PLACES_PER_PAGE);
+  const totalPages = Math.ceil(placesTotalCount / PLACES_PER_PAGE);
+  const paginatedPlaces = places; // server-side paginated — already the right page
+  const userPlacesTotalPages = Math.ceil(userPlacesTotalCount / PLACES_PER_PAGE);
 
   const computeCompleteness = async () => {
     setCompletenessLoading(true);
@@ -1440,6 +1472,7 @@ const AdminPage = () => {
                 <TabsTrigger value="submissions" className="rounded-xl px-3 py-2 text-sm font-medium">📍 À valider</TabsTrigger>
                 <TabsTrigger value="reports" className="rounded-xl px-3 py-2 text-sm font-medium">⚠️ Signalements</TabsTrigger>
                 <TabsTrigger value="places" className="rounded-xl px-3 py-2 text-sm font-medium">🗺️ Lieux publiés</TabsTrigger>
+                <TabsTrigger value="user_places" className="rounded-xl px-3 py-2 text-sm font-medium">👤 Soumis par utilisateurs</TabsTrigger>
                 <TabsTrigger value="users" className="rounded-xl px-3 py-2 text-sm font-medium">👥 Utilisateurs</TabsTrigger>
                 <TabsTrigger value="reviews" className="rounded-xl px-3 py-2 text-sm font-medium">💬 Avis</TabsTrigger>
                 <TabsTrigger value="pets" className="rounded-xl px-3 py-2 text-sm font-medium">🐾 Animaux</TabsTrigger>
@@ -1957,7 +1990,7 @@ const AdminPage = () => {
                 {uniqueCountries.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               {(placesFilter.flagged || placesFilter.unverified || placesFilter.noPhoto || placesFilter.noPhone || placesFilter.noWebsite || placesFilter.noHours || placesFilter.source || placesFilter.country || placesFilter.category) && (
-                <button onClick={() => setPlacesFilter({ flagged: false, unverified: false, noPhoto: false, noPhone: false, noWebsite: false, noHours: false, source: "", country: "", category: "" })} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border text-muted-foreground hover:bg-muted">✕ Réinitialiser</button>
+                <button onClick={() => { setPlacesFilter({ flagged: false, unverified: false, noPhoto: false, noPhone: false, noWebsite: false, noHours: false, source: "", country: "", category: "" }); setPlacesPage(0); }} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border text-muted-foreground hover:bg-muted">✕ Réinitialiser</button>
               )}
             </div>
 
@@ -2013,7 +2046,7 @@ const AdminPage = () => {
 
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <span>{filteredPlaces.length} lieu{filteredPlaces.length > 1 ? "x" : ""} trouvé{filteredPlaces.length > 1 ? "s" : ""}</span>
+                <span>{placesTotalCount.toLocaleString("fr-FR")} lieu{placesTotalCount > 1 ? "x" : ""} trouvé{placesTotalCount > 1 ? "s" : ""}</span>
                 <button onClick={exportCSV} className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-border bg-background text-muted-foreground hover:bg-muted transition-colors">⬇️ Export CSV</button>
               </div>
               {totalPages > 1 && (
@@ -2132,6 +2165,74 @@ const AdminPage = () => {
                 <Button size="sm" variant="outline" disabled={placesPage >= totalPages - 1} onClick={() => setPlacesPage(p => p + 1)}>
                   Suivant <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="user_places" className="space-y-4 mt-4">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+              <span className="text-blue-600 dark:text-blue-400 font-semibold text-sm">👤 Lieux publiés soumis par des utilisateurs</span>
+              <span className="text-xs text-muted-foreground ml-auto">{userPlacesTotalCount.toLocaleString("fr-FR")} lieux</span>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Rechercher par nom, ville, catégorie…" value={userPlacesSearch} onChange={(e) => { setUserPlacesSearch(e.target.value); setUserPlacesPage(0); }} className="pl-9" />
+            </div>
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>{userPlacesTotalCount.toLocaleString("fr-FR")} lieu{userPlacesTotalCount > 1 ? "x" : ""}</span>
+              {userPlacesTotalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button size="icon" variant="ghost" disabled={userPlacesPage === 0} onClick={() => setUserPlacesPage(p => p - 1)} className="h-8 w-8"><ChevronLeft className="w-4 h-4" /></Button>
+                  <span className="text-xs">{userPlacesPage + 1} / {userPlacesTotalPages}</span>
+                  <Button size="icon" variant="ghost" disabled={userPlacesPage >= userPlacesTotalPages - 1} onClick={() => setUserPlacesPage(p => p + 1)} className="h-8 w-8"><ChevronRight className="w-4 h-4" /></Button>
+                </div>
+              )}
+            </div>
+            {userPlacesLoading && <p className="text-muted-foreground text-center py-8">Chargement…</p>}
+            {!userPlacesLoading && userPlaces.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun lieu soumis par utilisateur</p>}
+            {userPlaces.map(place => (
+              <Card key={place.id} className={place.is_flagged ? "border-orange-400 dark:border-orange-700" : ""}>
+                <CardContent className="pt-4 space-y-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold text-foreground">{place.name}</h3>
+                        {place.verified ? <CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> : <span className="text-[10px] bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 px-2 py-0.5 rounded-full">En attente de vérification</span>}
+                        {place.is_flagged && <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0" />}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <Badge variant="secondary">{place.category}</Badge>
+                        {place.city && <span className="text-xs text-muted-foreground">🏙️ {place.city}{place.country ? `, ${place.country}` : ""}</span>}
+                        {place.address && <span className="text-xs text-muted-foreground"><MapPin className="w-3 h-3 inline mr-0.5" />{place.address}</span>}
+                      </div>
+                    </div>
+                    {place.photo_url && <img src={place.photo_url} alt="" className="w-16 h-16 rounded-lg object-cover shrink-0 border border-border" />}
+                  </div>
+                  <div className="flex gap-1.5 flex-wrap text-xs text-muted-foreground">
+                    {place.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{place.phone}</span>}
+                    {place.website && <span className="flex items-center gap-1"><Globe className="w-3 h-3" />Site web</span>}
+                    {place.opening_hours && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{place.opening_hours}</span>}
+                    {(place.report_count ?? 0) > 0 && <span className="text-orange-500">⚠️ {place.report_count} signalement(s)</span>}
+                  </div>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] text-muted-foreground">Ajouté le {new Date(place.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}</p>
+                    <div className="flex gap-1.5">
+                      {!place.verified && (
+                        <Button size="sm" variant="outline" className="h-7 gap-1 text-xs text-green-600 border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20" onClick={() => quickVerify(place.id)}>✅ Vérifier</Button>
+                      )}
+                      <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={() => openEdit(place)}><Pencil className="w-3 h-3" /> Modifier</Button>
+                      <Button size="sm" variant="outline" className="h-7 gap-1 text-xs text-destructive border-destructive hover:bg-destructive/10" onClick={() => setDeleteDialog({ open: true, place })}><Trash2 className="w-3 h-3" /> Supprimer</Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {userPlacesTotalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <Button size="sm" variant="outline" disabled={userPlacesPage === 0} onClick={() => setUserPlacesPage(p => p - 1)}><ChevronLeft className="w-4 h-4 mr-1" /> Précédent</Button>
+                <span className="text-sm text-muted-foreground">{userPlacesPage + 1} / {userPlacesTotalPages}</span>
+                <Button size="sm" variant="outline" disabled={userPlacesPage >= userPlacesTotalPages - 1} onClick={() => setUserPlacesPage(p => p + 1)}>Suivant <ChevronRight className="w-4 h-4 ml-1" /></Button>
               </div>
             )}
           </TabsContent>
