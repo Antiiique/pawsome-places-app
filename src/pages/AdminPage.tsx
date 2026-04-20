@@ -13,7 +13,8 @@ import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Pencil, Trash2, MapPin, Phone, Globe, Clock, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, Search } from "lucide-react";
+import { Pencil, Trash2, MapPin, Phone, Globe, Clock, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, Search, Map } from "lucide-react";
+import AdminPlaceMap, { type MapAdminPlace } from "@/components/AdminPlaceMap";
 
 interface Notification {
   id: string;
@@ -312,6 +313,8 @@ const AdminPage = () => {
   const [bulkRejectDialog, setBulkRejectDialog] = useState(false);
   const [bulkRejectNote, setBulkRejectNote] = useState("");
   const [placesFilter, setPlacesFilter] = useState({ flagged: false, unverified: false, noPhoto: false, noPhone: false, noWebsite: false, noHours: false, source: "", country: "", category: "" });
+  const [adminMapOpen, setAdminMapOpen] = useState(false);
+  const [adminMapFocusPlace, setAdminMapFocusPlace] = useState<MapAdminPlace | null>(null);
   const [selectedPlaces, setSelectedPlaces] = useState<Set<string>>(new Set());
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [banDialog, setBanDialog] = useState<{ open: boolean; userId: string | null; name: string }>({ open: false, userId: null, name: "" });
@@ -2124,6 +2127,7 @@ const AdminPage = () => {
               <div className="flex items-center gap-2">
                 <span>{placesTotalCount.toLocaleString("fr-FR")} lieu{placesTotalCount > 1 ? "x" : ""} trouvé{placesTotalCount > 1 ? "s" : ""}</span>
                 <button onClick={exportCSV} className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-border bg-background text-muted-foreground hover:bg-muted transition-colors">⬇️ Export CSV</button>
+                <button onClick={() => { setAdminMapFocusPlace(null); setAdminMapOpen(true); }} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border border-border bg-background text-muted-foreground hover:bg-muted transition-colors"><Map className="w-3 h-3" /> Vue carte</button>
               </div>
               {totalPages > 1 && (
                 <div className="flex items-center gap-2">
@@ -2215,6 +2219,11 @@ const AdminPage = () => {
                           ✅ Vérifier
                         </Button>
                       )}
+                      {place.latitude && place.longitude && (
+                        <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={() => { setAdminMapFocusPlace({ id: place.id, name: place.name, category: place.category, city: place.city ?? null, address: place.address ?? null, latitude: place.latitude, longitude: place.longitude, verified: place.verified, is_flagged: place.is_flagged }); setAdminMapOpen(true); }}>
+                          <MapPin className="w-3 h-3" />
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={() => openEdit(place)}>
                         <Pencil className="w-3 h-3" /> Modifier
                       </Button>
@@ -2243,6 +2252,13 @@ const AdminPage = () => {
                 </Button>
               </div>
             )}
+          {adminMapOpen && (
+            <AdminPlaceMap
+              places={paginatedPlaces.filter(p => p.latitude && p.longitude).map(p => ({ id: p.id, name: p.name, category: p.category, city: p.city ?? null, address: p.address ?? null, latitude: p.latitude, longitude: p.longitude, verified: p.verified, is_flagged: p.is_flagged }))}
+              focusPlace={adminMapFocusPlace}
+              onClose={() => { setAdminMapOpen(false); setAdminMapFocusPlace(null); }}
+            />
+          )}
           </TabsContent>
 
           <TabsContent value="user_places" className="space-y-4 mt-4">
