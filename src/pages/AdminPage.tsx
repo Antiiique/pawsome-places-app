@@ -153,6 +153,23 @@ function timeAgo(dateStr: string) {
 
 const PLACES_PER_PAGE = 15;
 
+const CATEGORY_META: Record<string, { label: string; icon: string }> = {
+  veterinaire:  { label: "Vétérinaires",      icon: "🏥" },
+  animalerie:   { label: "Animaleries",        icon: "🐾" },
+  parc:         { label: "Parcs à chiens",     icon: "🐕" },
+  refuge:       { label: "Refuges / Assoc.",   icon: "🚨" },
+  toiletteur:   { label: "Toiletteurs",        icon: "✂️" },
+  pension:      { label: "Pensions",           icon: "🏠" },
+  educateur:    { label: "Éducateurs canins",  icon: "🎓" },
+  restaurant:   { label: "Restaurants",        icon: "🍽️" },
+  hotel:        { label: "Hôtels",             icon: "🏨" },
+  cafe:         { label: "Cafés",              icon: "☕" },
+  camping:      { label: "Campings",           icon: "⛺" },
+  bar:          { label: "Bars",               icon: "🍺" },
+  commerce:     { label: "Commerces",          icon: "🛍️" },
+  plage:        { label: "Plages",             icon: "🏖️" },
+};
+
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -252,6 +269,7 @@ const AdminPage = () => {
   const [placesPage, setPlacesPage] = useState(0);
   const [placesTotalCount, setPlacesTotalCount] = useState(0);
   const [placesMeta, setPlacesMeta] = useState<{ sources: string[]; countries: string[]; categories: string[] }>({ sources: [], countries: [], categories: [] });
+  const [categoryStats, setCategoryStats] = useState<Array<{ category: string; total: number }>>([]);
   const [userPlaces, setUserPlaces] = useState<PublishedPlace[]>([]);
   const [userPlacesLoading, setUserPlacesLoading] = useState(false);
   const [userPlacesPage, setUserPlacesPage] = useState(0);
@@ -447,16 +465,43 @@ const AdminPage = () => {
   const placesQueryRef = useRef({ page: 0, filter: { flagged: false, unverified: false, noPhoto: false, noPhone: false, noWebsite: false, noHours: false, source: "", country: "", category: "" }, search: "" });
 
   const fetchPlacesMeta = useCallback(async () => {
-    const { data } = await supabase
+    // Category stats via SQL function (requires admin_place_stats() in Supabase)
+    const { data: rpcData } = await (supabase as any).rpc("admin_place_stats");
+    if (rpcData && Array.isArray(rpcData)) {
+      setCategoryStats(rpcData.map((r: any) => ({ category: r.category, total: Number(r.total) })));
+      setPlacesMeta(prev => ({
+        ...prev,
+        categories: rpcData.map((r: any) => r.category as string),
+      }));
+    } else {
+      // Fallback: parallel HEAD count queries for known categories
+      const knownCats = Object.keys(CATEGORY_META);
+      const results = await Promise.all(
+        knownCats.map(async (cat) => {
+          const { count } = await supabase
+            .from("pet_friendly_places")
+            .select("*", { count: "exact", head: true })
+            .eq("category", cat);
+          return { category: cat, total: count ?? 0 };
+        })
+      );
+      const nonEmpty = results.filter(r => r.total > 0).sort((a, b) => b.total - a.total);
+      setCategoryStats(nonEmpty);
+      setPlacesMeta(prev => ({ ...prev, categories: nonEmpty.map(r => r.category) }));
+    }
+    // Sources and countries: hardcoded known + sampled
+    const { data: srcData } = await supabase
       .from("pet_friendly_places")
-      .select("source, country, category")
-      .limit(3000);
-    if (data) {
-      setPlacesMeta({
-        sources: [...new Set(data.map((p: any) => p.source).filter(Boolean))].sort() as string[],
-        countries: [...new Set(data.map((p: any) => p.country).filter(Boolean))].sort() as string[],
-        categories: [...new Set(data.map((p: any) => p.category).filter(Boolean))].sort() as string[],
-      });
+      .select("source, country")
+      .not("source", "is", null)
+      .order("source")
+      .limit(200);
+    if (srcData) {
+      setPlacesMeta(prev => ({
+        ...prev,
+        sources: [...new Set(srcData.map((p: any) => p.source).filter(Boolean))].sort() as string[],
+        countries: [...new Set(srcData.map((p: any) => p.country).filter(Boolean))].sort() as string[],
+      }));
     }
   }, []);
 
@@ -2042,17 +2087,27 @@ const AdminPage = () => {
               )}
             </div>
 
-            {places.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {Object.entries(
-                  places.reduce((acc, p) => { acc[p.category] = (acc[p.category] || 0) + 1; return acc; }, {} as Record<string, number>)
-                ).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([cat, count]) => (
-                  <button key={cat} onClick={() => { setPlacesFilter(f => ({ ...f, category: f.category === cat ? "" : cat })); setPlacesPage(0); }}
-                    className={`text-left px-3 py-2 rounded-lg border text-xs transition-colors ${placesFilter.category === cat ? "bg-primary text-white border-primary" : "bg-muted/50 border-border hover:bg-muted"}`}>
-                    <span className="font-semibold">{count.toLocaleString("fr-FR")}</span>
-                    <span className="text-[10px] block truncate opacity-80">{cat}</span>
-                  </button>
-                ))}
+            {categoryStats.length > 0 && (
+              <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
+                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">Répartition par catégorie</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {categoryStats.map(({ category, total }) => {
+                    const meta = CATEGORY_META[category] ?? { label: category, icon: "📍" };
+                    const active = placesFilter.category === category;
+                    return (
+                      <button key={category}
+                        onClick={() => { setPlacesFilter(f => ({ ...f, category: active ? "" : category })); setPlacesPage(0); }}
+                        className={`text-left px-3 py-2 rounded-lg border text-xs transition-colors ${active ? "bg-primary text-white border-primary" : "bg-background border-border hover:bg-muted"}`}>
+                        <span className="text-base leading-none">{meta.icon}</span>
+                        <span className={`font-bold block mt-0.5 ${active ? "text-white" : "text-foreground"}`}>{total.toLocaleString("fr-FR")}</span>
+                        <span className={`text-[10px] block truncate ${active ? "text-white/80" : "text-muted-foreground"}`}>{meta.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className={`text-xs text-right font-semibold ${placesTotalCount > 0 ? "text-foreground" : "text-muted-foreground"}`}>
+                  Total : {placesTotalCount.toLocaleString("fr-FR")} lieux
+                </p>
               </div>
             )}
 
