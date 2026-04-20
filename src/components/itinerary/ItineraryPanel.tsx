@@ -1,4 +1,3 @@
-/// <reference types="google.maps" />
 import { useState, useRef, useEffect, useCallback } from "react";
 import { X, ArrowUpDown, Loader2, MapPin, ExternalLink, Share2, Save, Navigation, Check, Trash2, Play, GripVertical, Plus, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,30 @@ import type { ItineraryMapData, ItineraryStep, PlaceSelection, Waypoint } from "
 import { useSavedItineraries, type SavedItinerary } from "@/hooks/useSavedItineraries";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
+const MAPBOX_TOKEN = (import.meta.env.VITE_MAPBOX_TOKEN as string) || "pk.eyJ1IjoiZWx2aW5hZ2QiLCJhIjoiY21vNzlzaTZ5MDUxMTJxc2V1Ym5sZzVxNyJ9.QVzHhHQIH-DsrHzfi-STRA";
+
+function decodePolyline(encoded: string): { lat: number; lng: number }[] {
+  const pts: { lat: number; lng: number }[] = [];
+  let i = 0, lat = 0, lng = 0;
+  while (i < encoded.length) {
+    let r = 0, s = 0, b: number;
+    do { b = encoded.charCodeAt(i++) - 63; r |= (b & 0x1f) << s; s += 5; } while (b >= 0x20);
+    lat += r & 1 ? ~(r >> 1) : r >> 1;
+    r = 0; s = 0;
+    do { b = encoded.charCodeAt(i++) - 63; r |= (b & 0x1f) << s; s += 5; } while (b >= 0x20);
+    lng += r & 1 ? ~(r >> 1) : r >> 1;
+    pts.push({ lat: lat / 1e5, lng: lng / 1e5 });
+  }
+  return pts;
+}
+
+function distanceBetween(p1: { lat: number; lng: number }, p2: { lat: number; lng: number }): number {
+  const R = 6371000;
+  const dLat = (p2.lat - p1.lat) * Math.PI / 180;
+  const dLng = (p2.lng - p1.lng) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 const STEP_DISTANCE_OPTIONS = [50, 100, 150];
 
@@ -44,12 +67,11 @@ interface ItineraryPanelProps {
 }
 
 interface Prediction {
-  place_id: string;
-  description: string;
-  structured_formatting: {
-    main_text: string;
-    secondary_text: string;
-  };
+  id: string;
+  place_name: string;
+  text: string;
+  context?: Array<{ text: string }>;
+  center: [number, number];
 }
 
 // Global active dropdown tracking
@@ -98,14 +120,15 @@ function PlaceInput({
   };
 
   const fetchPredictions = useCallback((input: string) => {
-    if (!input.trim() || !window.google?.maps?.places) { setPredictions([]); setShowDropdown(false); return; }
-    const service = new google.maps.places.AutocompleteService();
-    service.getPlacePredictions({ input, language: "fr" }, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-        setPredictions(results.slice(0, 5) as unknown as Prediction[]);
-        openMyDropdown();
-      } else { setPredictions([]); setShowDropdown(false); }
-    });
+    if (!input.trim()) { setPredictions([]); setShowDropdown(false); return; }
+    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input)}.json?access_token=${MAPBOX_TOKEN}&language=fr&limit=5`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.features?.length) {
+          setPredictions(data.features);
+          openMyDropdown();
+        } else { setPredictions([]); setShowDropdown(false); }
+      });
   }, [id]);
 
   const handleInput = (text: string) => {
@@ -117,13 +140,8 @@ function PlaceInput({
   const handleSelect = (pred: Prediction) => {
     setShowDropdown(false);
     activeDropdownId = null;
-    onChange(pred.description);
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ placeId: pred.place_id }, (results, status) => {
-      if (status === "OK" && results?.[0]) {
-        onSelect({ location: { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() }, text: results[0].formatted_address });
-      }
-    });
+    onChange(pred.place_name);
+    onSelect({ location: { lat: pred.center[1], lng: pred.center[0] }, text: pred.place_name });
   };
 
   const handleFocus = () => {
@@ -150,11 +168,11 @@ function PlaceInput({
       {showDropdown && predictions.length > 0 && (
         <div className="absolute z-50 left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
           {predictions.map((pred) => (
-            <button key={pred.place_id} onClick={() => handleSelect(pred)} className="w-full text-left px-3 py-2.5 hover:bg-muted transition-colors flex items-start gap-2">
+            <button key={pred.id} onClick={() => handleSelect(pred)} className="w-full text-left px-3 py-2.5 hover:bg-muted transition-colors flex items-start gap-2">
               <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
               <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{pred.structured_formatting.main_text}</p>
-                <p className="text-xs text-muted-foreground truncate">{pred.structured_formatting.secondary_text}</p>
+                <p className="text-sm font-medium text-foreground truncate">{pred.text}</p>
+                <p className="text-xs text-muted-foreground truncate">{pred.context?.map((c) => c.text).join(", ")}</p>
               </div>
             </button>
           ))}
@@ -173,14 +191,13 @@ function WaypointSearchInput({ onSelect, onCancel }: { onSelect: (wp: Omit<Waypo
   const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchPredictions = useCallback((input: string) => {
-    if (!input.trim() || !window.google?.maps?.places) { setPredictions([]); setShowDropdown(false); return; }
-    const service = new google.maps.places.AutocompleteService();
-    service.getPlacePredictions({ input, language: "fr" }, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-        setPredictions(results.slice(0, 5) as unknown as Prediction[]);
-        setShowDropdown(true);
-      } else { setPredictions([]); setShowDropdown(false); }
-    });
+    if (!input.trim()) { setPredictions([]); setShowDropdown(false); return; }
+    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input)}.json?access_token=${MAPBOX_TOKEN}&language=fr&limit=5`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.features?.length) { setPredictions(data.features); setShowDropdown(true); }
+        else { setPredictions([]); setShowDropdown(false); }
+      });
   }, []);
 
   const handleInput = (val: string) => {
@@ -191,18 +208,7 @@ function WaypointSearchInput({ onSelect, onCancel }: { onSelect: (wp: Omit<Waypo
 
   const handleSelect = (pred: Prediction) => {
     setShowDropdown(false);
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ placeId: pred.place_id }, (results, status) => {
-      if (status === "OK" && results?.[0]) {
-        onSelect({
-          name: pred.structured_formatting.main_text,
-          lat: results[0].geometry.location.lat(),
-          lng: results[0].geometry.location.lng(),
-          category: "other",
-          isPetFriendly: false,
-        });
-      }
-    });
+    onSelect({ name: pred.text, lat: pred.center[1], lng: pred.center[0], category: "other", isPetFriendly: false });
   };
 
   useEffect(() => {
@@ -227,11 +233,11 @@ function WaypointSearchInput({ onSelect, onCancel }: { onSelect: (wp: Omit<Waypo
       {showDropdown && predictions.length > 0 && (
         <div className="absolute z-50 left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
           {predictions.map((pred) => (
-            <button key={pred.place_id} onClick={() => handleSelect(pred)} className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-start gap-2">
+            <button key={pred.id} onClick={() => handleSelect(pred)} className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-start gap-2">
               <MapPin className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
               <div className="min-w-0">
-                <p className="text-xs font-medium text-foreground truncate">{pred.structured_formatting.main_text}</p>
-                <p className="text-[11px] text-muted-foreground truncate">{pred.structured_formatting.secondary_text}</p>
+                <p className="text-xs font-medium text-foreground truncate">{pred.text}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{pred.context?.map((c) => c.text).join(", ")}</p>
               </div>
             </button>
           ))}
@@ -437,12 +443,12 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
       });
       setLegs(legsSummary);
 
-      const decodedPath = google.maps.geometry.encoding.decodePath(route.polyline.encodedPolyline);
+      const decodedPath = decodePolyline(route.polyline.encodedPolyline);
 
       let cumDist = 0;
-      const pathWithDist: { point: google.maps.LatLng; dist: number }[] = [{ point: decodedPath[0], dist: 0 }];
+      const pathWithDist: { point: { lat: number; lng: number }; dist: number }[] = [{ point: decodedPath[0], dist: 0 }];
       for (let i = 1; i < decodedPath.length; i++) {
-        cumDist += google.maps.geometry.spherical.computeDistanceBetween(decodedPath[i - 1], decodedPath[i]);
+        cumDist += distanceBetween(decodedPath[i - 1], decodedPath[i]);
         pathWithDist.push({ point: decodedPath[i], dist: cumDist });
       }
 
@@ -451,7 +457,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
       let nextCheckDist = stepDistanceM;
       for (const pd of pathWithDist) {
         if (pd.dist >= nextCheckDist) {
-          checkpoints.push({ lat: pd.point.lat(), lng: pd.point.lng(), dist: pd.dist / 1000 });
+          checkpoints.push({ lat: pd.point.lat, lng: pd.point.lng, dist: pd.dist / 1000 });
           nextCheckDist += stepDistanceM;
         }
       }
@@ -474,12 +480,12 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
       let nextPause = 160000;
       for (const pd of pathWithDist) {
         if (pd.dist >= nextPause) {
-          pausePoints.push({ lat: pd.point.lat(), lng: pd.point.lng(), distance_km: pd.dist / 1000 });
+          pausePoints.push({ lat: pd.point.lat, lng: pd.point.lng, distance_km: pd.dist / 1000 });
           nextPause += 160000;
         }
       }
 
-      const routePath = decodedPath.map((p) => ({ lat: p.lat(), lng: p.lng() }));
+      const routePath = decodedPath.map((p) => ({ lat: p.lat, lng: p.lng }));
       const totalDistanceText = `${distanceKm} km`;
       const totalDurationText = hours > 0 ? `${hours}h${mins.toString().padStart(2, "0")}` : `${mins} min`;
 
