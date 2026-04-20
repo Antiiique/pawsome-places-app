@@ -251,6 +251,7 @@ const AdminPage = () => {
   const [placesSearch, setPlacesSearch] = useState("");
   const [placesPage, setPlacesPage] = useState(0);
   const [placesTotalCount, setPlacesTotalCount] = useState(0);
+  const [placesMeta, setPlacesMeta] = useState<{ sources: string[]; countries: string[]; categories: string[] }>({ sources: [], countries: [], categories: [] });
   const [userPlaces, setUserPlaces] = useState<PublishedPlace[]>([]);
   const [userPlacesLoading, setUserPlacesLoading] = useState(false);
   const [userPlacesPage, setUserPlacesPage] = useState(0);
@@ -445,26 +446,45 @@ const AdminPage = () => {
 
   const placesQueryRef = useRef({ page: 0, filter: { flagged: false, unverified: false, noPhoto: false, noPhone: false, noWebsite: false, noHours: false, source: "", country: "", category: "" }, search: "" });
 
+  const fetchPlacesMeta = useCallback(async () => {
+    const { data } = await supabase
+      .from("pet_friendly_places")
+      .select("source, country, category")
+      .limit(3000);
+    if (data) {
+      setPlacesMeta({
+        sources: [...new Set(data.map((p: any) => p.source).filter(Boolean))].sort() as string[],
+        countries: [...new Set(data.map((p: any) => p.country).filter(Boolean))].sort() as string[],
+        categories: [...new Set(data.map((p: any) => p.category).filter(Boolean))].sort() as string[],
+      });
+    }
+  }, []);
+
   const fetchPlaces = useCallback(async () => {
     const { page, filter, search } = placesQueryRef.current;
     setPlacesLoading(true);
     const COLS = "id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, description, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided, rating, photo_url, verified, is_flagged, report_count, source, source_id, last_updated, google_place_id, created_at";
-    let q = supabase.from("pet_friendly_places").select(COLS, { count: "exact" })
-      .order("created_at", { ascending: false })
-      .range(page * PLACES_PER_PAGE, (page + 1) * PLACES_PER_PAGE - 1);
-    if (search) q = q.or(`name.ilike.%${search}%,city.ilike.%${search}%,category.ilike.%${search}%,address.ilike.%${search}%`);
-    if (filter.flagged) q = q.eq("is_flagged", true);
-    if (filter.unverified) q = q.eq("verified", false);
-    if (filter.noPhoto) q = q.is("photo_url", null);
-    if (filter.noPhone) q = q.is("phone", null);
-    if (filter.noWebsite) q = q.is("website", null);
-    if (filter.noHours) q = q.is("opening_hours", null);
-    if (filter.source) q = q.eq("source", filter.source);
-    if (filter.country) q = q.eq("country", filter.country);
-    if (filter.category) q = q.eq("category", filter.category);
-    const { data, count } = await q;
-    if (data) setPlaces(data as PublishedPlace[]);
-    setPlacesTotalCount(count ?? 0);
+
+    const applyFilters = (q: any) => {
+      if (search) q = q.or(`name.ilike.%${search}%,city.ilike.%${search}%,category.ilike.%${search}%,address.ilike.%${search}%`);
+      if (filter.flagged) q = q.eq("is_flagged", true);
+      if (filter.unverified) q = q.eq("verified", false);
+      if (filter.noPhoto) q = q.is("photo_url", null);
+      if (filter.noPhone) q = q.is("phone", null);
+      if (filter.noWebsite) q = q.is("website", null);
+      if (filter.noHours) q = q.is("opening_hours", null);
+      if (filter.source) q = q.eq("source", filter.source);
+      if (filter.country) q = q.eq("country", filter.country);
+      if (filter.category) q = q.eq("category", filter.category);
+      return q;
+    };
+
+    const [countRes, dataRes] = await Promise.all([
+      applyFilters(supabase.from("pet_friendly_places").select("*", { count: "exact", head: true })),
+      applyFilters(supabase.from("pet_friendly_places").select(COLS).order("created_at", { ascending: false })).range(page * PLACES_PER_PAGE, (page + 1) * PLACES_PER_PAGE - 1),
+    ]);
+    setPlacesTotalCount(countRes.count ?? 0);
+    if (dataRes.data) setPlaces(dataRes.data as PublishedPlace[]);
     setPlacesLoading(false);
   }, []);
 
@@ -622,9 +642,10 @@ const AdminPage = () => {
     fetchDashboardStats();
     fetchAdminReviews();
     fetchAdminPets();
+    fetchPlacesMeta();
     const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
-  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchUsers, fetchDashboardStats, fetchAdminPets]);
+  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchUsers, fetchDashboardStats, fetchAdminPets, fetchPlacesMeta]);
 
   // Re-fetch places whenever page, filter or search changes
   useEffect(() => {
@@ -1091,9 +1112,9 @@ const AdminPage = () => {
 
   // Filters are now server-side — places already contains the current page results
   const filteredPlaces = places;
-  const uniqueSources: string[] = [];
-  const uniqueCountries: string[] = [];
-  const uniquePlaceCategories: string[] = [];
+  const uniqueSources = placesMeta.sources;
+  const uniqueCountries = placesMeta.countries;
+  const uniquePlaceCategories = placesMeta.categories;
 
   const filteredUsers = users.filter(u => {
     if (!usersSearch) return true;
