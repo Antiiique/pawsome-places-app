@@ -551,6 +551,24 @@ const AdminPage = () => {
     setDashboardLoading(false);
   }, []);
 
+  const fetchAdminPets = useCallback(async () => {
+    setAdminPetsLoading(true);
+    const { data: pets } = await supabase.from("pets" as any).select("*, pet_photos(id, url)").order("created_at", { ascending: false });
+    if (!pets) { setAdminPetsLoading(false); return; }
+    const userIds = [...new Set((pets as any[]).map((p: any) => p.user_id))];
+    const { data: profiles } = userIds.length
+      ? await supabase.from("profiles").select("id, display_name, avatar_url").in("id", userIds)
+      : { data: [] };
+    const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.id, p]));
+    setAdminPets((pets as any[]).map((pet: any) => ({
+      ...pet,
+      owner_name: profileMap[pet.user_id]?.display_name ?? null,
+      owner_avatar: profileMap[pet.user_id]?.avatar_url ?? null,
+      photo_count: pet.pet_photos?.length ?? 0,
+    })));
+    setAdminPetsLoading(false);
+  }, []);
+
   useEffect(() => {
     fetchCounts();
     fetchNotifications();
@@ -1205,24 +1223,6 @@ const AdminPage = () => {
     setSavedFilters(updated);
     localStorage.setItem("admin_saved_filters", JSON.stringify(updated));
   };
-
-  const fetchAdminPets = useCallback(async () => {
-    setAdminPetsLoading(true);
-    const { data: pets } = await supabase.from("pets" as any).select("*, pet_photos(id, url)").order("created_at", { ascending: false });
-    if (!pets) { setAdminPetsLoading(false); return; }
-    const userIds = [...new Set((pets as any[]).map((p: any) => p.user_id))];
-    const { data: profiles } = userIds.length
-      ? await supabase.from("profiles").select("id, display_name, avatar_url").in("id", userIds)
-      : { data: [] };
-    const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.id, p]));
-    setAdminPets((pets as any[]).map((pet: any) => ({
-      ...pet,
-      owner_name: profileMap[pet.user_id]?.display_name ?? null,
-      owner_avatar: profileMap[pet.user_id]?.avatar_url ?? null,
-      photo_count: pet.pet_photos?.length ?? 0,
-    })));
-    setAdminPetsLoading(false);
-  }, []);
 
   const openPetAlbumAdmin = async (pet: AdminPet) => {
     setAlbumDialogPet(pet);
