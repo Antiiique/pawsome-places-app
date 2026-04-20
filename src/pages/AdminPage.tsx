@@ -1045,7 +1045,7 @@ const AdminPage = () => {
 
   const uniqueSources = [...new Set(places.map(p => p.source).filter(Boolean))];
   const uniqueCountries = [...new Set(places.map(p => p.country).filter(Boolean))].sort() as string[];
-  const uniqueCategories = [...new Set(places.map(p => p.category).filter(Boolean))].sort() as string[];
+  const uniquePlaceCategories = [...new Set(places.map(p => p.category).filter(Boolean))].sort() as string[];
 
   const filteredPlaces = places.filter(p => {
     if (placesSearch) {
@@ -1946,7 +1946,7 @@ const AdminPage = () => {
               <button onClick={() => setPlacesFilter(f => ({ ...f, noHours: !f.noHours }))} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${placesFilter.noHours ? "bg-primary text-white border-primary" : "bg-background border-border text-muted-foreground hover:border-primary"}`}>🕐 Sans horaires</button>
               <select value={placesFilter.category} onChange={(e) => { setPlacesFilter(f => ({ ...f, category: e.target.value })); setPlacesPage(0); }} className="h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground">
                 <option value="">Toutes catégories</option>
-                {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                {uniquePlaceCategories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               <select value={placesFilter.source} onChange={(e) => setPlacesFilter(f => ({ ...f, source: e.target.value }))} className="h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground">
                 <option value="">Toutes sources</option>
