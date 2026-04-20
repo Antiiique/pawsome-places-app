@@ -744,6 +744,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_place_stats: {
+        Args: never
+        Returns: {
+          category: string
+          total: number
+        }[]
+      }
       get_nearby_pet_places: {
         Args: {
           cat_filter?: string
