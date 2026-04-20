@@ -286,7 +286,9 @@ const AdminPage = () => {
   const [submissionMapOpen, setSubmissionMapOpen] = useState<string | null>(null);
   const [bulkRejectDialog, setBulkRejectDialog] = useState(false);
   const [bulkRejectNote, setBulkRejectNote] = useState("");
-  const [placesFilter, setPlacesFilter] = useState({ flagged: false, unverified: false, noPhoto: false, source: "", country: "" });
+  const [placesFilter, setPlacesFilter] = useState({ flagged: false, unverified: false, noPhoto: false, noPhone: false, noWebsite: false, noHours: false, source: "", country: "", category: "" });
+  const [selectedPlaces, setSelectedPlaces] = useState<Set<string>>(new Set());
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [banDialog, setBanDialog] = useState<{ open: boolean; userId: string | null; name: string }>({ open: false, userId: null, name: "" });
   const [banReason, setBanReason] = useState("");
   const [banDuration, setBanDuration] = useState("permanent");
@@ -887,6 +889,35 @@ const AdminPage = () => {
     fetchCounts();
   };
 
+  const quickVerify = async (placeId: string) => {
+    await supabase.from("pet_friendly_places").update({ verified: true }).eq("id", placeId);
+    setPlaces(prev => prev.map(p => p.id === placeId ? { ...p, verified: true } : p));
+    toast.success("Lieu vérifié ✅");
+  };
+
+  const bulkVerify = async () => {
+    if (selectedPlaces.size === 0) return;
+    setBulkActionLoading(true);
+    const ids = [...selectedPlaces];
+    await supabase.from("pet_friendly_places").update({ verified: true }).in("id", ids);
+    setPlaces(prev => prev.map(p => ids.includes(p.id) ? { ...p, verified: true } : p));
+    setSelectedPlaces(new Set());
+    setBulkActionLoading(false);
+    toast.success(`✅ ${ids.length} lieux vérifiés`);
+  };
+
+  const bulkDelete = async () => {
+    if (selectedPlaces.size === 0) return;
+    if (!confirm(`Supprimer définitivement ${selectedPlaces.size} lieu(x) ?`)) return;
+    setBulkActionLoading(true);
+    const ids = [...selectedPlaces];
+    await supabase.from("pet_friendly_places").delete().in("id", ids);
+    setPlaces(prev => prev.filter(p => !ids.includes(p.id)));
+    setSelectedPlaces(new Set());
+    setBulkActionLoading(false);
+    toast.success(`🗑️ ${ids.length} lieux supprimés`);
+  };
+
   const exportCSV = () => {
     const headers = ["Nom","Catégorie","Ville","Pays","Adresse","Téléphone","Site web","Horaires","Note","Chiens","Chats","Vérifié","Source","Lat","Lng"];
     const rows = filteredPlaces.map(p => [
@@ -1014,6 +1045,7 @@ const AdminPage = () => {
 
   const uniqueSources = [...new Set(places.map(p => p.source).filter(Boolean))];
   const uniqueCountries = [...new Set(places.map(p => p.country).filter(Boolean))].sort() as string[];
+  const uniqueCategories = [...new Set(places.map(p => p.category).filter(Boolean))].sort() as string[];
 
   const filteredPlaces = places.filter(p => {
     if (placesSearch) {
@@ -1023,8 +1055,12 @@ const AdminPage = () => {
     if (placesFilter.flagged && !p.is_flagged) return false;
     if (placesFilter.unverified && p.verified) return false;
     if (placesFilter.noPhoto && p.photo_url) return false;
+    if (placesFilter.noPhone && p.phone) return false;
+    if (placesFilter.noWebsite && p.website) return false;
+    if (placesFilter.noHours && p.opening_hours) return false;
     if (placesFilter.source && p.source !== placesFilter.source) return false;
     if (placesFilter.country && p.country !== placesFilter.country) return false;
+    if (placesFilter.category && p.category !== placesFilter.category) return false;
     return true;
   });
 
@@ -1905,6 +1941,13 @@ const AdminPage = () => {
               <button onClick={() => setPlacesFilter(f => ({ ...f, flagged: !f.flagged }))} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${placesFilter.flagged ? "bg-orange-500 text-white border-orange-500" : "bg-background border-border text-muted-foreground hover:border-orange-400"}`}>⚠️ Signalés</button>
               <button onClick={() => setPlacesFilter(f => ({ ...f, unverified: !f.unverified }))} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${placesFilter.unverified ? "bg-destructive text-white border-destructive" : "bg-background border-border text-muted-foreground hover:border-destructive"}`}>❌ Non vérifiés</button>
               <button onClick={() => setPlacesFilter(f => ({ ...f, noPhoto: !f.noPhoto }))} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${placesFilter.noPhoto ? "bg-primary text-white border-primary" : "bg-background border-border text-muted-foreground hover:border-primary"}`}>📷 Sans photo</button>
+              <button onClick={() => setPlacesFilter(f => ({ ...f, noPhone: !f.noPhone }))} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${placesFilter.noPhone ? "bg-primary text-white border-primary" : "bg-background border-border text-muted-foreground hover:border-primary"}`}>📞 Sans tél.</button>
+              <button onClick={() => setPlacesFilter(f => ({ ...f, noWebsite: !f.noWebsite }))} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${placesFilter.noWebsite ? "bg-primary text-white border-primary" : "bg-background border-border text-muted-foreground hover:border-primary"}`}>🌐 Sans site</button>
+              <button onClick={() => setPlacesFilter(f => ({ ...f, noHours: !f.noHours }))} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${placesFilter.noHours ? "bg-primary text-white border-primary" : "bg-background border-border text-muted-foreground hover:border-primary"}`}>🕐 Sans horaires</button>
+              <select value={placesFilter.category} onChange={(e) => { setPlacesFilter(f => ({ ...f, category: e.target.value })); setPlacesPage(0); }} className="h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground">
+                <option value="">Toutes catégories</option>
+                {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
               <select value={placesFilter.source} onChange={(e) => setPlacesFilter(f => ({ ...f, source: e.target.value }))} className="h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground">
                 <option value="">Toutes sources</option>
                 {uniqueSources.map(s => <option key={String(s)} value={String(s)}>{String(s)}</option>)}
@@ -1913,8 +1956,8 @@ const AdminPage = () => {
                 <option value="">Tous pays</option>
                 {uniqueCountries.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
-              {(placesFilter.flagged || placesFilter.unverified || placesFilter.noPhoto || placesFilter.source || placesFilter.country) && (
-                <button onClick={() => setPlacesFilter({ flagged: false, unverified: false, noPhoto: false, source: "", country: "" })} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border text-muted-foreground hover:bg-muted">✕ Réinitialiser</button>
+              {(placesFilter.flagged || placesFilter.unverified || placesFilter.noPhoto || placesFilter.noPhone || placesFilter.noWebsite || placesFilter.noHours || placesFilter.source || placesFilter.country || placesFilter.category) && (
+                <button onClick={() => setPlacesFilter({ flagged: false, unverified: false, noPhoto: false, noPhone: false, noWebsite: false, noHours: false, source: "", country: "", category: "" })} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border text-muted-foreground hover:bg-muted">✕ Réinitialiser</button>
               )}
             </div>
 
@@ -1945,6 +1988,29 @@ const AdminPage = () => {
               )}
             </div>
 
+            {places.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {Object.entries(
+                  places.reduce((acc, p) => { acc[p.category] = (acc[p.category] || 0) + 1; return acc; }, {} as Record<string, number>)
+                ).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([cat, count]) => (
+                  <button key={cat} onClick={() => { setPlacesFilter(f => ({ ...f, category: f.category === cat ? "" : cat })); setPlacesPage(0); }}
+                    className={`text-left px-3 py-2 rounded-lg border text-xs transition-colors ${placesFilter.category === cat ? "bg-primary text-white border-primary" : "bg-muted/50 border-border hover:bg-muted"}`}>
+                    <span className="font-semibold">{count.toLocaleString("fr-FR")}</span>
+                    <span className="text-[10px] block truncate opacity-80">{cat}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {selectedPlaces.size > 0 && (
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/30">
+                <span className="text-xs font-semibold text-primary flex-1">{selectedPlaces.size} lieu(x) sélectionné(s)</span>
+                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={bulkVerify} disabled={bulkActionLoading}>✅ Vérifier tout</Button>
+                <Button size="sm" variant="outline" className="h-7 text-xs text-destructive border-destructive hover:bg-destructive/10" onClick={bulkDelete} disabled={bulkActionLoading}>🗑️ Supprimer tout</Button>
+                <button className="text-xs text-muted-foreground hover:text-foreground" onClick={() => setSelectedPlaces(new Set())}>✕</button>
+              </div>
+            )}
+
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <span>{filteredPlaces.length} lieu{filteredPlaces.length > 1 ? "x" : ""} trouvé{filteredPlaces.length > 1 ? "s" : ""}</span>
@@ -1970,9 +2036,13 @@ const AdminPage = () => {
             )}
 
             {paginatedPlaces.map(place => (
-              <Card key={place.id} className={place.is_flagged ? "border-orange-400 dark:border-orange-700" : ""}>
+              <Card key={place.id} className={`${place.is_flagged ? "border-orange-400 dark:border-orange-700" : ""} ${selectedPlaces.has(place.id) ? "ring-2 ring-primary" : ""}`}>
                 <CardContent className="pt-4 space-y-2">
                   <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2 flex-1 min-w-0">
+                      <input type="checkbox" checked={selectedPlaces.has(place.id)} onChange={e => {
+                        setSelectedPlaces(prev => { const s = new Set(prev); e.target.checked ? s.add(place.id) : s.delete(place.id); return s; });
+                      }} className="mt-1 shrink-0 accent-primary" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold text-foreground">{place.name}</h3>
@@ -1995,6 +2065,7 @@ const AdminPage = () => {
                           <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{place.source}</span>
                         )}
                       </div>
+                    </div>
                     </div>
                     {place.photo_url && (
                       <img src={place.photo_url} alt="" className="w-16 h-16 rounded-lg object-cover shrink-0 border border-border" />
@@ -2030,6 +2101,11 @@ const AdminPage = () => {
                       {place.last_updated && ` • MAJ ${timeAgo(place.last_updated)}`}
                     </p>
                     <div className="flex gap-1.5">
+                      {!place.verified && (
+                        <Button size="sm" variant="outline" className="h-7 gap-1 text-xs text-green-600 border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20" onClick={() => quickVerify(place.id)}>
+                          ✅ Vérifier
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={() => openEdit(place)}>
                         <Pencil className="w-3 h-3" /> Modifier
                       </Button>
