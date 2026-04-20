@@ -42,15 +42,16 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
 
   return (
     <>
-      {/* Mobile overlay to close on outside tap */}
+      {/* Overlay — ferme le panneau au clic extérieur sur tous les écrans */}
       <div
-        className="fixed inset-0 z-[199] bg-black/30 sm:hidden"
+        className="fixed inset-0 z-[9998]"
         onClick={onClose}
       />
 
       <div
         data-panel="notifications"
-        className="fixed sm:absolute top-[56px] sm:top-full right-0 sm:mt-1 w-screen sm:w-[360px] max-h-[calc(100dvh-56px)] sm:max-h-[480px] bg-card border border-border sm:rounded-xl shadow-xl z-[200] flex flex-col overflow-hidden"
+        className="fixed top-[60px] right-2 z-[9999] flex flex-col overflow-hidden bg-card border border-border rounded-xl shadow-2xl"
+        style={{ width: "min(360px, calc(100vw - 16px))", maxHeight: "calc(100dvh - 76px)" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">

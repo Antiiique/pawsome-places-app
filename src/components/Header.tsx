@@ -3,7 +3,7 @@ import { Menu, Navigation, Heart, UserCircle, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import SubmitPlaceModal from "@/components/SubmitPlaceModal";
@@ -27,7 +27,6 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const { user, profile, signOut } = useAuthContext();
   const { unreadCount } = useUserNotifications();
-  const notifRef = useRef<HTMLDivElement>(null);
 
   const handleSignOut = async () => {
     await signOut();
@@ -47,19 +46,6 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
     if (user) setShowAuthModal(false);
   }, [user]);
 
-  // Close notification panel on outside click
-  useEffect(() => {
-    if (!showNotifications) return;
-    const handler = (e: MouseEvent) => {
-      const panel = document.querySelector('[data-panel="notifications"]');
-      const target = e.target as Node;
-      if (panel && !panel.contains(target) && notifRef.current && !notifRef.current.contains(target)) {
-        setShowNotifications(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [showNotifications]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border" style={{ height: 56 }}>
@@ -88,7 +74,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
           </Button>
 
           {user && (
-            <div className="relative" ref={notifRef}>
+            <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="relative p-2 rounded-full hover:bg-muted transition-colors"
@@ -124,7 +110,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
                     {initial}
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-56 p-2" align="end">
+                <PopoverContent className="w-56 p-2 z-[9999]" align="end">
                   <div className="px-2 py-1.5">
                     <p className="text-sm font-medium">👤 {profile?.display_name || "Utilisateur"}</p>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
@@ -142,7 +128,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
                   {profile?.is_admin && (
                     <>
                       <Separator className="my-1" />
-                      <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); window.open("/admin", "_blank"); }}>
+                      <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); window.location.href = "/admin"; }}>
                         ⚙️ Administration
                       </button>
                     </>
