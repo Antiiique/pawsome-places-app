@@ -42,6 +42,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
     return () => window.removeEventListener("open-auth-modal", handler);
   }, []);
 
+  // Auto-close auth modal when user becomes authenticated
   useEffect(() => {
     if (user) setShowAuthModal(false);
   }, [user]);
