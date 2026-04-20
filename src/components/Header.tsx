@@ -24,6 +24,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const { user, profile, signOut } = useAuthContext();
   const { unreadCount } = useUserNotifications();
   const notifRef = useRef<HTMLDivElement>(null);
