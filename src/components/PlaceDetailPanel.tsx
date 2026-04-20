@@ -1,6 +1,7 @@
-import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft, ThumbsUp, Flag, Trash2 } from "lucide-react";
+import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft, ThumbsUp, Flag, Trash2, Pencil, ChevronDown, ChevronUp, Save, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -83,10 +84,17 @@ interface PlaceDetailPanelProps {
   onReport?: () => void;
 }
 
+const KNOWN_CATEGORIES = [
+  "veterinaire","animalerie","parc","refuge","toiletteur","pension","educateur",
+  "restaurant","hotel","cafe","camping","bar","commerce","plage",
+];
+
 const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport }: PlaceDetailPanelProps) => {
   if (!place) return null;
 
-  const { user } = useAuthContext();
+  const { user, profile } = useAuthContext();
+  const isAdmin = profile?.is_admin === true;
+
   const [activeTab, setActiveTab] = useState<"google" | "community">("google");
   const [reviews, setReviews] = useState<PlaceReview[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
@@ -95,6 +103,23 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   const [newBody, setNewBody] = useState("");
   const [visitedWithPet, setVisitedWithPet] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Admin edit
+  const [adminEditOpen, setAdminEditOpen] = useState(false);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editForm, setEditForm] = useState<{
+    name: string; category: string; subcategory: string; address: string; city: string;
+    country: string; phone: string; website: string; opening_hours: string;
+    description: string; photo_url: string;
+    accepts_dogs: boolean; accepts_cats: boolean; dogs_on_leash_only: boolean;
+    outdoor_seating: boolean; water_bowl_provided: boolean; verified: boolean;
+  }>({
+    name: "", category: "", subcategory: "", address: "", city: "",
+    country: "", phone: "", website: "", opening_hours: "",
+    description: "", photo_url: "",
+    accepts_dogs: false, accepts_cats: false, dogs_on_leash_only: false,
+    outdoor_seating: false, water_bowl_provided: false, verified: false,
+  });
 
   const userReview = reviews.find(r => r.user_id === user?.id);
   const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
@@ -107,7 +132,60 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     setNewRating(0);
     setNewBody("");
     setVisitedWithPet(false);
+    setAdminEditOpen(false);
   }, [place?.id]);
+
+  useEffect(() => {
+    if (adminEditOpen) {
+      setEditForm({
+        name: place.name ?? "",
+        category: place.category ?? "",
+        subcategory: place.subcategory ?? "",
+        address: place.address ?? "",
+        city: place.city ?? "",
+        country: place.country ?? "",
+        phone: place.phone ?? "",
+        website: place.website ?? "",
+        opening_hours: place.opening_hours ?? "",
+        description: place.description ?? "",
+        photo_url: place.photo_url ?? "",
+        accepts_dogs: place.accepts_dogs ?? false,
+        accepts_cats: place.accepts_cats ?? false,
+        dogs_on_leash_only: place.dogs_on_leash_only ?? false,
+        outdoor_seating: place.outdoor_seating ?? false,
+        water_bowl_provided: (place as any).water_bowl_provided ?? false,
+        verified: place.verified ?? false,
+      });
+    }
+  }, [adminEditOpen]);
+
+  async function saveAdminEdit() {
+    setEditSaving(true);
+    const { error } = await supabase.from("pet_friendly_places").update({
+      name: editForm.name,
+      category: editForm.category,
+      subcategory: editForm.subcategory || null,
+      address: editForm.address || null,
+      city: editForm.city || null,
+      country: editForm.country || null,
+      phone: editForm.phone || null,
+      website: editForm.website || null,
+      opening_hours: editForm.opening_hours || null,
+      description: editForm.description || null,
+      photo_url: editForm.photo_url || null,
+      accepts_dogs: editForm.accepts_dogs,
+      accepts_cats: editForm.accepts_cats,
+      dogs_on_leash_only: editForm.dogs_on_leash_only,
+      outdoor_seating: editForm.outdoor_seating,
+      water_bowl_provided: editForm.water_bowl_provided,
+      verified: editForm.verified,
+      last_updated: new Date().toISOString(),
+    }).eq("id", place.id);
+    setEditSaving(false);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    toast.success(`✅ "${editForm.name}" mis à jour`);
+    setAdminEditOpen(false);
+  }
 
   async function loadReviews() {
     setLoadingReviews(true);
@@ -400,6 +478,151 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Description</p>
             <p className="text-sm text-foreground leading-relaxed">{place.description}</p>
+          </div>
+        )}
+
+        {isAdmin && (
+          <div className="rounded-xl border border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-950/30 overflow-hidden">
+            <button
+              onClick={() => setAdminEditOpen(o => !o)}
+              className="w-full flex items-center justify-between px-4 py-3 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors"
+            >
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <Pencil className="w-4 h-4" /> Modifier ce lieu (Admin)
+              </span>
+              {adminEditOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {adminEditOpen && (
+              <div className="px-4 pb-4 space-y-4 border-t border-violet-200 dark:border-violet-700 pt-4">
+
+                {/* Informations de base */}
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">Informations générales</p>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-0.5 block">Nom</label>
+                      <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="h-8 text-sm" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-0.5 block">Catégorie</label>
+                        <select
+                          value={editForm.category}
+                          onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}
+                          className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm"
+                        >
+                          {KNOWN_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                          {!KNOWN_CATEGORIES.includes(editForm.category) && editForm.category && (
+                            <option value={editForm.category}>{editForm.category}</option>
+                          )}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-0.5 block">Sous-catégorie</label>
+                        <Input value={editForm.subcategory} onChange={e => setEditForm(f => ({ ...f, subcategory: e.target.value }))} className="h-8 text-sm" placeholder="Optionnel" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-0.5 block">Description</label>
+                      <textarea
+                        value={editForm.description}
+                        onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
+                        rows={3}
+                        className="w-full text-sm rounded-md border border-input bg-background px-3 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                        placeholder="Description du lieu…"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Localisation */}
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">Localisation</p>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-0.5 block">Adresse</label>
+                      <Input value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} className="h-8 text-sm" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-0.5 block">Ville</label>
+                        <Input value={editForm.city} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} className="h-8 text-sm" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-0.5 block">Pays</label>
+                        <Input value={editForm.country} onChange={e => setEditForm(f => ({ ...f, country: e.target.value }))} className="h-8 text-sm" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact */}
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">Contact</p>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-0.5 block">Téléphone</label>
+                      <Input value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} className="h-8 text-sm" placeholder="+33 1 23 45 67 89" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-0.5 block">Site web</label>
+                      <Input value={editForm.website} onChange={e => setEditForm(f => ({ ...f, website: e.target.value }))} className="h-8 text-sm" placeholder="https://…" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-0.5 block">Horaires</label>
+                      <Input value={editForm.opening_hours} onChange={e => setEditForm(f => ({ ...f, opening_hours: e.target.value }))} className="h-8 text-sm" placeholder="Lun–Ven 9h–18h" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-0.5 block">URL photo</label>
+                      <Input value={editForm.photo_url} onChange={e => setEditForm(f => ({ ...f, photo_url: e.target.value }))} className="h-8 text-sm" placeholder="https://…" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Options pet-friendly */}
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">Options Pet-Friendly</p>
+                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                    {([
+                      { key: "accepts_dogs", label: "🐕 Chiens acceptés" },
+                      { key: "accepts_cats", label: "🐈 Chats acceptés" },
+                      { key: "outdoor_seating", label: "🌿 Terrasse" },
+                      { key: "water_bowl_provided", label: "🥣 Gamelle d'eau" },
+                      { key: "dogs_on_leash_only", label: "🦮 Laisse obligatoire" },
+                    ] as const).map(({ key, label }) => (
+                      <label key={key} className="flex items-center gap-2 cursor-pointer text-xs text-foreground">
+                        <input
+                          type="checkbox"
+                          checked={editForm[key]}
+                          onChange={e => setEditForm(f => ({ ...f, [key]: e.target.checked }))}
+                          className="rounded accent-primary w-4 h-4"
+                        />
+                        {label}
+                      </label>
+                    ))}
+                    <label className="flex items-center gap-2 cursor-pointer text-xs text-foreground col-span-2">
+                      <input
+                        type="checkbox"
+                        checked={editForm.verified}
+                        onChange={e => setEditForm(f => ({ ...f, verified: e.target.checked }))}
+                        className="rounded accent-green-500 w-4 h-4"
+                      />
+                      <CheckCircle className="w-3.5 h-3.5 text-green-500" /> ✅ Lieu vérifié
+                    </label>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={saveAdminEdit}
+                  disabled={editSaving || !editForm.name.trim()}
+                  className="w-full gap-2 bg-violet-600 hover:bg-violet-700 text-white"
+                >
+                  <Save className="w-4 h-4" />
+                  {editSaving ? "Enregistrement…" : "Enregistrer les modifications"}
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
