@@ -24,6 +24,14 @@ export interface CommunityReview {
   photo_url: string | null;
   has_been_edited: boolean;
   profiles?: { display_name: string | null; avatar_url: string | null };
+  review_pets?: { pet_id: string; pets: { id: string; name: string; species: string; avatar_url: string | null } | null }[];
+}
+
+interface UserPet {
+  id: string;
+  name: string;
+  species: string;
+  avatar_url: string | null;
 }
 
 export interface UniversalPlace {
@@ -118,16 +126,27 @@ export default function MarkerPopup({
   const [showEditForm, setShowEditForm] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [userPets, setUserPets] = useState<UserPet[]>([]);
+  const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
   const userReview = communityReviews.find(r => r.user_id === user?.id);
   const avgCR = communityReviews.length > 0 ? communityReviews.reduce((s, r) => s + r.rating, 0) / communityReviews.length : 0;
 
-  useEffect(() => { setReviewTab("google"); setCommunityReviews([]); setNewRating(0); setNewBody(""); setVisitedWithPet(false); }, [dbId]);
+  useEffect(() => { setReviewTab("google"); setCommunityReviews([]); setNewRating(0); setNewBody(""); setVisitedWithPet(false); setSelectedPetIds([]); }, [dbId]);
   useEffect(() => { if (userReview) { setNewRating(userReview.rating); setNewBody(userReview.body ?? ""); setVisitedWithPet(userReview.visited_with_pet); } }, [userReview?.id]);
+
+  useEffect(() => {
+    if (user && reviewTab === "community") {
+      supabase.from("pets" as any).select("id, name, species, avatar_url").eq("user_id", user.id).order("created_at", { ascending: true })
+        .then(({ data }) => { if (data) setUserPets(data as UserPet[]); });
+    }
+  }, [user, reviewTab]);
 
   async function loadCommunityReviews() {
     if (!dbId) return;
     setLoadingCR(true);
-    const { data } = await supabase.from("place_reviews").select("*, profiles(display_name, avatar_url)").eq("place_id", dbId).eq("is_hidden", false).order("created_at", { ascending: false });
+    const { data } = await supabase.from("place_reviews")
+      .select("*, profiles(display_name, avatar_url), review_pets(pet_id, pets(id, name, species, avatar_url))")
+      .eq("place_id", dbId).eq("is_hidden", false).order("created_at", { ascending: false });
     setCommunityReviews((data as CommunityReview[]) || []);
     setLoadingCR(false);
   }
@@ -148,15 +167,26 @@ export default function MarkerPopup({
       }
     }
     const isEditing = !!userReview;
-    const { error } = isEditing
-      ? await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photo_url: uploadedPhotoUrl, has_been_edited: true }).eq("id", userReview.id)
-      : await supabase.from("place_reviews").insert({ place_id: dbId, user_id: user.id, rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photo_url: uploadedPhotoUrl });
-    if (error) toast.error("Erreur lors de la publication");
-    else {
+    if (isEditing) {
+      const { error } = await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photo_url: uploadedPhotoUrl, has_been_edited: true }).eq("id", userReview.id);
+      if (error) { toast.error("Erreur lors de la publication"); setSubmitting(false); return; }
+      await supabase.from("review_pets" as any).delete().eq("review_id", userReview.id);
+      if (selectedPetIds.length > 0) {
+        await supabase.from("review_pets" as any).insert(selectedPetIds.map(petId => ({ review_id: userReview.id, pet_id: petId })));
+      }
+    } else {
+      const { data: newReview, error } = await supabase.from("place_reviews").insert({ place_id: dbId, user_id: user.id, rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photo_url: uploadedPhotoUrl }).select("id").single();
+      if (error) { toast.error("Erreur lors de la publication"); setSubmitting(false); return; }
+      if (newReview && selectedPetIds.length > 0) {
+        await supabase.from("review_pets" as any).insert(selectedPetIds.map(petId => ({ review_id: newReview.id, pet_id: petId })));
+      }
+    }
+    {
       toast.success(isEditing ? "Avis mis à jour !" : "Avis publié !");
       setShowEditForm(false);
       setPhotoFile(null);
       setPhotoPreview(null);
+      setSelectedPetIds([]);
       await loadCommunityReviews();
     }
     setSubmitting(false);
@@ -484,7 +514,22 @@ export default function MarkerPopup({
                             </div>
                             <span className="text-warning text-xs flex-shrink-0">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
                           </div>
-                          {r.visited_with_pet && <p className="text-[10px] text-success">🐾 Avec animal</p>}
+                          {r.review_pets && r.review_pets.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-0.5">
+                              {r.review_pets.map(rp => rp.pets && (
+                                <span key={rp.pet_id} className="flex items-center gap-1 text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                                  {rp.pets.avatar_url
+                                    ? <img src={rp.pets.avatar_url} className="w-3.5 h-3.5 rounded-full object-cover" alt="" />
+                                    : <span>{rp.pets.species === "dog" ? "🐶" : rp.pets.species === "cat" ? "🐱" : rp.pets.species === "rabbit" ? "🐰" : rp.pets.species === "bird" ? "🐦" : "🐾"}</span>
+                                  }
+                                  {rp.pets.name}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {r.visited_with_pet && (!r.review_pets || r.review_pets.length === 0) && (
+                            <p className="text-[10px] text-success">🐾 Avec animal</p>
+                          )}
                           {r.body && <p className="text-xs text-muted-foreground leading-relaxed break-words">{r.body}</p>}
                           {r.photo_url && (
                             <img
@@ -541,6 +586,29 @@ export default function MarkerPopup({
                             <input type="checkbox" checked={visitedWithPet} onChange={e => setVisitedWithPet(e.target.checked)} className="rounded" />
                             🐾 Visité avec mon animal
                           </label>
+                          {userPets.length > 0 && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1.5">Avec quels animaux ?</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {userPets.map(pet => (
+                                  <button
+                                    key={pet.id}
+                                    type="button"
+                                    onClick={() => setSelectedPetIds(prev => prev.includes(pet.id) ? prev.filter(id => id !== pet.id) : [...prev, pet.id])}
+                                    className={`flex items-center gap-1 px-2 py-1 rounded-full border text-xs transition-colors ${
+                                      selectedPetIds.includes(pet.id) ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground hover:bg-muted"
+                                    }`}
+                                  >
+                                    {pet.avatar_url
+                                      ? <img src={pet.avatar_url} className="w-4 h-4 rounded-full object-cover" alt="" />
+                                      : <span className="text-xs">{pet.species === "dog" ? "🐶" : pet.species === "cat" ? "🐱" : pet.species === "rabbit" ? "🐰" : pet.species === "bird" ? "🐦" : "🐾"}</span>
+                                    }
+                                    {pet.name}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                           <div className="space-y-1.5">
                             <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
                               <span className="px-2.5 py-1.5 rounded-lg border border-border bg-muted hover:bg-muted/80 transition-colors">📷 Ajouter une photo</span>

@@ -31,6 +31,31 @@ export interface PetPlace {
   google_place_id?: string | null;
 }
 
+export interface PlaceReview {
+  id: string;
+  place_id: string;
+  user_id: string;
+  rating: number;
+  body: string | null;
+  visited_with_pet: boolean;
+  helpful_count: number;
+  is_hidden: boolean;
+  is_reported: boolean;
+  created_at: string;
+  profiles?: { display_name: string | null; avatar_url: string | null };
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "À l'instant";
+  if (m < 60) return `Il y a ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `Il y a ${h}h`;
+  const d = Math.floor(h / 24);
+  return `Il y a ${d}j`;
+}
+
 const categoryLabels: Record<string, string> = {
   restaurant: "Restaurant 🍽️",
   hotel: "Hôtel 🛏️",
@@ -58,32 +83,9 @@ interface PlaceDetailPanelProps {
   onReport?: () => void;
 }
 
-export interface PlaceReview {
-  id: string;
-  place_id: string;
-  user_id: string;
-  rating: number;
-  body: string | null;
-  visited_with_pet: boolean;
-  helpful_count: number;
-  is_hidden: boolean;
-  is_reported: boolean;
-  created_at: string;
-  profiles?: { display_name: string | null; avatar_url: string | null };
-}
-
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return "À l'instant";
-  if (m < 60) return `Il y a ${m} min`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `Il y a ${h}h`;
-  const d = Math.floor(h / 24);
-  return `Il y a ${d}j`;
-}
-
 const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport }: PlaceDetailPanelProps) => {
+  if (!place) return null;
+
   const { user } = useAuthContext();
   const [activeTab, setActiveTab] = useState<"google" | "community">("google");
   const [reviews, setReviews] = useState<PlaceReview[]>([]);
@@ -93,19 +95,21 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   const [newBody, setNewBody] = useState("");
   const [visitedWithPet, setVisitedWithPet] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
 
   const userReview = reviews.find(r => r.user_id === user?.id);
   const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
+
   useEffect(() => {
-    if (!place?.id) return;
     setActiveTab("google");
     setReviews([]);
+    setNewRating(0);
+    setNewBody("");
+    setVisitedWithPet(false);
   }, [place?.id]);
 
   async function loadReviews() {
-    if (!place?.id) return;
     setLoadingReviews(true);
     const { data } = await supabase
       .from("place_reviews")
@@ -113,17 +117,23 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
       .eq("place_id", place.id)
       .eq("is_hidden", false)
       .order("created_at", { ascending: false });
-    setReviews((data as unknown as PlaceReview[]) || []);
+    setReviews((data as PlaceReview[]) || []);
     setLoadingReviews(false);
   }
 
   useEffect(() => {
     if (activeTab === "community") loadReviews();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, place?.id]);
 
+  useEffect(() => {
+    if (userReview) {
+      setNewRating(userReview.rating);
+      setNewBody(userReview.body ?? "");
+      setVisitedWithPet(userReview.visited_with_pet);
+    }
+  }, [userReview?.id]);
+
   async function submitReview() {
-    if (!place) return;
     if (!user) { toast.error("Connecte-toi pour laisser un avis"); return; }
     if (newRating === 0) { toast.error("Choisis une note"); return; }
     setSubmitting(true);
@@ -132,7 +142,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
       ? await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet }).eq("id", userReview.id)
       : await supabase.from("place_reviews").insert(payload);
     if (error) { toast.error("Erreur lors de la publication"); }
-    else { toast.success(userReview ? "Avis mis à jour" : "Avis publié !"); setNewRating(0); setNewBody(""); setVisitedWithPet(false); await loadReviews(); }
+    else { toast.success(userReview ? "Avis mis à jour !" : "Avis publié !"); await loadReviews(); }
     setSubmitting(false);
   }
 
@@ -153,29 +163,8 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     await loadReviews();
   }
 
-  if (!place) return null;
-
-  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
-
   return (
-    <>
-      {lightboxPhoto && (
-        <div
-          className="fixed inset-0 z-[9999] bg-black/85 flex items-center justify-center p-4 cursor-pointer"
-          onClick={() => setLightboxPhoto(null)}
-        >
-          <img
-            src={lightboxPhoto}
-            className="max-w-[92vw] max-h-[88vh] object-contain rounded-xl shadow-2xl"
-            onClick={e => e.stopPropagation()}
-          />
-          <button
-            className="absolute top-4 right-5 w-9 h-9 rounded-full bg-white/20 hover:bg-white/40 text-white text-lg flex items-center justify-center transition-colors"
-            onClick={() => setLightboxPhoto(null)}
-          >✕</button>
-        </div>
-      )}
-      <div className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-card z-50 shadow-2xl overflow-y-auto animate-slide-in-right">
+    <div className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-card z-50 shadow-2xl overflow-y-auto animate-slide-in-right">
       <div className="sticky top-0 bg-card z-10 flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2 min-w-0">
           {onBack && (
@@ -244,7 +233,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
           </div>
         </div>
 
-        {/* Tab toggle */}
+        {/* Tab toggle : Google / Communauté */}
         <div className="flex rounded-xl border border-border overflow-hidden">
           <button
             onClick={() => setActiveTab("google")}
@@ -261,23 +250,25 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
         </div>
 
         {/* Google tab */}
-        {activeTab === "google" && place.rating && (
-          <div className="flex items-center gap-2">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className={`w-4 h-4 ${i < Math.round(place.rating!) ? "text-amber-400 fill-amber-400" : "text-muted"}`} />
-            ))}
-            <span className="text-sm font-semibold text-foreground">{place.rating}</span>
-            <span className="text-xs text-muted-foreground">(Google)</span>
-          </div>
-        )}
-        {activeTab === "google" && !place.rating && (
-          <p className="text-xs text-muted-foreground italic">Aucune note Google disponible.</p>
+        {activeTab === "google" && (
+          <>
+            {place.rating ? (
+              <div className="flex items-center gap-2">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className={`w-4 h-4 ${i < Math.round(place.rating!) ? "text-amber-400 fill-amber-400" : "text-muted"}`} />
+                ))}
+                <span className="text-sm font-semibold text-foreground">{place.rating}</span>
+                <span className="text-xs text-muted-foreground">(Google)</span>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground italic">Aucune note Google disponible.</p>
+            )}
+          </>
         )}
 
         {/* Community tab */}
         {activeTab === "community" && (
           <div className="space-y-4">
-            {/* Average */}
             {reviews.length > 0 && (
               <div className="flex items-center gap-2">
                 <div className="flex">
@@ -290,7 +281,6 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
               </div>
             )}
 
-            {/* Review list */}
             {loadingReviews ? (
               <p className="text-xs text-muted-foreground text-center py-2">Chargement…</p>
             ) : reviews.length === 0 ? (
@@ -316,7 +306,9 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
                         ))}
                       </div>
                     </div>
-                    {r.visited_with_pet && <span className="text-xs bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full">🐾 Visité avec mon animal</span>}
+                    {r.visited_with_pet && (
+                      <span className="text-xs bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full">🐾 Visité avec mon animal</span>
+                    )}
                     {r.body && <p className="text-xs text-foreground leading-relaxed">{r.body}</p>}
                     <div className="flex items-center justify-between pt-1">
                       <span className="text-xs text-muted-foreground">{timeAgo(r.created_at)}</span>
@@ -341,12 +333,11 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
               </div>
             )}
 
-            {/* Review form */}
             {user ? (
               <div className="border border-border rounded-xl p-3 space-y-3 bg-background">
                 <p className="text-xs font-semibold text-foreground">{userReview ? "Modifier ton avis" : "Laisser un avis"}</p>
                 <div className="flex gap-1">
-                  {[1,2,3,4,5].map(star => (
+                  {[1, 2, 3, 4, 5].map(star => (
                     <button key={star} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} onClick={() => setNewRating(star)}>
                       <Star className={`w-6 h-6 transition-colors ${star <= (hoverRating || newRating) ? "text-amber-400 fill-amber-400" : "text-muted"}`} />
                     </button>
@@ -432,8 +423,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
           </p>
         )}
       </div>
-      </div>
-    </>
+    </div>
   );
 };
 
