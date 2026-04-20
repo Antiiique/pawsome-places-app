@@ -42,6 +42,10 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
     return () => window.removeEventListener("open-auth-modal", handler);
   }, []);
 
+  useEffect(() => {
+    if (user) setShowAuthModal(false);
+  }, [user]);
+
   // Close notification panel on outside click
   useEffect(() => {
     if (!showNotifications) return;
@@ -109,7 +113,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
               <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-accent-hover text-sm" onClick={() => user ? setShowSubmitModal(true) : setShowAuthModal(true)}>
                 Ajouter un lieu
               </Button>
-              <Popover>
+              <Popover open={profileMenuOpen} onOpenChange={setProfileMenuOpen}>
                 <PopoverTrigger asChild>
                   <button
                     className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring"
@@ -125,25 +129,25 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                   <Separator className="my-1" />
-                  <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => setShowProfileModal(true)}>
+                  <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); setShowProfileModal(true); }}>
                     👤 Mon profil
                   </button>
-                  <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={onFavoritesClick}>
+                  <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onFavoritesClick?.(); }}>
                     ❤️ Mes favoris
                   </button>
-                  <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={onItineraryClick}>
+                  <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onItineraryClick?.(); }}>
                     🗺️ Mes itinéraires
                   </button>
                   {profile?.is_admin && (
                     <>
                       <Separator className="my-1" />
-                      <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { window.location.href = "/admin"; }}>
+                      <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); window.open("/admin", "_blank"); }}>
                         ⚙️ Administration
                       </button>
                     </>
                   )}
                   <Separator className="my-1" />
-                  <button className="w-full text-left px-2 py-1.5 text-sm text-destructive hover:bg-muted rounded-sm transition-colors" onClick={handleSignOut}>
+                  <button className="w-full text-left px-2 py-1.5 text-sm text-destructive hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}>
                     Se déconnecter
                   </button>
                 </PopoverContent>

@@ -605,20 +605,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                   )}
                 </div>
 
-                <div className="flex justify-center">
-                  <Button variant="outline" size="icon" onClick={handleSwap} className="rounded-full"><ArrowUpDown className="w-4 h-4" /></Button>
-                </div>
-
-                <div className="relative">
-                  <PlaceInput id="destination" label="Arrivée" value={destText} selection={destination} error={errors.dest} onSelect={handleDestSelect} onChange={handleDestChange} />
-                  {(destination || destText) && (
-                    <button onClick={clearDestination} className="absolute top-0 right-0 text-muted-foreground hover:text-destructive transition-colors p-1" title="Effacer l'arrivée">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Waypoints section */}
+                {/* Étapes intermédiaires — entre Départ et Arrivée */}
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-2 block">🗺️ Étapes intermédiaires</label>
                   {waypoints.length > 0 && (
@@ -657,6 +644,19 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                       className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-2 rounded-lg border border-dashed border-border hover:border-primary/50 transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" /> Ajouter une étape
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex justify-center">
+                  <Button variant="outline" size="icon" onClick={handleSwap} className="rounded-full"><ArrowUpDown className="w-4 h-4" /></Button>
+                </div>
+
+                <div className="relative">
+                  <PlaceInput id="destination" label="Arrivée" value={destText} selection={destination} error={errors.dest} onSelect={handleDestSelect} onChange={handleDestChange} />
+                  {(destination || destText) && (
+                    <button onClick={clearDestination} className="absolute top-0 right-0 text-muted-foreground hover:text-destructive transition-colors p-1" title="Effacer l'arrivée">
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
