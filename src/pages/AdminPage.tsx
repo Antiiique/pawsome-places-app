@@ -161,12 +161,13 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function ReportGroups({ reports, onEdit, onReview, onDismiss, onDelete }: {
+function ReportGroups({ reports, onEdit, onReview, onDismiss, onDelete, onDeletePlace }: {
   reports: Report[];
   onEdit: (placeId: string) => void;
   onReview: (placeId: string | null, ids: string[]) => void;
   onDismiss: (placeId: string | null, ids: string[]) => void;
   onDelete: (ids: string[]) => void;
+  onDeletePlace: (placeId: string, placeName: string, reportIds: string[]) => void;
 }) {
   const groups: Record<string, { place_id: string | null; place_name: string | undefined; reports: Report[] }> = {};
   for (const r of reports) {
@@ -212,8 +213,13 @@ function ReportGroups({ reports, onEdit, onReview, onDismiss, onDelete }: {
                   🚫 Infondé
                 </Button>
                 <Button size="sm" variant="outline" className="text-xs h-9 border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => onDelete(ids)}>
-                  🗑 Supprimer
+                  🗑 Signalements
                 </Button>
+                {hasPlace && (
+                  <Button size="sm" className="text-xs h-9 bg-destructive hover:bg-destructive/90 text-white" onClick={() => onDeletePlace(group.place_id!, group.place_name || "Lieu inconnu", ids)}>
+                    🗑️ Supprimer le lieu
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -245,6 +251,7 @@ const AdminPage = () => {
   const [placesSearch, setPlacesSearch] = useState("");
   const [placesPage, setPlacesPage] = useState(0);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; place: PublishedPlace | null }>({ open: false, place: null });
+  const [deleteFromReportDialog, setDeleteFromReportDialog] = useState<{ open: boolean; placeId: string; placeName: string; reportIds: string[] }>({ open: false, placeId: "", placeName: "", reportIds: [] });
   const [editDialog, setEditDialog] = useState<{ open: boolean; place: PublishedPlace | null }>({ open: false, place: null });
   const [editForm, setEditForm] = useState<Partial<PublishedPlace>>({});
 
@@ -721,6 +728,21 @@ const AdminPage = () => {
     if (error) { toast.error("Erreur lors de la suppression"); return; }
     toast.success("🗑 Signalement(s) supprimé(s) définitivement");
     setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
+    fetchCounts();
+  };
+
+  const deletePlaceFromReport = async () => {
+    const { placeId, placeName, reportIds } = deleteFromReportDialog;
+    if (!placeId) return;
+    const { error } = await supabase.from("pet_friendly_places").delete().eq("id", placeId);
+    if (error) { toast.error("Erreur suppression : " + error.message); return; }
+    await supabase.from("place_reports")
+      .update({ status: "reviewed", reviewed_at: new Date().toISOString(), reviewed_by: user?.id })
+      .in("id", reportIds);
+    toast.success(`🗑️ "${placeName}" supprimé définitivement de la base`);
+    setDeleteFromReportDialog({ open: false, placeId: "", placeName: "", reportIds: [] });
+    setReports(prev => prev.filter(r => !reportIds.includes(r.id)));
+    setPlaces(prev => prev.filter(p => p.id !== placeId));
     fetchCounts();
   };
 
@@ -1809,7 +1831,7 @@ const AdminPage = () => {
 
           <TabsContent value="reports" className="space-y-4 mt-4">
             {reports.length === 0 && <p className="text-muted-foreground text-center py-8">Aucun signalement en attente</p>}
-            {reports.length > 0 && <ReportGroups reports={reports} onEdit={openEditFromReport} onReview={reviewGroup} onDismiss={dismissGroup} onDelete={deleteReportGroup} />}
+            {reports.length > 0 && <ReportGroups reports={reports} onEdit={openEditFromReport} onReview={reviewGroup} onDismiss={dismissGroup} onDelete={deleteReportGroup} onDeletePlace={(placeId, placeName, reportIds) => setDeleteFromReportDialog({ open: true, placeId, placeName, reportIds })} />}
 
             {/* Historique — Signalements traités */}
             <div className="mt-6 border-t border-border pt-4 space-y-3">
@@ -2776,6 +2798,27 @@ const AdminPage = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialog({ open: false, place: null })}>Annuler</Button>
             <Button variant="destructive" onClick={() => deleteDialog.place && deletePlace(deleteDialog.place)}>Supprimer définitivement</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteFromReportDialog.open} onOpenChange={(v) => { if (!v) setDeleteFromReportDialog({ open: false, placeId: "", placeName: "", reportIds: [] }); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>🗑️ Supprimer ce lieu de la base ?</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Tu es sur le point de supprimer <strong>"{deleteFromReportDialog.placeName}"</strong> définitivement de la base de données.
+            </p>
+            <div className="rounded-lg bg-destructive/10 border border-destructive/30 px-3 py-2.5 text-sm text-destructive space-y-1">
+              <p className="font-semibold">⚠️ Cette action est irréversible :</p>
+              <p>• Le lieu disparaîtra de la carte immédiatement</p>
+              <p>• Tous les avis associés seront supprimés</p>
+              <p>• Les signalements seront clôturés</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteFromReportDialog({ open: false, placeId: "", placeName: "", reportIds: [] })}>Annuler</Button>
+            <Button variant="destructive" onClick={deletePlaceFromReport}>Supprimer définitivement</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
