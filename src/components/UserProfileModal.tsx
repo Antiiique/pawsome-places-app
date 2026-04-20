@@ -42,6 +42,22 @@ interface PetPhoto {
 
 type PetView = "list" | "form" | "album";
 
+interface UserSubmission {
+  id: string;
+  name: string;
+  category: string;
+  city: string | null;
+  address: string | null;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+  admin_notes: string | null;
+  linked_place?: {
+    id: string;
+    photo_url: string | null;
+    rating: number | null;
+  } | null;
+}
+
 const SPECIES_OPTIONS = [
   { value: "dog", label: "Chien", emoji: "🐶" },
   { value: "cat", label: "Chat", emoji: "🐱" },
@@ -93,6 +109,9 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
   const [loadingAlbum, setLoadingAlbum] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
+  const [submissions, setSubmissions] = useState<UserSubmission[]>([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
+
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const petAvatarInputRef = useRef<HTMLInputElement>(null);
   const albumInputRef = useRef<HTMLInputElement>(null);
@@ -100,9 +119,11 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
   const fetchAll = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const [{ data: prof }, { data: petData }] = await Promise.all([
+    setLoadingSubmissions(true);
+    const [{ data: prof }, { data: petData }, { data: subData }] = await Promise.all([
       supabase.from("profiles").select("display_name, avatar_url, bio, age, city, points").eq("id", user.id).maybeSingle(),
       supabase.from("pets" as any).select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
+      supabase.from("place_submissions" as any).select("id, name, category, city, address, status, created_at, admin_notes").eq("submitted_by", user.id).order("created_at", { ascending: false }),
     ]);
     if (prof) {
       setProfile({
@@ -115,11 +136,36 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
       });
     }
     if (petData) setPets(petData as any);
+
+    if (subData && (subData as any[]).length > 0) {
+      const approvedIds = (subData as any[]).filter(s => s.status === "approved").map(s => s.id);
+      let linkedMap: Record<string, { id: string; photo_url: string | null; rating: number | null }> = {};
+      if (approvedIds.length > 0) {
+        const { data: places } = await supabase
+          .from("pet_friendly_places")
+          .select("id, photo_url, rating, source_id")
+          .eq("source", "user_submission")
+          .in("source_id", approvedIds);
+        if (places) {
+          for (const p of places as any[]) {
+            linkedMap[p.source_id] = { id: p.id, photo_url: p.photo_url, rating: p.rating };
+          }
+        }
+      }
+      const merged: UserSubmission[] = (subData as any[]).map(s => ({
+        ...s,
+        linked_place: linkedMap[s.id] || null,
+      }));
+      setSubmissions(merged);
+    } else {
+      setSubmissions([]);
+    }
+    setLoadingSubmissions(false);
     setLoading(false);
   }, [user]);
 
   useEffect(() => {
-    if (open) { fetchAll(); setPetView("list"); setEditingPet(null); setAlbumPet(null); setAlbum([]); }
+    if (open) { fetchAll(); setPetView("list"); setEditingPet(null); setAlbumPet(null); setAlbum([]); setSubmissions([]); }
   }, [open, fetchAll]);
 
   // ── Profile ──
@@ -266,9 +312,10 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
 
       <div className="flex-1 min-h-0 overflow-y-auto">
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid grid-cols-2 mx-4 mt-4">
-            <TabsTrigger value="profile">Mon profil</TabsTrigger>
-            <TabsTrigger value="pets">Mes animaux{pets.length > 0 ? ` (${pets.length})` : ""}</TabsTrigger>
+          <TabsList className="grid grid-cols-3 mx-4 mt-4">
+            <TabsTrigger value="profile" className="text-xs">Mon profil</TabsTrigger>
+            <TabsTrigger value="pets" className="text-xs">Animaux{pets.length > 0 ? ` (${pets.length})` : ""}</TabsTrigger>
+            <TabsTrigger value="places" className="text-xs">Mes lieux{submissions.length > 0 ? ` (${submissions.length})` : ""}</TabsTrigger>
           </TabsList>
 
           {/* ── PROFIL ── */}
@@ -549,6 +596,78 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
               </div>
             )}
 
+          </TabsContent>
+
+          {/* ── MES LIEUX ── */}
+          <TabsContent value="places" className="p-4 space-y-4">
+            {loadingSubmissions ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Chargement…</p>
+            ) : submissions.length === 0 ? (
+              <div className="text-center py-12 space-y-2">
+                <p className="text-4xl">🗺️</p>
+                <p className="text-sm text-muted-foreground">Aucun lieu soumis pour le moment</p>
+                <p className="text-xs text-muted-foreground">Contribue à la communauté en ajoutant un lieu pet-friendly !</p>
+              </div>
+            ) : (
+              <>
+                {/* Stats bar */}
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: "Approuvés", count: submissions.filter(s => s.status === "approved").length, color: "text-green-600 dark:text-green-400" },
+                    { label: "En attente", count: submissions.filter(s => s.status === "pending").length, color: "text-yellow-600 dark:text-yellow-400" },
+                    { label: "Refusés", count: submissions.filter(s => s.status === "rejected").length, color: "text-red-500" },
+                  ].map(stat => (
+                    <div key={stat.label} className="bg-secondary border border-border rounded-xl p-2.5 text-center">
+                      <p className={`text-xl font-bold ${stat.color}`}>{stat.count}</p>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* List */}
+                <div className="space-y-2">
+                  {submissions.map(sub => {
+                    const statusConfig = {
+                      approved: { label: "Approuvé", bg: "bg-green-100 dark:bg-green-900/30", text: "text-green-700 dark:text-green-300", dot: "bg-green-500" },
+                      pending: { label: "En attente", bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-400", dot: "bg-yellow-500" },
+                      rejected: { label: "Refusé", bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400", dot: "bg-red-500" },
+                    }[sub.status];
+                    return (
+                      <div key={sub.id} className="bg-secondary border border-border rounded-xl overflow-hidden">
+                        <div className="flex gap-3 p-3">
+                          {sub.linked_place?.photo_url ? (
+                            <img src={sub.linked_place.photo_url} alt={sub.name} className="w-16 h-16 rounded-lg object-cover shrink-0 border border-border" />
+                          ) : (
+                            <div className="w-16 h-16 rounded-lg bg-muted shrink-0 border border-border flex items-center justify-center text-2xl">🐾</div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="font-semibold text-foreground text-sm leading-tight truncate">{sub.name}</p>
+                              <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${statusConfig.bg} ${statusConfig.text}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+                                {statusConfig.label}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5">{sub.category}{sub.city ? ` · ${sub.city}` : ""}</p>
+                            {sub.linked_place?.rating != null && (
+                              <p className="text-xs text-yellow-500 mt-0.5">★ {sub.linked_place.rating.toFixed(1)}</p>
+                            )}
+                            <p className="text-[10px] text-muted-foreground mt-1">
+                              Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                            </p>
+                          </div>
+                        </div>
+                        {sub.status === "rejected" && sub.admin_notes && (
+                          <div className="px-3 pb-3">
+                            <p className="text-xs text-muted-foreground bg-muted rounded-lg px-2.5 py-2 italic">💬 {sub.admin_notes}</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </TabsContent>
         </Tabs>
       </div>
