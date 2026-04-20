@@ -17,6 +17,52 @@ import type { PickMode } from "./itinerary/ItineraryPanel";
 const MAPBOX_TOKEN = (import.meta.env.VITE_MAPBOX_TOKEN as string) || "pk.eyJ1IjoiZWx2aW5hZ2QiLCJhIjoiY21vNzlzaTZ5MDUxMTJxc2V1Ym5sZzVxNyJ9.QVzHhHQIH-DsrHzfi-STRA";
 const GOOGLE_API_KEY = "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
 
+// Charge la lib Google Places une seule fois (lazy, sans afficher de carte Google)
+let googlePlacesLoading = false;
+function loadGooglePlacesLib(): Promise<void> {
+  return new Promise((resolve) => {
+    if ((window as any).google?.maps?.places) { resolve(); return; }
+    if (googlePlacesLoading) {
+      const wait = setInterval(() => {
+        if ((window as any).google?.maps?.places) { clearInterval(wait); resolve(); }
+      }, 100);
+      return;
+    }
+    googlePlacesLoading = true;
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&loading=async`;
+    script.async = true;
+    script.onload = () => resolve();
+    document.head.appendChild(script);
+  });
+}
+
+function fetchGooglePlaceDetails(placeId: string): Promise<{ photos: string[]; reviews: any[]; rating?: number; reviewsTotal?: number; phone?: string; website?: string; opening_hours?: string }> {
+  return loadGooglePlacesLib().then(() => new Promise((resolve) => {
+    const div = document.createElement("div");
+    document.body.appendChild(div);
+    const g = (window as any).google;
+    const service = new g.maps.places.PlacesService(div);
+    service.getDetails(
+      { placeId, fields: ["rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos"] },
+      (place: any, status: string) => {
+        document.body.removeChild(div);
+        if (status !== g.maps.places.PlacesServiceStatus.OK || !place) { resolve({ photos: [], reviews: [] }); return; }
+        const photos = place.photos ? place.photos.slice(0, 5).map((p: any) => p.getUrl({ maxWidth: 400, maxHeight: 300 })) : [];
+        const reviews = place.reviews ? place.reviews.slice(0, 5).map((r: any) => ({ author: r.author_name || "Anonyme", avatar: r.profile_photo_url || null, rating: r.rating, text: r.text || "", time: r.relative_time_description || "" })) : [];
+        resolve({
+          photos, reviews,
+          rating: place.rating,
+          reviewsTotal: place.user_ratings_total,
+          phone: place.formatted_phone_number,
+          website: place.website,
+          opening_hours: place.opening_hours?.isOpen?.() ? "🟢 Ouvert maintenant" : place.opening_hours?.weekday_text?.join(" • "),
+        });
+      }
+    );
+  }));
+}
+
 const CATEGORY_FILTERS = [
   { key: null, label: "Tous", emoji: "🐾" },
   { key: "restaurant", label: "Restaurants", emoji: "🍽️" },
@@ -135,16 +181,21 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
           const googlePlaceId = (place as any).google_place_id;
           if (googlePlaceId) {
-            supabase.functions.invoke("google-places", { body: { placeId: googlePlaceId } }).then(({ data }) => {
-              if (!data?.result) return;
-              const g = data.result;
-              const photos = g.photos
-                ? g.photos.slice(0, 5).map((p: any) => `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${p.photo_reference}&key=${GOOGLE_API_KEY}`)
-                : (place.photo_url ? [place.photo_url] : []);
-              const reviews = g.reviews
-                ? g.reviews.slice(0, 5).map((r: any) => ({ author: r.author_name || "Anonyme", avatar: r.profile_photo_url || null, rating: r.rating, text: r.text || "", time: r.relative_time_description || "" }))
-                : [];
-              setPopupData((prev) => prev ? { ...prev, place: { ...prev.place, rating: g.rating || prev.place.rating, reviewsTotal: g.user_ratings_total || 0, phone: g.formatted_phone_number || prev.place.phone, website: g.website || prev.place.website, opening_hours: g.opening_hours?.weekday_text?.join(" • ") || prev.place.opening_hours, photos, reviews, placeId: googlePlaceId } } : prev);
+            fetchGooglePlaceDetails(googlePlaceId).then((details) => {
+              setPopupData((prev) => prev ? {
+                ...prev,
+                place: {
+                  ...prev.place,
+                  rating: details.rating ?? prev.place.rating,
+                  reviewsTotal: details.reviewsTotal ?? prev.place.reviewsTotal,
+                  phone: details.phone || prev.place.phone,
+                  website: details.website || prev.place.website,
+                  opening_hours: details.opening_hours || prev.place.opening_hours,
+                  photos: details.photos.length ? details.photos : prev.place.photos,
+                  reviews: details.reviews,
+                  placeId: googlePlaceId,
+                },
+              } : prev);
             });
           }
         });
