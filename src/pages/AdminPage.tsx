@@ -109,6 +109,29 @@ interface DashboardStats {
   placesWithHours: number;
 }
 
+interface AdminPet {
+  id: string;
+  user_id: string;
+  name: string;
+  species: string;
+  breed: string | null;
+  birth_date: string | null;
+  sex: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  created_at: string;
+  owner_name?: string | null;
+  owner_avatar?: string | null;
+  photo_count?: number;
+}
+
+interface AdminPetPhoto {
+  id: string;
+  pet_id: string;
+  url: string;
+  caption: string | null;
+}
+
 const reasonLabels: Record<string, string> = {
   not_pet_friendly: "🚫 Non pet-friendly",
   closed: "🔒 Fermé définitivement",
@@ -326,6 +349,15 @@ const AdminPage = () => {
   const [showProcessedReports, setShowProcessedReports] = useState(false);
   const [showDismissedReports, setShowDismissedReports] = useState(false);
 
+  // Animaux
+  const [adminPets, setAdminPets] = useState<AdminPet[]>([]);
+  const [adminPetsLoading, setAdminPetsLoading] = useState(false);
+  const [petSearchQuery, setPetSearchQuery] = useState("");
+  const [petSpeciesFilter, setPetSpeciesFilter] = useState("all");
+  const [albumDialogPet, setAlbumDialogPet] = useState<AdminPet | null>(null);
+  const [albumDialogPhotos, setAlbumDialogPhotos] = useState<AdminPetPhoto[]>([]);
+  const [albumDialogLoading, setAlbumDialogLoading] = useState(false);
+
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
       supabase.from("place_submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
@@ -528,9 +560,10 @@ const AdminPage = () => {
     fetchUsers();
     fetchDashboardStats();
     fetchAdminReviews();
+    fetchAdminPets();
     const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
-  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces, fetchUsers, fetchDashboardStats]);
+  }, [fetchCounts, fetchNotifications, fetchSubmissions, fetchReports, fetchPlaces, fetchUsers, fetchDashboardStats, fetchAdminPets]);
 
   const markNotifRead = async (id: string) => {
     await supabase.from("admin_notifications").update({ is_read: true }).eq("id", id);
@@ -1173,6 +1206,48 @@ const AdminPage = () => {
     localStorage.setItem("admin_saved_filters", JSON.stringify(updated));
   };
 
+  const fetchAdminPets = useCallback(async () => {
+    setAdminPetsLoading(true);
+    const { data: pets } = await supabase.from("pets" as any).select("*, pet_photos(id, url)").order("created_at", { ascending: false });
+    if (!pets) { setAdminPetsLoading(false); return; }
+    const userIds = [...new Set((pets as any[]).map((p: any) => p.user_id))];
+    const { data: profiles } = userIds.length
+      ? await supabase.from("profiles").select("id, display_name, avatar_url").in("id", userIds)
+      : { data: [] };
+    const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.id, p]));
+    setAdminPets((pets as any[]).map((pet: any) => ({
+      ...pet,
+      owner_name: profileMap[pet.user_id]?.display_name ?? null,
+      owner_avatar: profileMap[pet.user_id]?.avatar_url ?? null,
+      photo_count: pet.pet_photos?.length ?? 0,
+    })));
+    setAdminPetsLoading(false);
+  }, []);
+
+  const openPetAlbumAdmin = async (pet: AdminPet) => {
+    setAlbumDialogPet(pet);
+    setAlbumDialogLoading(true);
+    const { data } = await supabase.from("pet_photos" as any).select("*").eq("pet_id", pet.id).order("created_at", { ascending: false });
+    setAlbumDialogPhotos((data as AdminPetPhoto[]) || []);
+    setAlbumDialogLoading(false);
+  };
+
+  const adminDeletePet = async (pet: AdminPet) => {
+    if (!confirm(`Supprimer définitivement "${pet.name}" ? Ses photos seront aussi supprimées.`)) return;
+    const { error } = await supabase.from("pets" as any).delete().eq("id", pet.id);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    setAdminPets(prev => prev.filter(p => p.id !== pet.id));
+    toast.success(`${pet.name} supprimé`);
+  };
+
+  const adminDeletePetPhoto = async (photo: AdminPetPhoto) => {
+    const { error } = await supabase.from("pet_photos" as any).delete().eq("id", photo.id);
+    if (error) { toast.error("Erreur"); return; }
+    setAlbumDialogPhotos(prev => prev.filter(p => p.id !== photo.id));
+    setAdminPets(prev => prev.map(p => p.id === albumDialogPet?.id ? { ...p, photo_count: Math.max(0, (p.photo_count || 1) - 1) } : p));
+    toast.success("Photo supprimée");
+  };
+
   async function fetchAdminReviews() {
     setAdminReviewsLoading(true);
     const { data, count } = await supabase
@@ -1309,6 +1384,7 @@ const AdminPage = () => {
                 <TabsTrigger value="places" className="rounded-xl px-3 py-2 text-sm font-medium">🗺️ Lieux publiés</TabsTrigger>
                 <TabsTrigger value="users" className="rounded-xl px-3 py-2 text-sm font-medium">👥 Utilisateurs</TabsTrigger>
                 <TabsTrigger value="reviews" className="rounded-xl px-3 py-2 text-sm font-medium">💬 Avis</TabsTrigger>
+                <TabsTrigger value="pets" className="rounded-xl px-3 py-2 text-sm font-medium">🐾 Animaux</TabsTrigger>
               </div>
             </div>
             <div className="border-t border-border/50 pt-2">
@@ -2391,8 +2467,185 @@ const AdminPage = () => {
               </div>
             )}
           </TabsContent>
+          {/* ── ANIMAUX ── */}
+          <TabsContent value="pets" className="space-y-4 mt-4">
+            {/* Stats */}
+            {(() => {
+              const speciesCounts = adminPets.reduce((acc, p) => { acc[p.species] = (acc[p.species] || 0) + 1; return acc; }, {} as Record<string, number>);
+              const speciesEmojis: Record<string, string> = { dog: "🐶", cat: "🐱", rabbit: "🐰", bird: "🐦", reptile: "🦎", other: "🐾" };
+              const speciesLabels: Record<string, string> = { dog: "Chiens", cat: "Chats", rabbit: "Lapins", bird: "Oiseaux", reptile: "Reptiles", other: "Autres" };
+              const totalPhotos = adminPets.reduce((s, p) => s + (p.photo_count || 0), 0);
+              return (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <Card><CardContent className="pt-4 text-center"><p className="text-2xl font-extrabold text-foreground">{adminPets.length}</p><p className="text-xs text-muted-foreground mt-1">Animaux total</p></CardContent></Card>
+                  <Card><CardContent className="pt-4 text-center"><p className="text-2xl font-extrabold text-foreground">{totalPhotos}</p><p className="text-xs text-muted-foreground mt-1">Photos total</p></CardContent></Card>
+                  <Card><CardContent className="pt-4 space-y-1">
+                    {Object.entries(speciesCounts).sort((a,b) => b[1]-a[1]).map(([sp, n]) => (
+                      <div key={sp} className="flex items-center justify-between text-xs">
+                        <span>{speciesEmojis[sp]} {speciesLabels[sp] || sp}</span>
+                        <Badge variant="outline">{n}</Badge>
+                      </div>
+                    ))}
+                  </CardContent></Card>
+                  <Card><CardContent className="pt-4 text-center">
+                    <p className="text-2xl font-extrabold text-foreground">{new Set(adminPets.map(p => p.user_id)).size}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Propriétaires</p>
+                  </CardContent></Card>
+                </div>
+              );
+            })()}
+
+            {/* Filtres */}
+            <div className="flex gap-2 flex-wrap">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Rechercher par nom, race, propriétaire…"
+                  value={petSearchQuery}
+                  onChange={e => setPetSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <select
+                value={petSpeciesFilter}
+                onChange={e => setPetSpeciesFilter(e.target.value)}
+                className="border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground"
+              >
+                <option value="all">Toutes espèces</option>
+                <option value="dog">🐶 Chiens</option>
+                <option value="cat">🐱 Chats</option>
+                <option value="rabbit">🐰 Lapins</option>
+                <option value="bird">🐦 Oiseaux</option>
+                <option value="reptile">🦎 Reptiles</option>
+                <option value="other">🐾 Autres</option>
+              </select>
+              <Button variant="outline" size="sm" onClick={fetchAdminPets}>🔄 Actualiser</Button>
+            </div>
+
+            {/* Liste */}
+            {adminPetsLoading ? (
+              <div className="text-center py-12 text-muted-foreground">Chargement…</div>
+            ) : (() => {
+              const q = petSearchQuery.toLowerCase();
+              const filtered = adminPets.filter(p =>
+                (petSpeciesFilter === "all" || p.species === petSpeciesFilter) &&
+                (!q || p.name.toLowerCase().includes(q) || (p.breed || "").toLowerCase().includes(q) || (p.owner_name || "").toLowerCase().includes(q))
+              );
+              const speciesEmojis: Record<string, string> = { dog: "🐶", cat: "🐱", rabbit: "🐰", bird: "🐦", reptile: "🦎", other: "🐾" };
+              const speciesLabels: Record<string, string> = { dog: "Chien", cat: "Chat", rabbit: "Lapin", bird: "Oiseau", reptile: "Reptile", other: "Autre" };
+              function petAge(bd: string | null) {
+                if (!bd) return "";
+                const m = (new Date().getFullYear() - new Date(bd).getFullYear()) * 12 + new Date().getMonth() - new Date(bd).getMonth();
+                if (m < 12) return `${m} mois`;
+                return `${Math.floor(m/12)} an${Math.floor(m/12) > 1 ? "s" : ""}`;
+              }
+              if (filtered.length === 0) return <div className="text-center py-12 text-muted-foreground">Aucun animal trouvé</div>;
+              return (
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground">{filtered.length} animal{filtered.length > 1 ? "x" : ""}</p>
+                  {filtered.map(pet => (
+                    <Card key={pet.id}>
+                      <CardContent className="pt-4">
+                        <div className="flex items-center gap-4">
+                          {/* Avatar animal */}
+                          {pet.avatar_url ? (
+                            <img src={pet.avatar_url} alt={pet.name} className="w-16 h-16 rounded-full object-cover border border-border shrink-0" />
+                          ) : (
+                            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center text-3xl border border-border shrink-0">
+                              {speciesEmojis[pet.species] || "🐾"}
+                            </div>
+                          )}
+
+                          {/* Infos */}
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-foreground">{pet.name}</span>
+                              <Badge variant="outline" className="text-xs">{speciesEmojis[pet.species]} {speciesLabels[pet.species] || pet.species}</Badge>
+                              {pet.sex && <Badge variant="outline" className="text-xs">{pet.sex === "M" ? "♂ Mâle" : "♀ Femelle"}</Badge>}
+                            </div>
+                            {pet.breed && <p className="text-xs text-muted-foreground">Race : {pet.breed}</p>}
+                            {pet.birth_date && <p className="text-xs text-muted-foreground">🎂 {petAge(pet.birth_date)}</p>}
+                            {pet.bio && <p className="text-xs text-muted-foreground italic truncate">"{pet.bio}"</p>}
+                            <div className="flex items-center gap-2 pt-1">
+                              {pet.owner_avatar ? (
+                                <img src={pet.owner_avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px]">👤</div>
+                              )}
+                              <span className="text-xs text-muted-foreground">{pet.owner_name || "Utilisateur inconnu"}</span>
+                              <span className="text-xs text-muted-foreground">· {new Date(pet.created_at).toLocaleDateString("fr-FR")}</span>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex flex-col gap-2 shrink-0">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs gap-1"
+                              onClick={() => openPetAlbumAdmin(pet)}
+                            >
+                              📷 Album {pet.photo_count ? `(${pet.photo_count})` : ""}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs text-destructive hover:bg-destructive/10 gap-1"
+                              onClick={() => adminDeletePet(pet)}
+                            >
+                              <Trash2 className="w-3 h-3" /> Supprimer
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              );
+            })()}
+          </TabsContent>
+
         </Tabs>
       </div>
+
+      {/* Dialog album animal (admin) */}
+      <Dialog open={!!albumDialogPet} onOpenChange={v => { if (!v) { setAlbumDialogPet(null); setAlbumDialogPhotos([]); } }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              📷 Album · {albumDialogPet?.name}
+              {albumDialogPet && (
+                <span className="ml-2 text-sm text-muted-foreground font-normal">
+                  ({albumDialogPet.owner_name || "Utilisateur inconnu"})
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {albumDialogLoading ? (
+            <p className="text-sm text-muted-foreground text-center py-6">Chargement…</p>
+          ) : albumDialogPhotos.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Aucune photo dans cet album</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto">
+              {albumDialogPhotos.map(photo => (
+                <div key={photo.id} className="relative group rounded-xl overflow-hidden border border-border aspect-square bg-muted">
+                  <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => adminDeletePetPhoto(photo)}
+                    className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-destructive/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Supprimer cette photo"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setAlbumDialogPet(null); setAlbumDialogPhotos([]); }}>Fermer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={approveDialog.open} onOpenChange={(v) => { if (!v) { setApproveDialog({ open: false, sub: null }); setApproveNote(""); setEnrichedData(null); } }}>
         <DialogContent className="sm:max-w-md">
