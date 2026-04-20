@@ -51,7 +51,7 @@ export default function PublicProfileModal({ userId, onClose }: PublicProfileMod
         supabase.from("place_submissions").select("id", { count: "exact", head: true }).eq("submitted_by", userId).eq("status", "approved"),
       ]);
       if (profileRes.data) setProfile(profileRes.data as unknown as PublicProfile);
-      if (petsRes.data) setPets(petsRes.data as Pet[]);
+      if (petsRes.data) setPets(petsRes.data as unknown as Pet[]);
       setReviewCount(reviewsRes.count ?? 0);
       setPlacesCount(placesRes.count ?? 0);
       setLoading(false);

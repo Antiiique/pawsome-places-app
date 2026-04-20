@@ -1228,7 +1228,7 @@ const AdminPage = () => {
     setAlbumDialogPet(pet);
     setAlbumDialogLoading(true);
     const { data } = await supabase.from("pet_photos" as any).select("*").eq("pet_id", pet.id).order("created_at", { ascending: false });
-    setAlbumDialogPhotos((data as AdminPetPhoto[]) || []);
+    setAlbumDialogPhotos((data as unknown as AdminPetPhoto[]) || []);
     setAlbumDialogLoading(false);
   };
 

@@ -148,7 +148,7 @@ export default function MarkerPopup({
   useEffect(() => {
     if (user && reviewTab === "community") {
       supabase.from("pets" as any).select("id, name, species, avatar_url").eq("user_id", user.id).order("created_at", { ascending: true })
-        .then(({ data }) => { if (data) setUserPets(data as UserPet[]); });
+        .then(({ data }) => { if (data) setUserPets(data as unknown as UserPet[]); });
     }
   }, [user, reviewTab]);
 
