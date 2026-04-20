@@ -277,35 +277,77 @@ export type Database = {
       }
       pet_photos: {
         Row: {
+          caption: string | null
           created_at: string | null
           id: string
-          pet_name: string | null
+          pet_id: string
           url: string
           user_id: string
         }
         Insert: {
+          caption?: string | null
           created_at?: string | null
           id?: string
-          pet_name?: string | null
+          pet_id: string
           url: string
           user_id: string
         }
         Update: {
+          caption?: string | null
           created_at?: string | null
           id?: string
-          pet_name?: string | null
+          pet_id?: string
           url?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "pet_photos_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "pet_photos_pet_id_fkey"
+            columns: ["pet_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "pets"
             referencedColumns: ["id"]
           },
         ]
+      }
+      pets: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          birth_date: string | null
+          breed: string | null
+          created_at: string | null
+          id: string
+          name: string
+          sex: string | null
+          species: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          birth_date?: string | null
+          breed?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          sex?: string | null
+          species?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          birth_date?: string | null
+          breed?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          sex?: string | null
+          species?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       place_reports: {
         Row: {
@@ -565,6 +607,36 @@ export type Database = {
           points?: number
         }
         Relationships: []
+      }
+      review_pets: {
+        Row: {
+          pet_id: string
+          review_id: string
+        }
+        Insert: {
+          pet_id: string
+          review_id: string
+        }
+        Update: {
+          pet_id?: string
+          review_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_pets_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_pets_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "place_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       submission_photos: {
         Row: {
