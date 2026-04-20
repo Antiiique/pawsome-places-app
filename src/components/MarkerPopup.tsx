@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Heart, X, ExternalLink, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import PublicProfileModal from "@/components/PublicProfileModal";
 
 export interface PlaceReview {
   author: string;
@@ -31,6 +32,12 @@ interface UserPet {
   id: string;
   name: string;
   species: string;
+  avatar_url: string | null;
+}
+
+interface MentionSuggestion {
+  id: string;
+  display_name: string | null;
   avatar_url: string | null;
 }
 
@@ -128,6 +135,10 @@ export default function MarkerPopup({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [userPets, setUserPets] = useState<UserPet[]>([]);
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
+  const [publicProfileUserId, setPublicProfileUserId] = useState<string | null>(null);
+  const [mentionSuggestions, setMentionSuggestions] = useState<MentionSuggestion[]>([]);
+  const [showMentionDropdown, setShowMentionDropdown] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const userReview = communityReviews.find(r => r.user_id === user?.id);
   const avgCR = communityReviews.length > 0 ? communityReviews.reduce((s, r) => s + r.rating, 0) / communityReviews.length : 0;
 
@@ -180,6 +191,7 @@ export default function MarkerPopup({
       if (newReview && selectedPetIds.length > 0) {
         await supabase.from("review_pets" as any).insert(selectedPetIds.map(petId => ({ review_id: newReview.id, pet_id: petId })));
       }
+      if (newReview && newBody) await processMentions(newReview.id, newBody);
     }
     {
       toast.success(isEditing ? "Avis mis à jour !" : "Avis publié !");
@@ -206,6 +218,73 @@ export default function MarkerPopup({
     setPhotoPreview(URL.createObjectURL(file));
   }
 
+  async function processMentions(reviewId: string, body: string) {
+    const matches = body.match(/@(\S+)/g);
+    if (!matches) return;
+    const pseudos = [...new Set(matches.map(m => m.slice(1)))];
+    for (const pseudo of pseudos) {
+      const { data } = await supabase.from("profiles").select("id, display_name").eq("display_name", pseudo).maybeSingle();
+      if (!data || data.id === user?.id) continue;
+      await supabase.from("review_mentions" as any).insert({ review_id: reviewId, mentioned_user_id: data.id });
+      await supabase.from("user_notifications" as any).insert({
+        user_id: data.id,
+        type: "mention",
+        title: "Tu as été mentionné(e) 🔖",
+        message: `Quelqu'un t'a cité dans un avis`,
+        related_id: reviewId,
+      });
+    }
+  }
+
+  function handleBodyChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const val = e.target.value;
+    setNewBody(val);
+    const cursor = e.target.selectionStart ?? val.length;
+    const textBefore = val.slice(0, cursor);
+    const match = textBefore.match(/@(\S*)$/);
+    if (match) {
+      const q = match[1];
+      setShowMentionDropdown(true);
+      if (q.length >= 1) {
+        supabase.from("profiles").select("id, display_name, avatar_url").ilike("display_name", `${q}%`).limit(5)
+          .then(({ data }) => { if (data) setMentionSuggestions(data as MentionSuggestion[]); });
+      } else {
+        setMentionSuggestions([]);
+      }
+    } else {
+      setShowMentionDropdown(false);
+      setMentionSuggestions([]);
+    }
+  }
+
+  function insertMention(suggestion: MentionSuggestion) {
+    const cursor = textareaRef.current?.selectionStart ?? newBody.length;
+    const textBefore = newBody.slice(0, cursor);
+    const textAfter = newBody.slice(cursor);
+    const newText = textBefore.replace(/@(\S*)$/, `@${suggestion.display_name} `) + textAfter;
+    setNewBody(newText);
+    setShowMentionDropdown(false);
+    setMentionSuggestions([]);
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  }
+
+  function renderMentions(text: string): React.ReactNode {
+    const parts = text.split(/(@\S+)/g);
+    return parts.map((part, i) =>
+      part.startsWith("@") ? (
+        <span
+          key={i}
+          className="text-primary font-semibold cursor-pointer hover:underline"
+          onClick={() => {
+            const pseudo = part.slice(1);
+            supabase.from("profiles").select("id").eq("display_name", pseudo).maybeSingle()
+              .then(({ data }) => { if (data) setPublicProfileUserId(data.id); });
+          }}
+        >{part}</span>
+      ) : <span key={i}>{part}</span>
+    );
+  }
+
   function timeSince(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();
     const m = Math.floor(diff / 60000);
@@ -225,6 +304,10 @@ export default function MarkerPopup({
 
   return (
     <>
+      {publicProfileUserId && (
+        <PublicProfileModal userId={publicProfileUserId} onClose={() => setPublicProfileUserId(null)} />
+      )}
+
       {lightboxPhoto && (
         <div
           className="fixed inset-0 z-[20001] bg-black/85 flex items-center justify-center p-4 cursor-pointer"
@@ -510,7 +593,10 @@ export default function MarkerPopup({
                                   {(r.profiles?.display_name?.[0] ?? "?").toUpperCase()}
                                 </div>
                               )}
-                              <p className="text-xs font-semibold text-foreground truncate">{r.profiles?.display_name ?? "Anonyme"}</p>
+                              <p
+                                className="text-xs font-semibold text-foreground truncate cursor-pointer hover:text-primary transition-colors"
+                                onClick={() => setPublicProfileUserId(r.user_id)}
+                              >{r.profiles?.display_name ?? "Anonyme"}</p>
                             </div>
                             <span className="text-warning text-xs flex-shrink-0">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
                           </div>
@@ -530,7 +616,7 @@ export default function MarkerPopup({
                           {r.visited_with_pet && (!r.review_pets || r.review_pets.length === 0) && (
                             <p className="text-[10px] text-success">🐾 Avec animal</p>
                           )}
-                          {r.body && <p className="text-xs text-muted-foreground leading-relaxed break-words">{r.body}</p>}
+                          {r.body && <p className="text-xs text-muted-foreground leading-relaxed break-words">{renderMentions(r.body)}</p>}
                           {r.photo_url && (
                             <img
                               src={r.photo_url}
@@ -543,6 +629,17 @@ export default function MarkerPopup({
                             <span className="text-[10px] text-muted-foreground">{timeSince(r.created_at)}{r.has_been_edited && " · modifié"}</span>
                             <div className="flex items-center gap-2">
                               <button onClick={() => markHelpfulCR(r.id, r.helpful_count, r.user_id)} className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary">👍{r.helpful_count > 0 && ` ${r.helpful_count}`}</button>
+                              {user && user.id !== r.user_id && r.profiles?.display_name && (
+                                <button
+                                  onClick={() => {
+                                    const pseudo = r.profiles!.display_name!;
+                                    setNewBody(prev => `@${pseudo} ${prev}`.trim() + " ");
+                                    textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                                    setTimeout(() => textareaRef.current?.focus(), 300);
+                                  }}
+                                  className="text-[10px] text-muted-foreground hover:text-primary"
+                                >💬 Répondre</button>
+                              )}
                               {user && user.id !== r.user_id && !r.is_reported && (
                                 <button onClick={() => reportCR(r.id)} className="text-[10px] text-muted-foreground hover:text-orange-500">🚩</button>
                               )}
@@ -575,13 +672,34 @@ export default function MarkerPopup({
                               </button>
                             ))}
                           </div>
-                          <textarea
-                            value={newBody}
-                            onChange={e => setNewBody(e.target.value)}
-                            placeholder="Ton expérience (optionnel)…"
-                            rows={2}
-                            className="w-full text-xs rounded-lg border border-border bg-muted/40 p-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                          />
+                          <div className="relative">
+                            <textarea
+                              ref={textareaRef}
+                              value={newBody}
+                              onChange={handleBodyChange}
+                              placeholder="Ton expérience… utilise @pseudo pour mentionner quelqu'un"
+                              rows={2}
+                              className="w-full text-xs rounded-lg border border-border bg-muted/40 p-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                            {showMentionDropdown && mentionSuggestions.length > 0 && (
+                              <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-card border border-border rounded-xl shadow-xl overflow-hidden">
+                                {mentionSuggestions.map(s => (
+                                  <button
+                                    key={s.id}
+                                    type="button"
+                                    onMouseDown={e => { e.preventDefault(); insertMention(s); }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted transition-colors text-left"
+                                  >
+                                    {s.avatar_url
+                                      ? <img src={s.avatar_url} className="w-6 h-6 rounded-full object-cover flex-shrink-0" alt="" />
+                                      : <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground flex-shrink-0">{(s.display_name?.[0] ?? "?").toUpperCase()}</div>
+                                    }
+                                    <span className="font-semibold text-foreground">{s.display_name}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                           <label className="flex items-center gap-2 text-xs cursor-pointer">
                             <input type="checkbox" checked={visitedWithPet} onChange={e => setVisitedWithPet(e.target.checked)} className="rounded" />
                             🐾 Visité avec mon animal

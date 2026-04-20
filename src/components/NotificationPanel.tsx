@@ -25,6 +25,7 @@ const typeConfig: Record<string, { icon: string; borderColor: string; bgColor: s
   report_reviewed: { icon: "✅", borderColor: "border-l-green-500", bgColor: "bg-green-100 dark:bg-green-900/30" },
   report_dismissed: { icon: "💬", borderColor: "border-l-muted", bgColor: "bg-muted/50" },
   new_review: { icon: "💬", borderColor: "border-l-primary", bgColor: "bg-primary/10" },
+  mention: { icon: "🔖", borderColor: "border-l-violet-500", bgColor: "bg-violet-100 dark:bg-violet-900/30" },
 };
 
 export default function NotificationPanel({ open, onClose }: NotificationPanelProps) {
