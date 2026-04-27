@@ -51,8 +51,8 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
 
       <div
         data-panel="notifications"
-        className="fixed top-[60px] right-2 z-[9999] flex flex-col overflow-hidden bg-card border border-border rounded-xl shadow-2xl"
-        style={{ width: "min(360px, calc(100vw - 16px))", maxHeight: "calc(100dvh - 76px)" }}
+        className="fixed top-[60px] left-1/2 -translate-x-1/2 z-[9999] flex flex-col overflow-hidden bg-card border border-border rounded-xl shadow-2xl"
+        style={{ width: "min(360px, calc(100vw - 16px))", maxHeight: "min(520px, calc(100dvh - 120px))" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
