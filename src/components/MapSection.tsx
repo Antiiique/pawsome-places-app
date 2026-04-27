@@ -353,6 +353,30 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       }, 50);
     });
 
+    // Long press (mobile) + right-click (desktop) → add a place
+    let lpTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const triggerAddPlace = (lat: number, lng: number) => {
+      fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&language=fr`)
+        .then((r) => r.json())
+        .then((data) => {
+          const address = data.features?.[0]?.place_name || "";
+          window.dispatchEvent(new CustomEvent("open-submit-modal", { detail: { lat, lng, address } }));
+        });
+    };
+
+    map.on("touchstart", (e) => {
+      if (e.originalEvent.touches.length !== 1) return;
+      const { lat, lng } = e.lngLat;
+      lpTimer = setTimeout(() => { lpTimer = null; triggerAddPlace(lat, lng); }, 600);
+    });
+    map.on("touchend", () => { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } });
+    map.on("touchmove", () => { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } });
+    map.on("contextmenu", (e) => {
+      if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+      triggerAddPlace(e.lngLat.lat, e.lngLat.lng);
+    });
+
     mapRef.current = map;
     return () => { map.remove(); mapRef.current = null; };
   }, []);

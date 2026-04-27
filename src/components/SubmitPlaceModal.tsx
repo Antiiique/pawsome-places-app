@@ -25,9 +25,10 @@ interface SubmitPlaceModalProps {
   open: boolean;
   onClose: () => void;
   onLoginRequired: () => void;
+  initialCoords?: { lat: number; lng: number; address?: string };
 }
 
-export default function SubmitPlaceModal({ open, onClose, onLoginRequired }: SubmitPlaceModalProps) {
+export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initialCoords }: SubmitPlaceModalProps) {
   const { user } = useAuthContext();
 
   const [name, setName] = useState("");
@@ -56,6 +57,10 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired }: Sub
   useEffect(() => {
     if (open && window.google?.maps?.places) {
       autocompleteRef.current = new google.maps.places.AutocompleteService();
+    }
+    if (open && initialCoords) {
+      setAddressCoords({ lat: initialCoords.lat, lng: initialCoords.lng });
+      if (initialCoords.address) setAddress(initialCoords.address);
     }
   }, [open]);
 

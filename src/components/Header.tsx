@@ -21,6 +21,7 @@ interface HeaderProps {
 const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: HeaderProps) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submitCoords, setSubmitCoords] = useState<{ lat: number; lng: number; address?: string } | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -40,9 +41,18 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
     return () => window.removeEventListener("open-auth-modal", handler);
   }, []);
 
-  // Auto-close auth modal when user becomes authenticated
   useEffect(() => {
     if (user) setShowAuthModal(false);
+  }, [user]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { lat: number; lng: number; address?: string };
+      if (user) { setSubmitCoords(detail); setShowSubmitModal(true); }
+      else setShowAuthModal(true);
+    };
+    window.addEventListener("open-submit-modal", handler);
+    return () => window.removeEventListener("open-submit-modal", handler);
   }, [user]);
 
 
@@ -142,7 +152,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
 
 
 <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
-      <SubmitPlaceModal open={showSubmitModal} onClose={() => setShowSubmitModal(false)} onLoginRequired={() => { setShowSubmitModal(false); setShowAuthModal(true); }} />
+      <SubmitPlaceModal open={showSubmitModal} onClose={() => { setShowSubmitModal(false); setSubmitCoords(null); }} onLoginRequired={() => { setShowSubmitModal(false); setShowAuthModal(true); }} initialCoords={submitCoords ?? undefined} />
       <UserProfileModal open={showProfileModal} onClose={() => setShowProfileModal(false)} />
     </header>
   );
