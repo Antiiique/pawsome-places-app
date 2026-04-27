@@ -1,5 +1,4 @@
 /// <reference types="google.maps" />
-import heroImage from "@/assets/hero-pet-friendly.jpg";
 import { Search, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -86,29 +85,11 @@ const HeroSection = ({ onSearch }: HeroSectionProps) => {
   }, []);
 
   return (
-    <section className="relative min-h-[85vh] flex items-center overflow-hidden">
-      <div className="absolute inset-0">
-        <img
-          src={heroImage}
-          alt="Voyager avec son animal de compagnie"
-          width={1920}
-          height={1080}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 hero-gradient" />
-      </div>
-
-      <div className="relative container px-4 pt-20">
-        <div className="max-w-2xl animate-fade-in">
-          <h1 className="text-4xl md:text-6xl font-heading font-bold text-primary-foreground leading-tight mb-4">
-            Voyagez partout avec votre compagnon
-          </h1>
-          <p className="text-lg md:text-xl text-primary-foreground/90 mb-8 font-body">
-            Découvrez les meilleurs restaurants, hôtels, parcs et lieux de loisirs qui accueillent vos animaux à travers le monde.
-          </p>
-
-          <div ref={containerRef} className="relative max-w-xl">
-            <div className="flex flex-col sm:flex-row gap-3 bg-card/95 backdrop-blur-md rounded-xl p-3 border border-border" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+    <section className="relative flex items-center justify-center overflow-hidden py-10 pt-24 bg-background">
+      <div className="relative container px-4">
+        <div className="max-w-xl mx-auto animate-fade-in">
+          <div ref={containerRef} className="relative">
+            <div className="flex flex-col sm:flex-row gap-3 bg-card rounded-xl p-3 border border-border shadow-md">
               <div className="flex items-center gap-2 flex-1 px-3">
                 <MapPin className="w-5 h-5 text-pet-coral shrink-0" />
                 <input
@@ -131,7 +112,7 @@ const HeroSection = ({ onSearch }: HeroSectionProps) => {
             </div>
 
             {showDropdown && predictions.length > 0 && (
-              <div className="absolute z-50 left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden" style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+              <div className="absolute z-50 left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
                 {predictions.map((pred) => (
                   <button
                     key={pred.place_id}
@@ -147,21 +128,6 @@ const HeroSection = ({ onSearch }: HeroSectionProps) => {
                 ))}
               </div>
             )}
-          </div>
-
-          <div className="flex flex-wrap gap-2 mt-6">
-            {["Paris", "Barcelone", "Amsterdam", "Lisbonne"].map((city) => (
-              <span
-                key={city}
-                onClick={() => {
-                  setQuery(city);
-                  onSearch(city);
-                }}
-                className="px-3 py-1.5 rounded-full bg-primary-foreground/20 text-primary-foreground text-sm font-medium backdrop-blur-sm cursor-pointer hover:bg-primary-foreground/30 transition-colors"
-              >
-                {city}
-              </span>
-            ))}
           </div>
         </div>
       </div>
