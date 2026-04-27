@@ -176,10 +176,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       const el = document.createElement("div");
 
       if (cluster.properties.cluster) {
-        el.style.cssText = "background:hsl(var(--primary));color:white;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.25);cursor:pointer;transition:transform 0.15s ease;";
+        el.style.cssText = "background:hsl(var(--primary));color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;";
         el.textContent = String(cluster.properties.point_count);
-        el.onmouseenter = () => { el.style.transform = "scale(1.12)"; };
-        el.onmouseleave = () => { el.style.transform = "scale(1)"; };
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           const z = scRef.current.getClusterExpansionZoom(cluster.properties.cluster_id);
@@ -190,10 +188,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         if (!place) return;
         const color = place.accepts_dogs ? (CATEGORY_COLORS[place.category] || "#4CAF50") : "#9E9E9E";
         const emoji = CATEGORY_EMOJIS[place.category] || "📍";
-        el.style.cssText = "display:flex;align-items:flex-end;cursor:pointer;filter:drop-shadow(0 3px 8px rgba(0,0,0,0.28));transition:transform 0.15s ease;";
-        el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="54" viewBox="0 0 44 54"><path d="M22 0C9.85 0 0 9.85 0 22C0 38.5 22 54 22 54C22 54 44 38.5 44 22C44 9.85 34.15 0 22 0Z" fill="${color}"/><circle cx="22" cy="21" r="13" fill="rgba(255,255,255,0.22)"/><text x="22" y="27" text-anchor="middle" font-size="17" font-family="system-ui,sans-serif">${emoji}</text></svg>`;
-        el.onmouseenter = () => { el.style.transform = "scale(1.18) translateY(-4px)"; };
-        el.onmouseleave = () => { el.style.transform = "scale(1)"; };
+        el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;";
+        el.innerHTML = `<div style="width:40px;height:40px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;">${emoji}</div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid ${color};margin-top:-1px;"></div>`;
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           markerClickedRef.current = true;
