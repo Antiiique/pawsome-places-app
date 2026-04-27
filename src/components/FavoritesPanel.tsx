@@ -45,19 +45,12 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
 
   return (
     <>
-      {/* Mobile backdrop - only when open */}
-      <div
-        className={`fixed inset-0 bg-black/30 z-40 md:hidden transition-opacity duration-300 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
-        onClick={onClose}
-      />
-
-      {/* Side panel */}
       <div
         data-panel
-        className={`fixed z-50 bottom-0 right-0 w-[360px] max-w-[92vw] bg-card border-l border-border shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+        className={`fixed z-50 inset-x-0 bottom-0 bg-card shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
-        style={{ top: 56, borderRadius: '0 0 0 var(--radius)' }}
+        style={{ top: 56 }}
       >
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">

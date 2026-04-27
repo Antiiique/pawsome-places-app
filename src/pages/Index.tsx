@@ -3,7 +3,7 @@ import MapSection from "@/components/MapSection";
 import ItineraryPanel from "@/components/itinerary/ItineraryPanel";
 import FavoritesPanel from "@/components/FavoritesPanel";
 import type { PickMode } from "@/components/itinerary/ItineraryPanel";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { ItineraryMapData } from "@/components/itinerary/types";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
@@ -17,6 +17,29 @@ const Index = () => {
   const [pickMode, setPickMode] = useState<PickMode>(null);
 
   const { favorites, isFavorite, toggleFavorite, removeFavorite, count: favCount } = useFavorites();
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - (touchStartY.current ?? 0);
+    touchStartX.current = null;
+    touchStartY.current = null;
+    if (Math.abs(dy) > Math.abs(dx) || Math.abs(dx) < 70) return;
+    if (dx < 0) {
+      if (activePanel === "favorites") setActivePanel(null);
+      else openPanel("itinerary");
+    } else {
+      if (activePanel === "itinerary") { setActivePanel(null); setPickMode(null); }
+      else openPanel("favorites");
+    }
+  };
 
   const handleSearch = (query: string) => setSearchQuery(query);
 
@@ -67,7 +90,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col bg-background">
+    <div className="h-screen overflow-hidden flex flex-col bg-background" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <Header
         onItineraryClick={() => openPanel("itinerary")}
         onFavoritesClick={() => openPanel("favorites")}
