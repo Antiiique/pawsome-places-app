@@ -145,6 +145,11 @@ const Index = () => {
         onOpenItinerary={() => setActivePanel("itinerary")}
       />
 
+      {/* Bloque les events touch sur Mapbox pendant un swipe de panel */}
+      {panelDrag && (
+        <div className="fixed inset-0 z-[45]" style={{ touchAction: "none" }} />
+      )}
+
       <ItineraryPanel
         open={activePanel === "itinerary"}
         onClose={() => { setActivePanel(null); setPickMode(null); }}
