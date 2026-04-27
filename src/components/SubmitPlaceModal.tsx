@@ -147,7 +147,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="w-[92vw] sm:max-w-lg max-h-[90vh] p-0 overflow-hidden rounded-2xl">
         {!user ? (
           <div className="flex flex-col items-center text-center gap-4 p-6">
             <span className="text-6xl">📍</span>
