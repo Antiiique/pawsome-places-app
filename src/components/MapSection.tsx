@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Supercluster from "supercluster";
-import { Loader2, Locate } from "lucide-react";
+import { Loader2, Locate, Search, X } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
@@ -148,6 +148,11 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [originPoint, setOriginPoint] = useState<{ lat: number; lng: number } | null>(null);
   const [destPoint, setDestPoint] = useState<{ lat: number; lng: number } | null>(null);
   const [reportModal, setReportModal] = useState<{ open: boolean; placeId: string | null; placeName: string }>({ open: false, placeId: null, placeName: "" });
+  const [localSearch, setLocalSearch] = useState("");
+  const [searchPredictions, setSearchPredictions] = useState<{ place_id: string; structured_formatting: { main_text: string; secondary_text: string } }[]>([]);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // ── Render clusters ──
   const renderClusters = useCallback((currentPlaces: PetPlace[]) => {
@@ -514,6 +519,48 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     if (lngs.length) map.fitBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]], { padding: 50 });
   }, [itineraryData, isLoaded, onStepClick]);
 
+  // ── Floating search ──
+  const handleLocalSearch = (text: string) => {
+    setLocalSearch(text);
+    clearTimeout(searchTimerRef.current);
+    if (!text.trim()) { setSearchPredictions([]); setShowSearchDropdown(false); return; }
+    searchTimerRef.current = setTimeout(() => {
+      loadGooglePlacesLib().then(() => {
+        const g = (window as any).google;
+        if (!g?.maps?.places) return;
+        new g.maps.places.AutocompleteService().getPlacePredictions({ input: text, language: "fr" }, (results: any[], status: string) => {
+          if (status === g.maps.places.PlacesServiceStatus.OK && results) {
+            setSearchPredictions(results.slice(0, 5));
+            setShowSearchDropdown(true);
+          }
+        });
+      });
+    }, 300);
+  };
+
+  const submitLocalSearch = (query: string) => {
+    if (!query.trim()) return;
+    setShowSearchDropdown(false);
+    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query.trim())}.json?access_token=${MAPBOX_TOKEN}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.features?.[0]) {
+          const [lng, lat] = data.features[0].center;
+          setCenter({ lat, lng });
+          mapRef.current?.flyTo({ center: [lng, lat], zoom: 13 });
+        }
+      });
+  };
+
+  // Click outside search dropdown
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) setShowSearchDropdown(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   // ── Helpers ──
   const handleLocateMe = () => {
     navigator.geolocation?.getCurrentPosition((pos) => {
@@ -531,46 +578,87 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
   // ── Render ──
   return (
-    <section id="explore" className="py-8 bg-secondary/50">
-      <div className="container px-4">
-        <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide mb-2">
-          {CATEGORY_FILTERS.map((f) => (
-            <button key={f.label} onClick={() => setActiveCategory(f.key)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeCategory === f.key ? "bg-primary text-primary-foreground" : "bg-card border border-border text-foreground hover:bg-muted"}`}>
-              {f.emoji} {f.label}
+    <section id="explore" className="relative flex-1 min-h-0">
+      {/* Map base */}
+      {!MAPBOX_TOKEN ? (
+        <div className="flex items-center justify-center h-full bg-muted">
+          <p className="text-destructive text-sm text-center px-4">Token Mapbox manquant — ajoutez <code>VITE_MAPBOX_TOKEN</code></p>
+        </div>
+      ) : (
+        <div ref={mapContainerRef} className="w-full h-full" />
+      )}
+
+      {/* Loading */}
+      {searching && (
+        <div className="absolute inset-0 bg-background/20 z-10 flex items-center justify-center pointer-events-none">
+          <div className="flex items-center gap-3 bg-card px-6 py-3 rounded-full shadow-lg pointer-events-auto">
+            <Loader2 className="w-5 h-5 text-primary animate-spin" />
+            <span className="text-sm font-medium text-foreground">Recherche…</span>
+          </div>
+        </div>
+      )}
+
+      {/* Floating search bar */}
+      <div ref={searchContainerRef} className="absolute top-3 left-1/2 -translate-x-1/2 z-20 w-full max-w-md px-4">
+        <div className="flex items-center gap-2 bg-card/95 backdrop-blur-md rounded-full border border-border shadow-lg px-4 py-2.5">
+          <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+          <input
+            type="text"
+            placeholder="Rechercher une ville ou un lieu..."
+            value={localSearch}
+            onChange={(e) => handleLocalSearch(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submitLocalSearch(localSearch)}
+            onFocus={() => { if (searchPredictions.length > 0) setShowSearchDropdown(true); }}
+            className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-none text-sm"
+          />
+          {localSearch && (
+            <button onClick={() => { setLocalSearch(""); setSearchPredictions([]); setShowSearchDropdown(false); }}>
+              <X className="w-4 h-4 text-muted-foreground" />
             </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-4 mb-4 px-1">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">Rayon :</span>
-          <Slider min={5} max={50} step={5} value={[radiusKm]} onValueChange={(v) => setRadiusKm(v[0])} className="flex-1 max-w-xs" />
-          <span className="text-sm font-semibold text-foreground w-14 text-right">{radiusKm} km</span>
-        </div>
-
-        <div className="relative rounded-2xl overflow-hidden mb-4 border border-border h-[450px]">
-          {searching && (
-            <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center">
-              <div className="flex items-center gap-3 bg-card px-6 py-3 rounded-full shadow-lg">
-                <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                <span className="text-sm font-medium text-foreground">Recherche…</span>
-              </div>
-            </div>
           )}
-          {!MAPBOX_TOKEN ? (
-            <div className="flex items-center justify-center h-full bg-muted">
-              <p className="text-destructive text-sm text-center px-4">Token Mapbox manquant — ajoutez <code>VITE_MAPBOX_TOKEN</code></p>
-            </div>
-          ) : (
-            <div ref={mapContainerRef} className="w-full h-full" />
-          )}
-          <button onClick={handleLocateMe} className="absolute bottom-4 right-4 z-10 p-3 bg-card rounded-full shadow-lg border border-border hover:bg-muted transition-colors" title="Ma position">
-            <Locate className="w-5 h-5 text-primary" />
+        </div>
+        {showSearchDropdown && searchPredictions.length > 0 && (
+          <div className="absolute top-full left-4 right-4 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+            {searchPredictions.map((pred) => (
+              <button key={pred.place_id} onClick={() => { setLocalSearch(pred.structured_formatting.main_text); submitLocalSearch(pred.structured_formatting.main_text); }}
+                className="w-full text-left px-4 py-2.5 hover:bg-muted transition-colors flex items-center gap-3">
+                <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{pred.structured_formatting.main_text}</p>
+                  <p className="text-xs text-muted-foreground truncate">{pred.structured_formatting.secondary_text}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Category filters */}
+      <div className="absolute top-16 left-0 right-0 z-20 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide">
+        {CATEGORY_FILTERS.map((f) => (
+          <button key={f.label} onClick={() => setActiveCategory(f.key)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shadow-sm ${activeCategory === f.key ? "bg-primary text-primary-foreground" : "bg-card/90 backdrop-blur-sm border border-border text-foreground hover:bg-muted"}`}>
+            {f.emoji} {f.label}
           </button>
-        </div>
+        ))}
+      </div>
 
-        <p className="text-center text-sm text-muted-foreground mb-6">
-          <span className="font-semibold text-foreground">{places.length}</span> lieu{places.length !== 1 ? "x" : ""} pet-friendly trouvé{places.length !== 1 ? "s" : ""} dans un rayon de <span className="font-semibold text-foreground">{radiusKm} km</span>
+      {/* Radius slider */}
+      <div className="absolute bottom-8 left-4 z-20 bg-card/90 backdrop-blur-sm rounded-xl border border-border shadow-sm px-3 py-2 flex items-center gap-3">
+        <span className="text-xs text-muted-foreground whitespace-nowrap">Rayon :</span>
+        <Slider min={5} max={50} step={5} value={[radiusKm]} onValueChange={(v) => setRadiusKm(v[0])} className="w-20" />
+        <span className="text-xs font-semibold text-foreground w-8 text-right">{radiusKm} km</span>
+      </div>
+
+      {/* Locate me */}
+      <button onClick={handleLocateMe} className="absolute bottom-8 right-4 z-20 p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors" title="Ma position">
+        <Locate className="w-5 h-5 text-primary" />
+      </button>
+
+      {/* Place count badge */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 bg-card/90 backdrop-blur-sm rounded-full border border-border shadow-sm px-3 py-1 pointer-events-none">
+        <p className="text-xs text-muted-foreground whitespace-nowrap">
+          <span className="font-semibold text-foreground">{places.length}</span> lieux · {radiusKm} km
         </p>
       </div>
 

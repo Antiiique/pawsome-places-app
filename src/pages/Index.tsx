@@ -1,7 +1,5 @@
 import Header from "@/components/Header";
-import HeroSection from "@/components/HeroSection";
 import MapSection from "@/components/MapSection";
-import Footer from "@/components/Footer";
 import ItineraryPanel from "@/components/itinerary/ItineraryPanel";
 import FavoritesPanel from "@/components/FavoritesPanel";
 import type { PickMode } from "@/components/itinerary/ItineraryPanel";
@@ -69,13 +67,12 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen overflow-hidden flex flex-col bg-background">
       <Header
         onItineraryClick={() => openPanel("itinerary")}
         onFavoritesClick={() => openPanel("favorites")}
         favoritesCount={favCount}
       />
-      <HeroSection onSearch={handleSearch} />
       <MapSection
         searchQuery={searchQuery}
         itineraryData={itineraryData}
@@ -85,7 +82,6 @@ const Index = () => {
         onToggleFavorite={toggleFavorite}
         onOpenItinerary={() => setActivePanel("itinerary")}
       />
-      <Footer />
 
       <ItineraryPanel
         open={activePanel === "itinerary"}
