@@ -66,6 +66,10 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
             )}
           </Button>
 
+          <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent-soft" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
+            <Navigation className="w-5 h-5" />
+          </Button>
+
           {user && (
             <div className="relative">
               <button
@@ -83,10 +87,6 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
               <NotificationPanel open={showNotifications} onClose={() => setShowNotifications(false)} />
             </div>
           )}
-
-          <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent-soft" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
-            <Navigation className="w-5 h-5" />
-          </Button>
 
           {user ? (
             <Popover open={profileMenuOpen} onOpenChange={setProfileMenuOpen}>

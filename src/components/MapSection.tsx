@@ -325,6 +325,16 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
     map.on("moveend", () => {
       const c = map.getCenter();
+      const bounds = map.getBounds();
+      if (bounds) {
+        const ne = bounds.getNorthEast();
+        const R = 6371;
+        const dLat = (ne.lat - c.lat) * Math.PI / 180;
+        const dLng = (ne.lng - c.lng) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(c.lat * Math.PI / 180) * Math.cos(ne.lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+        const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        setRadiusKm(Math.min(Math.max(Math.ceil(km), 1), 150));
+      }
       setCenter({ lat: c.lat, lng: c.lng });
       renderClusters(places);
     });
@@ -643,24 +653,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         ))}
       </div>
 
-      {/* Radius slider */}
-      <div className="absolute bottom-8 left-4 z-20 bg-card/90 backdrop-blur-sm rounded-xl border border-border shadow-sm px-3 py-2 flex items-center gap-3">
-        <span className="text-xs text-muted-foreground whitespace-nowrap">Rayon :</span>
-        <Slider min={5} max={50} step={5} value={[radiusKm]} onValueChange={(v) => setRadiusKm(v[0])} className="w-20" />
-        <span className="text-xs font-semibold text-foreground w-8 text-right">{radiusKm} km</span>
-      </div>
-
       {/* Locate me */}
       <button onClick={handleLocateMe} className="absolute bottom-8 right-4 z-20 p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors" title="Ma position">
         <Locate className="w-5 h-5 text-primary" />
       </button>
-
-      {/* Place count badge */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 bg-card/90 backdrop-blur-sm rounded-full border border-border shadow-sm px-3 py-1 pointer-events-none">
-        <p className="text-xs text-muted-foreground whitespace-nowrap">
-          <span className="font-semibold text-foreground">{places.length}</span> lieux · {radiusKm} km
-        </p>
-      </div>
 
       {popupData && (
         <MarkerPopup

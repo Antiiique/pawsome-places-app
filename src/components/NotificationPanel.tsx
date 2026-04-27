@@ -1,6 +1,7 @@
 import { useUserNotifications } from "@/hooks/useUserNotifications";
 import { Skeleton } from "@/components/ui/skeleton";
 import { X } from "lucide-react";
+import { useRef, useEffect } from "react";
 
 interface NotificationPanelProps {
   open: boolean;
@@ -30,6 +31,16 @@ const typeConfig: Record<string, { icon: string; borderColor: string; bgColor: s
 
 export default function NotificationPanel({ open, onClose }: NotificationPanelProps) {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useUserNotifications();
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) onClose();
+    };
+    setTimeout(() => document.addEventListener("mousedown", handler), 0);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -43,13 +54,8 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
 
   return (
     <>
-      {/* Overlay — ferme le panneau au clic extérieur sur tous les écrans */}
       <div
-        className="fixed inset-0 z-[9998]"
-        onClick={onClose}
-      />
-
-      <div
+        ref={panelRef}
         data-panel="notifications"
         className="fixed top-[60px] left-1/2 -translate-x-1/2 z-[9999] flex flex-col overflow-hidden bg-card border border-border rounded-xl shadow-2xl"
         style={{ width: "min(360px, calc(100vw - 16px))", maxHeight: "min(520px, calc(100dvh - 120px))" }}
@@ -120,3 +126,4 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
     </>
   );
 }
+
