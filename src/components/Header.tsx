@@ -1,5 +1,5 @@
 import logo from "@/assets/logo-wpf.png";
-import { Menu, Navigation, Heart, UserCircle, Bell } from "lucide-react";
+import { Navigation, Heart, UserCircle, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
@@ -19,7 +19,6 @@ interface HeaderProps {
 }
 
 const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: HeaderProps) => {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -57,12 +56,6 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
           </span>
         </div>
 
-        <nav className="hidden md:flex items-center gap-6">
-          <a href="#explore" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Explorer</a>
-          <a href="#categories" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Catégories</a>
-          <a href="#about" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">À propos</a>
-        </nav>
-
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="relative text-foreground hover:bg-accent-soft" onClick={onFavoritesClick} title="Mes favoris">
             <Heart className="w-5 h-5" />
@@ -96,89 +89,59 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
           </Button>
 
           {user ? (
-            <>
-              <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-accent-hover text-sm" onClick={() => user ? setShowSubmitModal(true) : setShowAuthModal(true)}>
-                Ajouter un lieu
-              </Button>
-              <Popover open={profileMenuOpen} onOpenChange={setProfileMenuOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring"
-                    style={{ backgroundColor: "#FF6B35" }}
-                    title={profile?.display_name || "Mon compte"}
-                  >
-                    {initial}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-56 p-2 z-[9999]" align="end">
-                  <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">👤 {profile?.display_name || "Utilisateur"}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                  </div>
-                  <Separator className="my-1" />
-                  <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); setShowProfileModal(true); }}>
-                    👤 Mon profil
-                  </button>
-                  <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onFavoritesClick?.(); }}>
-                    ❤️ Mes favoris
-                  </button>
-                  <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onItineraryClick?.(); }}>
-                    🗺️ Mes itinéraires
-                  </button>
-                  {profile?.is_admin && (
-                    <>
-                      <Separator className="my-1" />
-                      <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); window.location.href = "/admin"; }}>
-                        ⚙️ Administration
-                      </button>
-                    </>
-                  )}
-                  <Separator className="my-1" />
-                  <button className="w-full text-left px-2 py-1.5 text-sm text-destructive hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}>
-                    Se déconnecter
-                  </button>
-                </PopoverContent>
-              </Popover>
-            </>
+            <Popover open={profileMenuOpen} onOpenChange={setProfileMenuOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring"
+                  style={{ backgroundColor: "#FF6B35" }}
+                  title={profile?.display_name || "Mon compte"}
+                >
+                  {initial}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2 z-[9999]" align="end">
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium">👤 {profile?.display_name || "Utilisateur"}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                </div>
+                <Separator className="my-1" />
+                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); setShowSubmitModal(true); }}>
+                  ➕ Ajouter un lieu
+                </button>
+                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); setShowProfileModal(true); }}>
+                  👤 Mon profil
+                </button>
+                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onFavoritesClick?.(); }}>
+                  ❤️ Mes favoris
+                </button>
+                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onItineraryClick?.(); }}>
+                  🗺️ Mes itinéraires
+                </button>
+                {profile?.is_admin && (
+                  <>
+                    <Separator className="my-1" />
+                    <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); window.location.href = "/admin"; }}>
+                      ⚙️ Administration
+                    </button>
+                  </>
+                )}
+                <Separator className="my-1" />
+                <button className="w-full text-left px-2 py-1.5 text-sm text-destructive hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}>
+                  Se déconnecter
+                </button>
+              </PopoverContent>
+            </Popover>
           ) : (
-            <Button variant="outline" className="hidden md:flex gap-2 text-sm" onClick={() => setShowAuthModal(true)}>
+            <Button variant="outline" className="gap-2 text-sm" onClick={() => setShowAuthModal(true)}>
               <UserCircle className="w-4 h-4" />
               Se connecter
             </Button>
           )}
-
-          <Button variant="ghost" size="icon" className="md:hidden text-foreground" onClick={() => setMenuOpen(!menuOpen)}>
-            <Menu className="w-5 h-5" />
-          </Button>
         </div>
       </div>
 
-      {menuOpen && (
-        <div className="md:hidden bg-card border-b border-border px-4 py-4 space-y-3">
-          <a href="#explore" className="block text-sm font-medium text-foreground">Explorer</a>
-          <a href="#categories" className="block text-sm font-medium text-foreground">Catégories</a>
-          <a href="#about" className="block text-sm font-medium text-foreground">À propos</a>
-          <Button className="w-full bg-primary text-primary-foreground" onClick={onFavoritesClick}>
-            ❤️ Mes favoris ({favoritesCount})
-          </Button>
-          <Button className="w-full bg-primary text-primary-foreground" onClick={onItineraryClick}>
-            🐾 Itinéraire Pet-Friendly
-          </Button>
-          {user ? (
-            <>
-              <Button className="w-full bg-primary text-primary-foreground" onClick={() => { setMenuOpen(false); user ? setShowSubmitModal(true) : setShowAuthModal(true); }}>Ajouter un lieu</Button>
-              <Button variant="destructive" className="w-full" onClick={handleSignOut}>Se déconnecter</Button>
-            </>
-          ) : (
-            <Button variant="outline" className="w-full gap-2" onClick={() => { setMenuOpen(false); setShowAuthModal(true); }}>
-              <UserCircle className="w-4 h-4" />
-              Se connecter
-            </Button>
-          )}
-        </div>
-      )}
 
-      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+<AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
       <SubmitPlaceModal open={showSubmitModal} onClose={() => setShowSubmitModal(false)} onLoginRequired={() => { setShowSubmitModal(false); setShowAuthModal(true); }} />
       <UserProfileModal open={showProfileModal} onClose={() => setShowProfileModal(false)} />
     </header>
