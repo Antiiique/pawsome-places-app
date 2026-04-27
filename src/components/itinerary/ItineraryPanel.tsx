@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { X, ArrowUpDown, Loader2, MapPin, ExternalLink, Share2, Save, Navigation, Check, Trash2, Play, GripVertical, Plus, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -37,15 +36,8 @@ function distanceBetween(p1: { lat: number; lng: number }, p2: { lat: number; ln
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-const STEP_DISTANCE_OPTIONS = [50, 100, 150];
-
-const CATEGORY_FILTERS = [
-  { key: "outdoor", label: "Parcs & aires de repos", emoji: "🌿", default: true },
-  { key: "restaurant", label: "Restaurants & cafés", emoji: "🍽️", default: true },
-  { key: "hotel", label: "Hôtels & campings", emoji: "🛏️", default: true },
-  { key: "services", label: "Vétérinaires", emoji: "❤️", default: true },
-  { key: "shop", label: "Pet shops", emoji: "🐾", default: false },
-];
+const DEFAULT_STEP_DISTANCE = 100;
+const ALL_CATEGORIES = ["outdoor", "restaurant", "hotel", "services", "shop"];
 
 const CATEGORY_COLORS: Record<string, string> = {
   restaurant: "#FF6B35",
@@ -252,8 +244,6 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
   const [destination, setDestination] = useState<PlaceSelection | null>(null);
   const [originText, setOriginText] = useState("");
   const [destText, setDestText] = useState("");
-  const [maxStepDistance, setMaxStepDistance] = useState(100);
-  const [filters, setFilters] = useState<Record<string, boolean>>({ outdoor: true, restaurant: true, hotel: true, services: true, shop: false });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ItineraryMapData | null>(null);
   const [errors, setErrors] = useState<{ origin?: string; dest?: string }>({});
@@ -324,7 +314,6 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
   const clearDestination = () => { setDestination(null); setDestText(""); clearRoute(); };
   const clearAll = () => { clearOrigin(); clearDestination(); setWaypoints([]); clearRoute(); toast("🗑️ Itinéraire effacé"); };
 
-  const toggleFilter = (key: string) => setFilters((f) => ({ ...f, [key]: !f[key] }));
 
   const handleOriginSelect = (sel: PlaceSelection) => { setOrigin(sel); setOriginText(sel.text); setErrors((e) => ({ ...e, origin: undefined })); };
   const handleDestSelect = (sel: PlaceSelection) => { setDestination(sel); setDestText(sel.text); setErrors((e) => ({ ...e, dest: undefined })); };
@@ -452,7 +441,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
         pathWithDist.push({ point: decodedPath[i], dist: cumDist });
       }
 
-      const stepDistanceM = maxStepDistance * 1000;
+      const stepDistanceM = DEFAULT_STEP_DISTANCE * 1000;
       const checkpoints: { lat: number; lng: number; dist: number }[] = [];
       let nextCheckDist = stepDistanceM;
       for (const pd of pathWithDist) {
@@ -462,7 +451,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
         }
       }
 
-      const selectedCategories = Object.entries(filters).filter(([, v]) => v).map(([k]) => k);
+      const selectedCategories = ALL_CATEGORIES;
       const allPlaces: ItineraryStep[] = [];
       for (const cp of checkpoints) {
         for (const cat of selectedCategories) {
@@ -498,7 +487,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
     } finally {
       setLoading(false);
     }
-  }, [origin, destination, originText, destText, maxStepDistance, filters, waypoints, onRouteCalculated]);
+  }, [origin, destination, originText, destText, waypoints, onRouteCalculated]);
 
   const handleShare = () => {
     if (!result) return;
@@ -660,30 +649,6 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                       <X className="w-3.5 h-3.5" />
                     </button>
                   )}
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-2 block">Distance max entre étapes</label>
-                  <div className="flex gap-2">
-                    {STEP_DISTANCE_OPTIONS.map((d) => (
-                      <button key={d} onClick={() => setMaxStepDistance(d)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${maxStepDistance === d ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-muted/80"}`}>
-                        {d} km
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-2 block">Types d'étapes</label>
-                  <div className="space-y-2">
-                    {CATEGORY_FILTERS.map((cf) => (
-                      <label key={cf.key} className="flex items-center gap-3 cursor-pointer">
-                        <Checkbox checked={filters[cf.key]} onCheckedChange={() => toggleFilter(cf.key)} />
-                        <span className="text-sm">{cf.emoji} {cf.label}</span>
-                      </label>
-                    ))}
-                  </div>
                 </div>
 
                 <Button onClick={calculate} disabled={!canCalculate} className="w-full font-semibold">
