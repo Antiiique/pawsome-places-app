@@ -9,8 +9,9 @@ import { useFavorites } from "@/hooks/useFavorites";
 
 type PanelName = "itinerary" | "favorites" | null;
 
-const EDGE_ZONE = 44;       // px depuis le bord pour démarrer le swipe
-const SNAP_THRESHOLD = 0.35; // 35% de l'écran = snap open
+const EDGE_ZONE = 44;
+const SNAP_THRESHOLD = 0.25;
+const VELOCITY_THRESHOLD = 0.3; // px/ms
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,9 +23,18 @@ const Index = () => {
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const activePanelRef = useRef<PanelName>(null);
+  const velPrevX = useRef<number | null>(null);
+  const velPrevT = useRef<number | null>(null);
+  const velCurrX = useRef<number | null>(null);
+  const velCurrT = useRef<number | null>(null);
 
-  // Keep ref in sync so touch handlers always see latest value
   useEffect(() => { activePanelRef.current = activePanel; }, [activePanel]);
+
+  // Freeze map whenever a panel is open OR being dragged
+  useEffect(() => {
+    const shouldFreeze = activePanel !== null || panelDrag !== null;
+    window.dispatchEvent(new Event(shouldFreeze ? "map-freeze" : "map-unfreeze"));
+  }, [activePanel, panelDrag]);
 
   const { favorites, isFavorite, toggleFavorite, removeFavorite, count: favCount } = useFavorites();
 
@@ -33,31 +43,19 @@ const Index = () => {
     if (panel !== "itinerary") setPickMode(null);
   }, []);
 
-  // ── Touch handlers ──
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const x = e.touches[0].clientX;
-    const screenW = window.innerWidth;
-    touchStartX.current = x;
-    touchStartY.current = e.touches[0].clientY;
-
-    const current = activePanelRef.current;
-    if (current === "itinerary") {
-      setPanelDrag({ panel: "itinerary", progress: 1 });
-    } else if (current === "favorites") {
-      setPanelDrag({ panel: "favorites", progress: 1 });
-    } else if (x <= EDGE_ZONE) {
-      setPanelDrag({ panel: "itinerary", progress: 0 });
-    } else if (x >= screenW - EDGE_ZONE) {
-      setPanelDrag({ panel: "favorites", progress: 0 });
-    }
-  };
-
+  // ── Shared move/end handlers (used by both strips and outer div) ──
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!panelDrag || touchStartX.current === null) return;
-    const dx = e.touches[0].clientX - touchStartX.current;
+    const x = e.touches[0].clientX;
+    const dx = x - touchStartX.current;
     const dy = e.touches[0].clientY - (touchStartY.current ?? 0);
-    // Ignore mostly-vertical gestures
     if (Math.abs(dy) > Math.abs(dx) + 10) return;
+
+    velPrevX.current = velCurrX.current;
+    velPrevT.current = velCurrT.current;
+    velCurrX.current = x;
+    velCurrT.current = Date.now();
+
     const screenW = window.innerWidth;
     const current = activePanelRef.current;
     if (panelDrag.panel === "itinerary") {
@@ -72,30 +70,68 @@ const Index = () => {
   const handleTouchEnd = () => {
     if (!panelDrag) return;
     const { panel, progress } = panelDrag;
+
+    const vel =
+      velPrevX.current !== null && velCurrX.current !== null &&
+      velPrevT.current !== null && velCurrT.current !== null &&
+      velCurrT.current > velPrevT.current
+        ? (velCurrX.current - velPrevX.current) / (velCurrT.current - velPrevT.current)
+        : 0;
+
     setPanelDrag(null);
-    touchStartX.current = null;
-    touchStartY.current = null;
+    touchStartX.current = null; touchStartY.current = null;
+    velPrevX.current = null; velPrevT.current = null;
+    velCurrX.current = null; velCurrT.current = null;
+
     if (panel === "itinerary") {
-      if (progress >= SNAP_THRESHOLD) setActivePanel("itinerary");
-      else { setActivePanel(null); setPickMode(null); }
+      const flickClose = vel < -VELOCITY_THRESHOLD;
+      const flickOpen  = vel >  VELOCITY_THRESHOLD;
+      if (flickClose || (!flickOpen && progress < SNAP_THRESHOLD)) {
+        setActivePanel(null); setPickMode(null);
+      } else {
+        setActivePanel("itinerary");
+      }
     } else {
-      if (progress >= SNAP_THRESHOLD) setActivePanel("favorites");
-      else setActivePanel(null);
+      const flickClose = vel >  VELOCITY_THRESHOLD;
+      const flickOpen  = vel < -VELOCITY_THRESHOLD;
+      if (flickClose || (!flickOpen && progress < SNAP_THRESHOLD)) {
+        setActivePanel(null);
+      } else {
+        setActivePanel("favorites");
+      }
     }
   };
 
-  // Close panel on click outside (desktop)
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (!activePanel) return;
-      const target = e.target as HTMLElement;
-      if (target.closest('[data-panel]') || target.closest('header')) return;
-      setActivePanel(null);
-      setPickMode(null);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [activePanel]);
+  // ── Strip handler: called when touch starts on a dedicated edge strip ──
+  // The strip sits ABOVE the map canvas (z-20 > canvas z-0), so Mapbox never
+  // receives the touchstart — all subsequent touchmoves also go to the strip.
+  const handleStripStart = (panel: "itinerary" | "favorites") => (e: React.TouchEvent) => {
+    e.stopPropagation(); // Don't bubble to outer div
+    // Freeze map synchronously — before any setState/re-render — so the canvas
+    // has pointer-events:none before the first touchmove fires.
+    window.dispatchEvent(new Event("map-freeze"));
+    const x = e.touches[0].clientX;
+    touchStartX.current = x;
+    touchStartY.current = e.touches[0].clientY;
+    velPrevX.current = null; velPrevT.current = null;
+    velCurrX.current = x; velCurrT.current = Date.now();
+    setPanelDrag({ panel, progress: 0 });
+  };
+
+  // ── Outer div handler: only fires when a panel is already open ──
+  // (touch is on the panel/scrim, NOT on the canvas)
+  const handleOuterStart = (e: React.TouchEvent) => {
+    const current = activePanelRef.current;
+    if (!current) return;
+    // Freeze map synchronously before any setState
+    window.dispatchEvent(new Event("map-freeze"));
+    const x = e.touches[0].clientX;
+    touchStartX.current = x;
+    touchStartY.current = e.touches[0].clientY;
+    velPrevX.current = null; velPrevT.current = null;
+    velCurrX.current = x; velCurrT.current = Date.now();
+    setPanelDrag({ panel: current, progress: 1 });
+  };
 
   const handleViewStep = useCallback((lat: number, lng: number) => {
     window.dispatchEvent(new CustomEvent("map-pan-to", { detail: { lat, lng } }));
@@ -126,7 +162,7 @@ const Index = () => {
   return (
     <div
       className="h-screen overflow-hidden flex flex-col bg-background"
-      onTouchStart={handleTouchStart}
+      onTouchStart={handleOuterStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
@@ -143,11 +179,47 @@ const Index = () => {
         isFavorite={isFavorite}
         onToggleFavorite={toggleFavorite}
         onOpenItinerary={() => setActivePanel("itinerary")}
+        frozen={!!panelDrag || activePanel !== null}
       />
 
-      {/* Bloque les events touch sur Mapbox pendant un swipe de panel */}
-      {panelDrag && (
-        <div className="fixed inset-0 z-[45]" style={{ touchAction: "none" }} />
+      {/*
+        Edge strips — transparent divs physically positioned above the map canvas (z-20).
+        When the user touches the left/right edge, the touch target is the STRIP,
+        not the Mapbox canvas. Mapbox never sees the touchstart, so it can't pan.
+        All subsequent touchmove events are locked to the strip (browser behaviour).
+        Hidden when a panel is open (panel/scrim cover the whole screen anyway).
+      */}
+      {!activePanel && (
+        <>
+          <div
+            className="fixed bottom-0 left-0 z-20"
+            style={{ top: 56, width: EDGE_ZONE, touchAction: "none" }}
+            onTouchStart={handleStripStart("itinerary")}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          />
+          <div
+            className="fixed bottom-0 right-0 z-20"
+            style={{ top: 56, width: EDGE_ZONE, touchAction: "none" }}
+            onTouchStart={handleStripStart("favorites")}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          />
+        </>
+      )}
+
+      {/* Scrim — covers map while panel is open/dragging, catches touch-to-close */}
+      {(panelDrag || activePanel) && (
+        <div
+          className="fixed inset-0 z-[45]"
+          style={{
+            background: "rgba(0,0,0,0.45)",
+            opacity: panelDrag ? panelDrag.progress : 1,
+            transition: panelDrag ? "none" : "opacity 0.3s ease",
+            touchAction: "none",
+          }}
+          onClick={() => { if (!panelDrag) { setActivePanel(null); setPickMode(null); } }}
+        />
       )}
 
       <ItineraryPanel

@@ -95,22 +95,87 @@ function fetchGooglePlaceByLocation(lat: number, lng: number, name: string): Pro
   }));
 }
 
+const PANEL_EDGE_ZONE = 44; // px from screen edge that triggers panel swipe
+
 const CATEGORY_FILTERS = [
-  { key: null, label: "Tous", emoji: "🐾" },
-  { key: "restaurant", label: "Restaurants", emoji: "🍽️" },
-  { key: "hotel", label: "Hôtels", emoji: "🛏️" },
-  { key: "outdoor", label: "Parcs & Nature", emoji: "🌿" },
-  { key: "services", label: "Vétérinaires", emoji: "❤️" },
-  { key: "shop", label: "Pet Shops", emoji: "🐾" },
-] as const;
+  { key: null,              label: "Tous",           emoji: "🐾" },
+  { key: "veterinaire",    label: "Vétérinaires",   emoji: "🏥" },
+  { key: "restaurant",     label: "Restaurants",    emoji: "🍽️" },
+  { key: "hotel",          label: "Hôtels",         emoji: "🛏️" },
+  { key: "outdoor",        label: "Parcs & Nature", emoji: "🌿" },
+  { key: "parc_chiens",    label: "Parcs à chiens", emoji: "🐕" },
+  { key: "shop",           label: "Pet Shops",      emoji: "🛒" },
+  { key: "pension",        label: "Pension",        emoji: "🏠" },
+  { key: "toiletteur",     label: "Toiletteurs",    emoji: "🛁" },
+  { key: "educateur",      label: "Éducateurs",     emoji: "🎓" },
+  { key: "osteopathe",     label: "Ostéopathes",    emoji: "🦴" },
+  { key: "masseur",        label: "Masseurs",       emoji: "💆" },
+  { key: "pet_sitter",     label: "Pet Sitters",    emoji: "🏡" },
+  { key: "dog_walker",     label: "Dog Walkers",    emoji: "🦮" },
+  { key: "camping",        label: "Camping",        emoji: "⛺" },
+  { key: "plage",          label: "Plages",         emoji: "🏖️" },
+  { key: "loisir",         label: "Loisirs",        emoji: "🎯" },
+  { key: "refuge",         label: "Refuges",        emoji: "🛡️" },
+  { key: "cafe_animalier", label: "Cafés animaux",  emoji: "☕" },
+  { key: "aeroport",       label: "Aéroports",      emoji: "✈️" },
+  { key: "aire_repos",     label: "Aires de repos", emoji: "🛣️" },
+  { key: "transport",      label: "Transport",      emoji: "🚇" },
+  { key: "evenement",      label: "Événements",     emoji: "📅" },
+  { key: "other",          label: "Autres",         emoji: "📍" },
+];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  restaurant: "#FF6B35", hotel: "#4285F4", outdoor: "#4CAF50",
-  services: "#E53935", shop: "#9C27B0", other: "#9E9E9E",
+  veterinaire:    "#E53935",
+  restaurant:     "#FF6B35",
+  hotel:          "#4285F4",
+  outdoor:        "#4CAF50",
+  parc_chiens:    "#8BC34A",
+  shop:           "#9C27B0",
+  pension:        "#3F51B5",
+  toiletteur:     "#00BCD4",
+  educateur:      "#FF9800",
+  osteopathe:     "#795548",
+  masseur:        "#E91E63",
+  pet_sitter:     "#607D8B",
+  dog_walker:     "#009688",
+  camping:        "#33691E",
+  plage:          "#0288D1",
+  loisir:         "#F57C00",
+  refuge:         "#C62828",
+  cafe_animalier: "#6D4C41",
+  aeroport:       "#455A64",
+  aire_repos:     "#546E7A",
+  transport:      "#1565C0",
+  comportementaliste: "#5C6BC0",
+  evenement:      "#7B1FA2",
+  other:          "#9E9E9E",
 };
 
 const CATEGORY_EMOJIS: Record<string, string> = {
-  restaurant: "🍽️", hotel: "🛏️", outdoor: "🌿", services: "❤️", shop: "🐾", other: "📍",
+  veterinaire:    "🏥",
+  restaurant:     "🍽️",
+  hotel:          "🛏️",
+  outdoor:        "🌿",
+  parc_chiens:    "🐕",
+  shop:           "🛒",
+  pension:        "🏠",
+  toiletteur:     "🛁",
+  educateur:      "🎓",
+  osteopathe:     "🦴",
+  masseur:        "💆",
+  pet_sitter:     "🏡",
+  dog_walker:     "🦮",
+  camping:        "⛺",
+  plage:          "🏖️",
+  loisir:         "🎯",
+  refuge:         "🛡️",
+  cafe_animalier: "☕",
+  comportementaliste: "🧠",
+  aeroport:       "✈️",
+  aire_repos:     "🛣️",
+  transport:      "🚇",
+  evenement:      "📅",
+  other:          "📍",
 };
 
 const POI_LAYERS = ["poi-label", "transit-label", "poi-scalerank1", "poi-scalerank2", "poi-scalerank3", "poi-scalerank4"];
@@ -123,9 +188,10 @@ interface MapSectionProps {
   isFavorite?: (id: string) => boolean;
   onToggleFavorite?: (place: Omit<FavoritePlace, "savedAt">) => boolean;
   onOpenItinerary?: () => void;
+  frozen?: boolean;
 }
 
-const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavorite, onToggleFavorite, onOpenItinerary }: MapSectionProps) => {
+const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavorite, onToggleFavorite, onOpenItinerary, frozen }: MapSectionProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
@@ -151,8 +217,79 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [localSearch, setLocalSearch] = useState("");
   const [searchPredictions, setSearchPredictions] = useState<{ place_id: string; structured_formatting: { main_text: string; secondary_text: string } }[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [showLegend, setShowLegend] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Freeze map camera while panels are open/dragging.
+  // Two-layer defence:
+  //   1. disable() Mapbox handlers on freeze (prevents most panning)
+  //   2. onMove compensation: if camera still moves, jumpTo saved position instantly.
+  //      isResetting flag prevents the jumpTo from triggering another reset loop
+  //      (jumpTo fires 'move' synchronously, so isResetting is still true when it fires).
+  useEffect(() => {
+    if (!isLoaded) return;
+    const map = mapRef.current;
+    if (!map) return;
+
+    const state = {
+      frozen:      false,
+      isResetting: false,
+      center:      map.getCenter(),
+      zoom:        map.getZoom(),
+      bearing:     map.getBearing(),
+      pitch:       map.getPitch(),
+    };
+
+    const onFreeze = () => {
+      state.frozen  = true;
+      state.center  = map.getCenter();
+      state.zoom    = map.getZoom();
+      state.bearing = map.getBearing();
+      state.pitch   = map.getPitch();
+      // pointer-events: none is the most reliable block — no events reach the canvas
+      // regardless of Mapbox's internal handler state
+      map.getCanvas().style.pointerEvents = "none";
+      map.dragPan.disable();
+      map.dragRotate.disable();
+      map.touchZoomRotate.disable();
+      map.doubleClickZoom.disable();
+      map.scrollZoom.disable();
+    };
+
+    const onUnfreeze = () => {
+      state.frozen = false;
+      map.getCanvas().style.pointerEvents = "";
+      map.dragPan.enable();
+      map.dragRotate.enable();
+      map.touchZoomRotate.enable();
+      map.doubleClickZoom.enable();
+      map.scrollZoom.enable();
+    };
+
+    const onMove = () => {
+      if (!state.frozen || state.isResetting) return;
+      state.isResetting = true;
+      map.stop();
+      map.jumpTo({
+        center:  state.center,
+        zoom:    state.zoom,
+        bearing: state.bearing,
+        pitch:   state.pitch,
+      });
+      state.isResetting = false;
+    };
+
+    window.addEventListener("map-freeze",   onFreeze);
+    window.addEventListener("map-unfreeze", onUnfreeze);
+    map.on("move", onMove);
+
+    return () => {
+      window.removeEventListener("map-freeze",   onFreeze);
+      window.removeEventListener("map-unfreeze", onUnfreeze);
+      map.off("move", onMove);
+    };
+  }, [isLoaded]);
 
   // ── Render clusters ──
   const renderClusters = useCallback((currentPlaces: PetPlace[]) => {
@@ -193,8 +330,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         if (!place) return;
         const color = place.accepts_dogs ? (CATEGORY_COLORS[place.category] || "#4CAF50") : "#9E9E9E";
         const emoji = CATEGORY_EMOJIS[place.category] || "📍";
-        el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;";
-        el.innerHTML = `<div style="width:40px;height:40px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;">${emoji}</div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid ${color};margin-top:-1px;"></div>`;
+        el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));";
+        el.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:${color};border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;">${emoji}</div><div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid ${color};margin-top:-1px;"></div>`;
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           markerClickedRef.current = true;
@@ -622,6 +759,17 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         <div ref={mapContainerRef} className="w-full h-full" />
       )}
 
+      {/* Touch-blocker overlay: covers the canvas when a panel is open or being dragged.
+          Positioned above the canvas (z-10) but below all UI controls (z-20+).
+          pointer-events captures any touch that would otherwise reach the Mapbox canvas,
+          preventing pan/zoom even if Mapbox handlers are still technically enabled. */}
+      {frozen && (
+        <div
+          className="absolute inset-0 z-10"
+          style={{ touchAction: "none" }}
+        />
+      )}
+
       {/* Loading */}
       {searching && (
         <div className="absolute inset-0 bg-background/20 z-10 flex items-center justify-center pointer-events-none">
@@ -675,6 +823,29 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             {f.emoji} {f.label}
           </button>
         ))}
+      </div>
+
+      {/* Category legend */}
+      <div className="absolute bottom-8 left-4 z-20">
+        <button
+          onClick={() => setShowLegend(v => !v)}
+          className="px-3 py-2 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border text-xs font-medium text-foreground hover:bg-muted transition-colors"
+        >
+          🗂️ Légende
+        </button>
+        {showLegend && (
+          <div className="absolute bottom-11 left-0 bg-card/95 backdrop-blur-md border border-border rounded-xl shadow-xl p-3 w-52 max-h-72 overflow-y-auto">
+            <p className="text-[11px] font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Catégories</p>
+            <div className="space-y-1.5">
+              {CATEGORY_FILTERS.filter(f => f.key !== null).map(f => (
+                <div key={String(f.key)} className="flex items-center gap-2">
+                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: CATEGORY_COLORS[f.key as string] || "#9E9E9E", flexShrink: 0, border: "1.5px solid white", boxShadow: "0 1px 3px rgba(0,0,0,.3)" }} />
+                  <span className="text-xs text-foreground">{f.emoji} {f.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Locate me */}

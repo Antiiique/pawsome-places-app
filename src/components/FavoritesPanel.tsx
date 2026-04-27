@@ -6,14 +6,30 @@ import type { FavoritePlace } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 
 const CATEGORY_FILTERS = [
-  { key: null, label: "Tous", emoji: "🐾" },
-  { key: "restaurant", label: "Restaurants", emoji: "🍽️" },
-  { key: "hotel", label: "Hôtels", emoji: "🛏️" },
-  { key: "outdoor", label: "Parcs", emoji: "🌿" },
-  { key: "services", label: "Vétos", emoji: "❤️" },
-  { key: "shop", label: "Shops", emoji: "🐾" },
-  { key: "transport", label: "Transport", emoji: "🚉" },
-  { key: "other", label: "Autres", emoji: "📍" },
+  { key: null,              label: "Tous",           emoji: "🐾" },
+  { key: "veterinaire",    label: "Vétos",          emoji: "🏥" },
+  { key: "restaurant",     label: "Restaurants",    emoji: "🍽️" },
+  { key: "hotel",          label: "Hôtels",         emoji: "🛏️" },
+  { key: "outdoor",        label: "Parcs",          emoji: "🌿" },
+  { key: "parc_chiens",    label: "Parcs chiens",   emoji: "🐕" },
+  { key: "shop",           label: "Shops",          emoji: "🛒" },
+  { key: "pension",        label: "Pension",        emoji: "🏠" },
+  { key: "toiletteur",     label: "Toiletteurs",    emoji: "🛁" },
+  { key: "educateur",      label: "Éducateurs",     emoji: "🎓" },
+  { key: "osteopathe",     label: "Ostéopathes",    emoji: "🦴" },
+  { key: "masseur",        label: "Masseurs",       emoji: "💆" },
+  { key: "pet_sitter",     label: "Pet Sitters",    emoji: "🏡" },
+  { key: "dog_walker",     label: "Dog Walkers",    emoji: "🦮" },
+  { key: "camping",        label: "Camping",        emoji: "⛺" },
+  { key: "plage",          label: "Plages",         emoji: "🏖️" },
+  { key: "loisir",         label: "Loisirs",        emoji: "🎯" },
+  { key: "refuge",         label: "Refuges",        emoji: "🛡️" },
+  { key: "cafe_animalier", label: "Cafés animaux",  emoji: "☕" },
+  { key: "aeroport",       label: "Aéroports",      emoji: "✈️" },
+  { key: "aire_repos",     label: "Aires repos",    emoji: "🛣️" },
+  { key: "transport",      label: "Transport",      emoji: "🚇" },
+  { key: "evenement",      label: "Événements",     emoji: "📅" },
+  { key: "other",          label: "Autres",         emoji: "📍" },
 ];
 
 interface FavoritesPanelProps {

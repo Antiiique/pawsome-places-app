@@ -13,12 +13,30 @@ import { toast } from "sonner";
 import { X } from "lucide-react";
 
 const CATEGORIES = [
-  { value: "restaurant", label: "🍽️ Restaurant / Café" },
-  { value: "hotel", label: "🛏️ Hôtel / Hébergement" },
-  { value: "outdoor", label: "🌿 Parc / Nature / Camping" },
-  { value: "shop", label: "🐾 Pet Shop / Animalerie" },
-  { value: "services", label: "❤️ Vétérinaire / Services" },
-  { value: "other", label: "📍 Autre" },
+  { value: "veterinaire",    label: "🏥 Vétérinaire" },
+  { value: "restaurant",     label: "🍽️ Restaurant / Café" },
+  { value: "hotel",          label: "🛏️ Hôtel / Hébergement" },
+  { value: "outdoor",        label: "🌿 Parc / Nature" },
+  { value: "parc_chiens",    label: "🐕 Parc à chiens" },
+  { value: "shop",           label: "🛒 Pet Shop / Animalerie" },
+  { value: "pension",        label: "🏠 Pension / Garderie" },
+  { value: "toiletteur",     label: "🛁 Toiletteur" },
+  { value: "educateur",      label: "🎓 Éducateur / Dressage" },
+  { value: "osteopathe",     label: "🦴 Ostéopathe animalier" },
+  { value: "masseur",        label: "💆 Masseur animalier" },
+  { value: "comportementaliste", label: "🧠 Comportementaliste" },
+  { value: "pet_sitter",     label: "🏡 Pet Sitter" },
+  { value: "dog_walker",     label: "🦮 Promeneur de chiens" },
+  { value: "camping",        label: "⛺ Camping" },
+  { value: "plage",          label: "🏖️ Plage" },
+  { value: "loisir",         label: "🎯 Loisirs / Activités" },
+  { value: "refuge",         label: "🛡️ Refuge / Association" },
+  { value: "cafe_animalier", label: "☕ Café animalier" },
+  { value: "aeroport",       label: "✈️ Aéroport" },
+  { value: "aire_repos",     label: "🛣️ Aire de repos" },
+  { value: "transport",      label: "🚇 Transport" },
+  { value: "evenement",      label: "📅 Événement" },
+  { value: "other",          label: "📍 Autre" },
 ];
 
 interface SubmitPlaceModalProps {
