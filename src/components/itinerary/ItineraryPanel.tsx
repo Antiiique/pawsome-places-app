@@ -56,6 +56,7 @@ interface ItineraryPanelProps {
   onViewStep: (lat: number, lng: number) => void;
   pickMode: PickMode;
   onPickModeChange: (mode: PickMode) => void;
+  dragProgress?: number;
 }
 
 interface Prediction {
@@ -239,7 +240,7 @@ function WaypointSearchInput({ onSelect, onCancel }: { onSelect: (wp: Omit<Waypo
   );
 }
 
-export default function ItineraryPanel({ open, onClose, onRouteCalculated, onViewStep, pickMode, onPickModeChange }: ItineraryPanelProps) {
+export default function ItineraryPanel({ open, onClose, onRouteCalculated, onViewStep, pickMode, onPickModeChange, dragProgress }: ItineraryPanelProps) {
   const [origin, setOrigin] = useState<PlaceSelection | null>(null);
   const [destination, setDestination] = useState<PlaceSelection | null>(null);
   const [originText, setOriginText] = useState("");
@@ -553,7 +554,10 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
       {/* Mobile backdrop */}
       <div data-panel className={`fixed z-50 inset-x-0 bottom-0 bg-card shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
         open ? "translate-x-0" : "-translate-x-full"
-      }`} style={{ top: 56 }}>
+      }`} style={{
+        top: 56,
+        ...(dragProgress !== undefined ? { transform: `translateX(${-(1 - dragProgress) * 100}%)`, transition: "none" } : {}),
+      }}>
 
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">

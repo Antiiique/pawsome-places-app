@@ -24,9 +24,10 @@ interface FavoritesPanelProps {
   onViewOnMap: (lat: number, lng: number) => void;
   onSetOrigin: (fav: FavoritePlace) => void;
   onSetDestination: (fav: FavoritePlace) => void;
+  dragProgress?: number;
 }
 
-export default function FavoritesPanel({ open, favorites, onClose, onRemove, onViewOnMap, onSetOrigin, onSetDestination }: FavoritesPanelProps) {
+export default function FavoritesPanel({ open, favorites, onClose, onRemove, onViewOnMap, onSetOrigin, onSetDestination, dragProgress }: FavoritesPanelProps) {
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"date" | "name" | "category">("date");
@@ -50,7 +51,10 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
         className={`fixed z-50 inset-x-0 bottom-0 bg-card shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
-        style={{ top: 56 }}
+        style={{
+          top: 56,
+          ...(dragProgress !== undefined ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" } : {}),
+        }}
       >
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">

@@ -6,54 +6,89 @@ import type { PickMode } from "@/components/itinerary/ItineraryPanel";
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { ItineraryMapData } from "@/components/itinerary/types";
 import { useFavorites } from "@/hooks/useFavorites";
-import { toast } from "sonner";
 
 type PanelName = "itinerary" | "favorites" | null;
+
+const EDGE_ZONE = 44;       // px depuis le bord pour démarrer le swipe
+const SNAP_THRESHOLD = 0.35; // 35% de l'écran = snap open
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activePanel, setActivePanel] = useState<PanelName>(null);
   const [itineraryData, setItineraryData] = useState<ItineraryMapData | null>(null);
   const [pickMode, setPickMode] = useState<PickMode>(null);
+  const [panelDrag, setPanelDrag] = useState<{ panel: "itinerary" | "favorites"; progress: number } | null>(null);
 
-  const { favorites, isFavorite, toggleFavorite, removeFavorite, count: favCount } = useFavorites();
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+  const activePanelRef = useRef<PanelName>(null);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-  };
+  // Keep ref in sync so touch handlers always see latest value
+  useEffect(() => { activePanelRef.current = activePanel; }, [activePanel]);
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    const dy = e.changedTouches[0].clientY - (touchStartY.current ?? 0);
-    touchStartX.current = null;
-    touchStartY.current = null;
-    if (Math.abs(dy) > Math.abs(dx) || Math.abs(dx) < 70) return;
-    if (dx < 0) {
-      if (activePanel === "favorites") setActivePanel(null);
-      else openPanel("itinerary");
-    } else {
-      if (activePanel === "itinerary") { setActivePanel(null); setPickMode(null); }
-      else openPanel("favorites");
-    }
-  };
-
-  const handleSearch = (query: string) => setSearchQuery(query);
+  const { favorites, isFavorite, toggleFavorite, removeFavorite, count: favCount } = useFavorites();
 
   const openPanel = useCallback((panel: PanelName) => {
     setActivePanel((prev) => (prev === panel ? null : panel));
     if (panel !== "itinerary") setPickMode(null);
   }, []);
 
-  // Close panel on click outside
+  // ── Touch handlers ──
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const x = e.touches[0].clientX;
+    const screenW = window.innerWidth;
+    touchStartX.current = x;
+    touchStartY.current = e.touches[0].clientY;
+
+    const current = activePanelRef.current;
+    if (current === "itinerary") {
+      setPanelDrag({ panel: "itinerary", progress: 1 });
+    } else if (current === "favorites") {
+      setPanelDrag({ panel: "favorites", progress: 1 });
+    } else if (x <= EDGE_ZONE) {
+      setPanelDrag({ panel: "itinerary", progress: 0 });
+    } else if (x >= screenW - EDGE_ZONE) {
+      setPanelDrag({ panel: "favorites", progress: 0 });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!panelDrag || touchStartX.current === null) return;
+    const dx = e.touches[0].clientX - touchStartX.current;
+    const dy = e.touches[0].clientY - (touchStartY.current ?? 0);
+    // Ignore mostly-vertical gestures
+    if (Math.abs(dy) > Math.abs(dx) + 10) return;
+    const screenW = window.innerWidth;
+    const current = activePanelRef.current;
+    if (panelDrag.panel === "itinerary") {
+      const base = current === "itinerary" ? 1 : 0;
+      setPanelDrag({ panel: "itinerary", progress: Math.max(0, Math.min(1, base + dx / screenW)) });
+    } else {
+      const base = current === "favorites" ? 1 : 0;
+      setPanelDrag({ panel: "favorites", progress: Math.max(0, Math.min(1, base - dx / screenW)) });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!panelDrag) return;
+    const { panel, progress } = panelDrag;
+    setPanelDrag(null);
+    touchStartX.current = null;
+    touchStartY.current = null;
+    if (panel === "itinerary") {
+      if (progress >= SNAP_THRESHOLD) setActivePanel("itinerary");
+      else { setActivePanel(null); setPickMode(null); }
+    } else {
+      if (progress >= SNAP_THRESHOLD) setActivePanel("favorites");
+      else setActivePanel(null);
+    }
+  };
+
+  // Close panel on click outside (desktop)
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (!activePanel) return;
       const target = e.target as HTMLElement;
-      // Don't close if clicking inside a panel or header
       if (target.closest('[data-panel]') || target.closest('header')) return;
       setActivePanel(null);
       setPickMode(null);
@@ -63,11 +98,10 @@ const Index = () => {
   }, [activePanel]);
 
   const handleViewStep = useCallback((lat: number, lng: number) => {
-    document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" });
+    window.dispatchEvent(new CustomEvent("map-pan-to", { detail: { lat, lng } }));
   }, []);
 
   const handleFavViewOnMap = useCallback((lat: number, lng: number) => {
-    document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" });
     window.dispatchEvent(new CustomEvent("map-pan-to", { detail: { lat, lng } }));
   }, []);
 
@@ -90,7 +124,12 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col bg-background" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <div
+      className="h-screen overflow-hidden flex flex-col bg-background"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <Header
         onItineraryClick={() => openPanel("itinerary")}
         onFavoritesClick={() => openPanel("favorites")}
@@ -113,6 +152,7 @@ const Index = () => {
         onViewStep={handleViewStep}
         pickMode={pickMode}
         onPickModeChange={setPickMode}
+        dragProgress={panelDrag?.panel === "itinerary" ? panelDrag.progress : undefined}
       />
 
       <FavoritesPanel
@@ -123,6 +163,7 @@ const Index = () => {
         onViewOnMap={handleFavViewOnMap}
         onSetOrigin={handleFavSetOrigin}
         onSetDestination={handleFavSetDest}
+        dragProgress={panelDrag?.panel === "favorites" ? panelDrag.progress : undefined}
       />
     </div>
   );
