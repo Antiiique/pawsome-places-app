@@ -378,7 +378,6 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
                     </div>
                   )}
                 </div>
-                )}
               </section>
 
               <div className="h-px bg-border" />
