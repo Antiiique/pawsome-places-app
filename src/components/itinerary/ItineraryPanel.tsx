@@ -609,11 +609,6 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">
-          <TabsList className="mx-4 mt-2 shrink-0">
-            <TabsTrigger value="new" className="flex-1">🗺️ Nouvel itinéraire</TabsTrigger>
-            <TabsTrigger value="saved" className="flex-1">📋 Mes itinéraires ({savedCount})</TabsTrigger>
-          </TabsList>
-
           <TabsContent value="new" className="flex-1 min-h-0 m-0">
             <ScrollArea className="h-full">
               <div className="p-4 space-y-4">
@@ -887,6 +882,12 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
               </div>
             </ScrollArea>
           </TabsContent>
+
+          {/* Bottom tab navigation — accessible au pouce */}
+          <TabsList className="shrink-0 mx-4 mb-4 mt-2">
+            <TabsTrigger value="new" className="flex-1">🗺️ Itinéraire</TabsTrigger>
+            <TabsTrigger value="saved" className="flex-1">📋 Mes itinéraires ({savedCount})</TabsTrigger>
+          </TabsList>
         </Tabs>
       </div>
 
