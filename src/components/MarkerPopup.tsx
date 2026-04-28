@@ -138,7 +138,7 @@ export default function MarkerPopup({
   const [publicProfileUserId, setPublicProfileUserId] = useState<string | null>(null);
   const [mentionSuggestions, setMentionSuggestions] = useState<MentionSuggestion[]>([]);
   const [showMentionDropdown, setShowMentionDropdown] = useState(false);
-  const [snap, setSnap] = useState<"half" | "full">("half");
+  const [snap, setSnap] = useState<"half" | "full">("full");
   const [dragDelta, setDragDelta] = useState(0);
   const [visible, setVisible] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -434,6 +434,22 @@ export default function MarkerPopup({
 
         {/* Scrollable body */}
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden" style={{ scrollbarWidth: "thin", scrollbarColor: "hsl(var(--border)) transparent" }}>
+          {/* Départ / Arrivée — top of menu */}
+          <div className="grid grid-cols-2 gap-2 px-4 pt-3 pb-2">
+            <button
+              className="text-xs h-9 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-success"
+              onClick={(e) => { e.stopPropagation(); onSetOrigin(); }}
+            >
+              🚩 Point de départ
+            </button>
+            <button
+              className="text-xs h-9 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-destructive"
+              onClick={(e) => { e.stopPropagation(); onSetDestination(); }}
+            >
+              🏁 Point d'arrivée
+            </button>
+          </div>
+
           {/* Photo carousel */}
           {photos.length > 0 && (
             <div className="relative w-full h-[180px]">
@@ -536,7 +552,7 @@ export default function MarkerPopup({
                   className="w-full text-xs h-10 rounded-xl font-bold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-primary"
                   onClick={(e) => { e.stopPropagation(); onAddWaypoint(); }}
                 >
-                  ⛳ Ajouter à l'itinéraire
+                  ⛳ Ajouter comme étape
                 </button>
               )}
 
@@ -551,39 +567,6 @@ export default function MarkerPopup({
                 <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
                 {isFavorite ? "Retirer des favoris" : "❤️ Ajouter aux favoris"}
               </button>
-
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  className="text-xs h-9 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-success"
-                  onClick={(e) => { e.stopPropagation(); onSetOrigin(); }}
-                >
-                  🚩 Départ
-                </button>
-                <button
-                  className="text-xs h-9 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-destructive"
-                  onClick={(e) => { e.stopPropagation(); onSetDestination(); }}
-                >
-                  🏁 Arrivée
-                </button>
-              </div>
-
-              {place.isPetFriendly && onShowInfo && (
-                <button
-                  className="w-full text-xs h-9 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-border bg-surface text-foreground hover:bg-card transition-colors"
-                  onClick={(e) => { e.stopPropagation(); onShowInfo(); }}
-                >
-                  ℹ️ Voir les détails
-                </button>
-              )}
-
-              {onReport && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onReport?.(); }}
-                  className="w-full text-xs h-9 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800 transition-colors"
-                >
-                  ⚠️ Signaler un problème
-                </button>
-              )}
             </div>
 
             {/* Reviews section avec onglets */}
@@ -836,6 +819,18 @@ export default function MarkerPopup({
                 </div>
               )}
             </div>
+
+            {/* Signaler un problème — tout en bas */}
+            {onReport && (
+              <div className="pt-2">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onReport?.(); }}
+                  className="w-full text-xs h-9 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800 transition-colors"
+                >
+                  ⚠️ Signaler un problème
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
