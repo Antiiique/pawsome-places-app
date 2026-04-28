@@ -583,12 +583,26 @@ export default function MarkerPopup({
                 else if (dx > 0 && reviewTab === "community") setReviewTab("google");
               }}
             >
-              <div className="flex rounded-xl overflow-hidden border border-border">
-                <button onClick={() => setReviewTab("google")} className={`flex-1 py-2 text-xs font-semibold transition-colors ${reviewTab === "google" ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" : "text-muted-foreground hover:bg-muted"}`}>
+              <div className="flex gap-2 p-1 rounded-xl bg-muted">
+                <button
+                  onClick={() => setReviewTab("google")}
+                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                    reviewTab === "google"
+                      ? "bg-amber-400 text-white shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
                   ⭐ Google{place.rating ? ` · ${place.rating}` : ""}
                 </button>
                 {dbId && (
-                  <button onClick={() => setReviewTab("community")} className={`flex-1 py-2 text-xs font-semibold transition-colors ${reviewTab === "community" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}>
+                  <button
+                    onClick={() => setReviewTab("community")}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                      reviewTab === "community"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
                     💬 Communauté{communityReviews.length > 0 ? ` · ${communityReviews.length}` : ""}
                   </button>
                 )}
