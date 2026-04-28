@@ -253,6 +253,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
   const [showWaypointSearch, setShowWaypointSearch] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [stepFilter, setStepFilter] = useState<string | null>(null);
 
   const { itineraries, save, remove, count: savedCount } = useSavedItineraries();
 
@@ -290,10 +291,8 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
       const sel: PlaceSelection = { location, text };
       if (type === "origin") {
         setOrigin(sel); setOriginText(text); setErrors((prev) => ({ ...prev, origin: undefined }));
-        toast.success(`✓ Départ : ${text}`);
       } else {
         setDestination(sel); setDestText(text); setErrors((prev) => ({ ...prev, dest: undefined }));
-        toast.success(`✓ Arrivée : ${text}`);
       }
     };
     window.addEventListener("marker-set-itinerary" as any, handler as any);
@@ -363,7 +362,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
     else if (!destination && destText.trim()) newErrors.dest = "Sélectionnez une ville dans la liste";
     if (newErrors.origin || newErrors.dest) { setErrors(newErrors); return; }
 
-    setLoading(true); setResult(null); setErrors({}); setLegs([]); onRouteCalculated(null);
+    setLoading(true); setResult(null); setErrors({}); setLegs([]); setStepFilter(null); onRouteCalculated(null);
 
     try {
       const originLoc = origin!.location;
@@ -563,6 +562,26 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${step.latitude},${step.longitude}`, "_blank");
   };
 
+  const handleViewOnMap = (lat: number, lng: number) => {
+    onClose();
+    setTimeout(() => onViewStep(lat, lng), 350);
+  };
+
+  const handleAddStepAsWaypoint = (step: ItineraryStep) => {
+    setWaypoints((prev) => [...prev, {
+      id: `wp_${Date.now()}_${Math.random()}`,
+      name: step.name,
+      lat: step.latitude,
+      lng: step.longitude,
+      category: step.category,
+      isPetFriendly: true,
+    }]);
+    toast.success(`✓ ${step.name} ajouté à l'itinéraire`);
+  };
+
+  const stepUniqueCategories = result ? Array.from(new Set(result.steps.map((s) => s.category))) : [];
+  const filteredSteps = result ? (stepFilter ? result.steps.filter((s) => s.category === stepFilter) : result.steps) : [];
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -590,20 +609,6 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
           <TabsContent value="new" className="flex-1 min-h-0 m-0">
             <ScrollArea className="h-full">
               <div className="p-4 space-y-4">
-                {/* Map pick mode buttons */}
-                <div className="flex gap-2">
-                  <Button variant={pickMode === "origin" ? "default" : "outline"} size="sm"
-                    className={`flex-1 text-xs ${pickMode === "origin" ? "bg-primary text-primary-foreground" : ""}`}
-                    onClick={() => onPickModeChange(pickMode === "origin" ? null : "origin")}>
-                    🟢 Définir départ sur carte
-                  </Button>
-                  <Button variant={pickMode === "destination" ? "default" : "outline"} size="sm"
-                    className={`flex-1 text-xs ${pickMode === "destination" ? "bg-destructive text-destructive-foreground" : ""}`}
-                    onClick={() => onPickModeChange(pickMode === "destination" ? null : "destination")}>
-                    🔴 Définir arrivée sur carte
-                  </Button>
-                </div>
-
                 <div className="relative">
                   <PlaceInput id="origin" label="Départ" value={originText} selection={origin} error={errors.origin} onSelect={handleOriginSelect} onChange={handleOriginChange} />
                   {(origin || originText) && (
@@ -756,9 +761,37 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                       </div>
                     )}
 
+                    {/* Category filter pills */}
+                    {result.steps.length > 0 && stepUniqueCategories.length > 1 && (
+                      <div className="space-y-1.5">
+                        <p className="text-xs font-medium text-muted-foreground">🔍 Filtrer par type</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          <button
+                            onClick={() => setStepFilter(null)}
+                            className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${!stepFilter ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border hover:border-primary/50"}`}
+                          >
+                            Tous ({result.steps.length})
+                          </button>
+                          {stepUniqueCategories.map((cat) => {
+                            const count = result.steps.filter((s) => s.category === cat).length;
+                            return (
+                              <button
+                                key={cat}
+                                onClick={() => setStepFilter(stepFilter === cat ? null : cat)}
+                                className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors capitalize ${stepFilter === cat ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border hover:border-primary/50"}`}
+                              >
+                                {cat} ({count})
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Pet-friendly steps */}
-                    {result.steps.map((step, i) => {
+                    {filteredSteps.map((step, i) => {
                       const color = CATEGORY_COLORS[step.category] || "#9E9E9E";
+                      const alreadyAdded = waypoints.some((w) => w.name === step.name && w.lat === step.latitude && w.lng === step.longitude);
                       return (
                         <div key={step.id}>
                           {i > 0 && <div className="flex justify-center py-1"><span className="text-muted-foreground text-lg">🐾</span></div>}
@@ -766,7 +799,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                             <div className="flex items-center gap-2">
                               <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ backgroundColor: color }}>{i + 1}</div>
                               <div className="flex-1 min-w-0">
-                                <span className="text-xs text-muted-foreground">Étape {i + 1} — à {Math.round(step.distance_from_start_km)} km</span>
+                                <span className="text-xs text-muted-foreground">À {Math.round(step.distance_from_start_km)} km</span>
                               </div>
                               <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-1.5 py-0.5 rounded-full shrink-0">🐾 Pet-friendly</span>
                             </div>
@@ -779,10 +812,20 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                             {step.phone && <p className="text-xs text-muted-foreground">📞 {step.phone}</p>}
                             {step.opening_hours && <p className="text-xs text-muted-foreground">🕐 {step.opening_hours}</p>}
                             {step.rating && <p className="text-xs text-muted-foreground">⭐ {step.rating}</p>}
-                            <div className="flex gap-2 pt-1">
-                              <Button variant="outline" size="sm" className="text-xs flex-1" onClick={() => onViewStep(step.latitude, step.longitude)}>Voir sur carte</Button>
-                              <Button variant="outline" size="sm" className="text-xs flex-1" onClick={() => handleStepGoogleMaps(step)}>
-                                <ExternalLink className="w-3 h-3" />Itinéraire
+                            <div className="flex gap-1.5 pt-1">
+                              <Button variant="outline" size="sm" className="text-xs flex-1" onClick={() => handleViewOnMap(step.latitude, step.longitude)}>
+                                <MapPin className="w-3 h-3" />Voir carte
+                              </Button>
+                              <Button
+                                variant={alreadyAdded ? "default" : "outline"}
+                                size="sm"
+                                className={`text-xs flex-1 ${alreadyAdded ? "bg-green-600 text-white hover:bg-green-700" : ""}`}
+                                onClick={() => { if (!alreadyAdded) handleAddStepAsWaypoint(step); }}
+                              >
+                                <Plus className="w-3 h-3" />{alreadyAdded ? "Ajouté" : "Ajouter"}
+                              </Button>
+                              <Button variant="outline" size="sm" className="text-xs px-2" onClick={() => handleStepGoogleMaps(step)}>
+                                <ExternalLink className="w-3 h-3" />
                               </Button>
                             </div>
                           </div>

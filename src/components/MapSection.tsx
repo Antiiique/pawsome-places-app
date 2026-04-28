@@ -909,8 +909,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       {popupData && (
         <MarkerPopup
           place={popupData.place} position={popupData.position} onClose={() => setPopupData(null)}
-          onSetOrigin={() => { const p = popupData.place; setOriginPoint({ lat: p.lat, lng: p.lng }); window.dispatchEvent(new CustomEvent("marker-set-itinerary", { detail: { type: "origin", location: { lat: p.lat, lng: p.lng }, text: p.name } })); toast.success(`✓ Départ : ${p.name}`); setPopupData(null); onOpenItinerary?.(); }}
-          onSetDestination={() => { const p = popupData.place; setDestPoint({ lat: p.lat, lng: p.lng }); window.dispatchEvent(new CustomEvent("marker-set-itinerary", { detail: { type: "destination", location: { lat: p.lat, lng: p.lng }, text: p.name } })); toast.success(`✓ Arrivée : ${p.name}`); setPopupData(null); onOpenItinerary?.(); }}
+          onSetOrigin={() => { const p = popupData.place; setOriginPoint({ lat: p.lat, lng: p.lng }); window.dispatchEvent(new CustomEvent("marker-set-itinerary", { detail: { type: "origin", location: { lat: p.lat, lng: p.lng }, text: p.name } })); toast.success(`✓ Départ enregistré : ${p.name} — retrouvez-le dans l'itinéraire`); setPopupData(null); }}
+          onSetDestination={() => { const p = popupData.place; setDestPoint({ lat: p.lat, lng: p.lng }); window.dispatchEvent(new CustomEvent("marker-set-itinerary", { detail: { type: "destination", location: { lat: p.lat, lng: p.lng }, text: p.name } })); toast.success(`✓ Arrivée enregistrée : ${p.name} — retrouvez-la dans l'itinéraire`); setPopupData(null); }}
           onShowInfo={popupData.petPlace ? () => { prevPopupDataRef.current = popupData; setSelectedPlace(popupData.petPlace!); setPopupData(null); } : undefined}
           isFavorite={isFavorite?.(popupData.petPlace?.id || popupData.place.placeId || `custom_${popupData.place.lat}_${popupData.place.lng}`)}
           onToggleFavorite={() => {
@@ -923,10 +923,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           }}
           onAddWaypoint={() => {
             const p = popupData.place;
-            if (!originPoint) { setOriginPoint({ lat: p.lat, lng: p.lng }); window.dispatchEvent(new CustomEvent("marker-set-itinerary", { detail: { type: "origin", location: { lat: p.lat, lng: p.lng }, text: p.name } })); toast.success(`🚩 Départ : ${p.name}`); }
-            else if (!destPoint) { setDestPoint({ lat: p.lat, lng: p.lng }); window.dispatchEvent(new CustomEvent("marker-set-itinerary", { detail: { type: "destination", location: { lat: p.lat, lng: p.lng }, text: p.name } })); toast.success(`🏁 Arrivée : ${p.name}`); }
-            else { window.dispatchEvent(new CustomEvent("itinerary-add-waypoint", { detail: { name: p.name, lat: p.lat, lng: p.lng, category: popupData.petPlace?.category || detectCategoryFromTypes(p.types), isPetFriendly: p.isPetFriendly } })); toast.success(`⛳ Étape : ${p.name}`); }
-            setPopupData(null); onOpenItinerary?.();
+            if (!originPoint) { setOriginPoint({ lat: p.lat, lng: p.lng }); window.dispatchEvent(new CustomEvent("marker-set-itinerary", { detail: { type: "origin", location: { lat: p.lat, lng: p.lng }, text: p.name } })); toast.success(`🚩 Départ enregistré : ${p.name}`); }
+            else if (!destPoint) { setDestPoint({ lat: p.lat, lng: p.lng }); window.dispatchEvent(new CustomEvent("marker-set-itinerary", { detail: { type: "destination", location: { lat: p.lat, lng: p.lng }, text: p.name } })); toast.success(`🏁 Arrivée enregistrée : ${p.name}`); }
+            else { window.dispatchEvent(new CustomEvent("itinerary-add-waypoint", { detail: { name: p.name, lat: p.lat, lng: p.lng, category: popupData.petPlace?.category || detectCategoryFromTypes(p.types), isPetFriendly: p.isPetFriendly } })); toast.success(`⛳ Étape enregistrée : ${p.name}`); }
+            setPopupData(null);
           }}
           isInDatabase={!!popupData.petPlace} dbId={popupData.petPlace?.id}
           onReport={popupData.petPlace ? () => setReportModal({ open: true, placeId: popupData.petPlace!.id, placeName: popupData.place.name }) : undefined}
