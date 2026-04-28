@@ -155,7 +155,7 @@ export default function MarkerPopup({
     setTimeout(onClose, 320);
   }
 
-  useEffect(() => { setReviewTab("google"); setCommunityReviews([]); setNewRating(0); setNewBody(""); setVisitedWithPet(false); setSelectedPetIds([]); setSnap("half"); setDragDelta(0); }, [dbId]);
+  useEffect(() => { setReviewTab(hasGoogleData ? "google" : "community"); setCommunityReviews([]); setNewRating(0); setNewBody(""); setVisitedWithPet(false); setSelectedPetIds([]); setSnap("half"); setDragDelta(0); }, [dbId]);
   useEffect(() => { if (userReview) { setNewRating(userReview.rating); setNewBody(userReview.body ?? ""); setVisitedWithPet(userReview.visited_with_pet); } }, [userReview?.id]);
 
   useEffect(() => {
@@ -310,6 +310,7 @@ export default function MarkerPopup({
 
   const photos = place.photos || [];
   const reviews = place.reviews || [];
+  const hasGoogleData = reviews.length > 0 || !!place.rating;
 
   const toggleReviewExpand = (i: number) => {
     setExpandedReviews(prev => ({ ...prev, [i]: !prev[i] }));
@@ -443,7 +444,6 @@ export default function MarkerPopup({
               onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
             >
               <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-current" : ""}`} />
-              {isFavorite ? "Favori" : "Favoris"}
             </button>
           </div>
         </div>
@@ -586,30 +586,34 @@ export default function MarkerPopup({
                 else if (dx > 0 && reviewTab === "community") setReviewTab("google");
               }}
             >
-              <div className="flex gap-2 p-1 rounded-xl bg-muted">
-                <button
-                  onClick={() => setReviewTab("google")}
-                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                    reviewTab === "google"
-                      ? "bg-amber-400 text-white shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  ⭐ Google{place.rating ? ` · ${place.rating}` : ""}
-                </button>
-                {dbId && (
-                  <button
-                    onClick={() => setReviewTab("community")}
-                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                      reviewTab === "community"
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    💬 Communauté{communityReviews.length > 0 ? ` · ${communityReviews.length}` : ""}
-                  </button>
-                )}
-              </div>
+              {(hasGoogleData || !!dbId) && (
+                <div className="flex gap-2 p-1 rounded-xl bg-muted">
+                  {hasGoogleData && (
+                    <button
+                      onClick={() => setReviewTab("google")}
+                      className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                        reviewTab === "google"
+                          ? "bg-amber-400 text-white shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      ⭐ Google{place.rating ? ` · ${place.rating}` : ""}
+                    </button>
+                  )}
+                  {!!dbId && (
+                    <button
+                      onClick={() => setReviewTab("community")}
+                      className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                        reviewTab === "community"
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      💬 Communauté{communityReviews.length > 0 ? ` · ${communityReviews.length}` : ""}
+                    </button>
+                  )}
+                </div>
+              )}
 
               {reviewTab === "google" && (reviews.length > 0 ? (
                 <div className="space-y-2.5">
