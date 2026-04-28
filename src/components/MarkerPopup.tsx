@@ -423,12 +423,25 @@ export default function MarkerPopup({
           </div>
           <div className="flex items-center justify-between px-4 py-2 border-b border-border">
             <span className="text-sm font-bold text-foreground">📌 Détails du lieu</span>
-            <button
-              onClick={handleClose}
-              className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                className={`flex items-center gap-1.5 px-3 h-7 rounded-full text-xs font-semibold border transition-all ${
+                  isFavorite
+                    ? "bg-destructive/20 border-destructive/40 text-destructive"
+                    : "bg-warning/10 border-warning/40 text-warning hover:bg-warning/20"
+                }`}
+                onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
+              >
+                <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-current" : ""}`} />
+                {isFavorite ? "Favori" : "Favoris"}
+              </button>
+              <button
+                onClick={handleClose}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -459,18 +472,6 @@ export default function MarkerPopup({
                 ⛳ Ajouter comme étape
               </button>
             )}
-
-            <button
-              className={`w-full text-xs h-10 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all ${
-                isFavorite
-                  ? "bg-destructive/20 border-destructive/40 text-destructive"
-                  : "bg-warning/20 border-warning/40 text-warning hover:bg-warning/30"
-              }`}
-              onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
-            >
-              <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
-              {isFavorite ? "Retirer des favoris" : "❤️ Ajouter aux favoris"}
-            </button>
           </div>
 
           {/* Photo carousel */}
