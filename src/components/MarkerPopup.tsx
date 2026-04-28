@@ -140,9 +140,20 @@ export default function MarkerPopup({
   const [showMentionDropdown, setShowMentionDropdown] = useState(false);
   const [snap, setSnap] = useState<"half" | "full">("half");
   const [dragDelta, setDragDelta] = useState(0);
+  const [visible, setVisible] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const userReview = communityReviews.find(r => r.user_id === user?.id);
   const avgCR = communityReviews.length > 0 ? communityReviews.reduce((s, r) => s + r.rating, 0) / communityReviews.length : 0;
+
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setVisible(true));
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  function handleClose() {
+    setVisible(false);
+    setTimeout(onClose, 320);
+  }
 
   useEffect(() => { setReviewTab("google"); setCommunityReviews([]); setNewRating(0); setNewBody(""); setVisitedWithPet(false); setSelectedPetIds([]); setSnap("half"); setDragDelta(0); }, [dbId]);
   useEffect(() => { if (userReview) { setNewRating(userReview.rating); setNewBody(userReview.body ?? ""); setVisitedWithPet(userReview.visited_with_pet); } }, [userReview?.id]);
@@ -345,11 +356,11 @@ export default function MarkerPopup({
     const total = baseOffset + dragDelta;
     if (velocity > 0.5) {
       if (snap === "full") { setSnap("half"); setDragDelta(0); }
-      else { onClose(); }
+      else { handleClose(); }
     } else if (velocity < -0.5) {
       setSnap("full"); setDragDelta(0);
     } else {
-      if (total > 75) { onClose(); }
+      if (total > 75) { handleClose(); }
       else if (total > 26) { setSnap("half"); setDragDelta(0); }
       else { setSnap("full"); setDragDelta(0); }
     }
@@ -395,8 +406,8 @@ export default function MarkerPopup({
         className="fixed bottom-0 left-0 right-0 z-[500] flex flex-col bg-card rounded-t-2xl shadow-2xl"
         style={{
           height: "calc(100vh - 56px)",
-          transform: `translateY(${currentOffset}%)`,
-          transition: isDragging.current ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+          transform: `translateY(${!visible ? 100 : currentOffset}%)`,
+          transition: isDragging.current ? "none" : "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
           willChange: "transform",
         }}
       >
@@ -413,7 +424,7 @@ export default function MarkerPopup({
           <div className="flex items-center justify-between px-4 py-2 border-b border-border">
             <span className="text-sm font-bold text-foreground">📌 Détails du lieu</span>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <X className="w-4 h-4" />
