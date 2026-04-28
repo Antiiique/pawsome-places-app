@@ -552,7 +552,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
   return (
     <>
       {/* Mobile backdrop */}
-      <div data-panel className={`fixed z-50 inset-x-0 bottom-0 bg-card shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+      <div data-panel className={`fixed z-[600] inset-x-0 bottom-0 bg-card shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
         open ? "translate-x-0" : "-translate-x-full"
       }`} style={{
         top: 56,

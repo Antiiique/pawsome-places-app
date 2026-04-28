@@ -64,7 +64,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
     <>
       <div
         data-panel
-        className={`fixed z-50 inset-x-0 bottom-0 bg-card shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+        className={`fixed z-[600] inset-x-0 bottom-0 bg-card shadow-xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
         style={{

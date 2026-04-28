@@ -211,7 +211,7 @@ const Index = () => {
       {/* Scrim — covers map while panel is open/dragging, catches touch-to-close */}
       {(panelDrag || activePanel) && (
         <div
-          className="fixed inset-0 z-[45]"
+          className="fixed inset-0 z-[550]"
           style={{
             background: "rgba(0,0,0,0.45)",
             opacity: panelDrag ? panelDrag.progress : 1,
