@@ -315,6 +315,7 @@ export default function MarkerPopup({
     setExpandedReviews(prev => ({ ...prev, [i]: !prev[i] }));
   };
 
+  const swipeStartX = useRef<number | null>(null);
   const isDragging = useRef(false);
   const dragStartY = useRef(0);
   const dragStartDelta = useRef(0);
@@ -400,13 +401,14 @@ export default function MarkerPopup({
         </div>
       )}
 
-      {/* Floating close button — bottom right */}
+      {/* Floating close button — bottom right, matches locate-me button */}
       <button
         onClick={handleClose}
-        className="fixed bottom-6 right-4 z-[501] w-12 h-12 rounded-full bg-card border border-border shadow-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-95"
+        className="fixed bottom-8 right-4 z-[501] p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors"
         style={{ transform: `translateY(${!visible ? 80 : 0}px)`, transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)" }}
+        title="Fermer"
       >
-        <X className="w-5 h-5" />
+        <X className="w-5 h-5 text-foreground" />
       </button>
 
       {/* Bottom sheet */}
@@ -574,11 +576,11 @@ export default function MarkerPopup({
             {/* Reviews section avec onglets */}
             <div
               className="pt-2 border-t border-border space-y-3"
-              onTouchStart={(e) => { (e.currentTarget as any)._swipeX = e.touches[0].clientX; }}
+              onTouchStart={(e) => { swipeStartX.current = e.touches[0].clientX; }}
               onTouchEnd={(e) => {
-                const startX = (e.currentTarget as any)._swipeX;
-                if (startX == null) return;
-                const dx = e.changedTouches[0].clientX - startX;
+                if (swipeStartX.current == null) return;
+                const dx = e.changedTouches[0].clientX - swipeStartX.current;
+                swipeStartX.current = null;
                 if (Math.abs(dx) < 40) return;
                 if (dx < 0 && reviewTab === "google" && dbId) setReviewTab("community");
                 else if (dx > 0 && reviewTab === "community") setReviewTab("google");

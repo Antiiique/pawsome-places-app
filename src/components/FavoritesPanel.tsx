@@ -66,9 +66,10 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
       {open && (
         <button
           onClick={onClose}
-          className="fixed bottom-6 right-4 z-[601] w-12 h-12 rounded-full bg-card border border-border shadow-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-95"
+          className="fixed bottom-8 right-4 z-[601] p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors"
+          title="Fermer"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5 text-foreground" />
         </button>
       )}
 
