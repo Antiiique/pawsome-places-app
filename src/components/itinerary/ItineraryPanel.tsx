@@ -609,8 +609,8 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">
-          <TabsContent value="new" className="flex-1 min-h-0 m-0">
-            <ScrollArea className="h-full">
+          <TabsContent value="new" className="flex-1 min-h-0 m-0 flex flex-col">
+            <ScrollArea className="flex-1 min-h-0">
               <div className="p-4 space-y-4">
                 <div className="relative">
                   <PlaceInput id="origin" label="Départ" value={originText} selection={origin} error={errors.origin} onSelect={handleOriginSelect} onChange={handleOriginChange} />
@@ -677,15 +677,6 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                   )}
                 </div>
 
-                <Button onClick={calculate} disabled={!canCalculate} className="w-full font-semibold">
-                  {loading ? (<><Loader2 className="w-4 h-4 animate-spin" />Calcul en cours…</>) : (<><Navigation className="w-4 h-4" />Calculer l'itinéraire</>)}
-                </Button>
-
-                {(origin || destination || waypoints.length > 0 || result) && (
-                  <Button variant="outline" className="w-full text-sm text-muted-foreground hover:text-destructive" onClick={clearAll}>
-                    <Trash2 className="w-4 h-4" />🗑️ Effacer tout
-                  </Button>
-                )}
 
                 {loading && (
                   <div className="space-y-3">
@@ -843,14 +834,28 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                       <Button variant="outline" className="w-full text-sm" onClick={handleShare}>
                         <Share2 className="w-4 h-4" />Partager l'itinéraire
                       </Button>
-                      <Button className="w-full text-sm" onClick={handleOpenGoogleMaps}>
-                        <ExternalLink className="w-4 h-4" />Ouvrir dans Google Maps
-                      </Button>
                     </div>
                   </div>
                 )}
               </div>
             </ScrollArea>
+
+            {/* Bottom action bar — always visible above tabs, never under close button */}
+            <div className="shrink-0 px-4 pt-3 pb-2 border-t border-border space-y-2">
+              <Button onClick={calculate} disabled={!canCalculate} className="w-full font-semibold">
+                {loading ? (<><Loader2 className="w-4 h-4 animate-spin" />Calcul en cours…</>) : (<><Navigation className="w-4 h-4" />Calculer l'itinéraire</>)}
+              </Button>
+              {result && !loading && (
+                <Button variant="outline" className="w-full text-sm" onClick={handleOpenGoogleMaps}>
+                  <ExternalLink className="w-4 h-4" />Ouvrir dans Google Maps
+                </Button>
+              )}
+              {(origin || destination || waypoints.length > 0 || result) && (
+                <Button variant="outline" className="w-full text-sm text-muted-foreground hover:text-destructive" onClick={clearAll}>
+                  <Trash2 className="w-4 h-4" />🗑️ Effacer tout
+                </Button>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="saved" className="flex-1 min-h-0 m-0">
