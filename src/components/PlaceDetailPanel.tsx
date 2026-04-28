@@ -2,7 +2,7 @@ import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, He
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -58,22 +58,21 @@ function timeAgo(dateStr: string): string {
 }
 
 const categoryLabels: Record<string, string> = {
-  restaurant: "Restaurant 🍽️",
-  hotel: "Hôtel 🛏️",
-  outdoor: "Parc & Nature 🌿",
-  services: "Services ❤️",
-  shop: "Pet Shop 🐾",
-  other: "Autre",
+  restaurant: "Restaurant 🍽️", hotel: "Hôtel 🛏️", outdoor: "Parc & Nature 🌿",
+  services: "Services ❤️", shop: "Pet Shop 🐾", other: "Autre",
 };
 
 const categoryBgColors: Record<string, string> = {
-  restaurant: "bg-orange-500",
-  hotel: "bg-blue-500",
-  outdoor: "bg-green-500",
-  services: "bg-red-500",
-  shop: "bg-purple-500",
-  other: "bg-gray-500",
+  restaurant: "bg-orange-500", hotel: "bg-blue-500", outdoor: "bg-green-500",
+  services: "bg-red-500", shop: "bg-purple-500", other: "bg-gray-500",
 };
+
+const KNOWN_CATEGORIES = [
+  "veterinaire","animalerie","parc","refuge","toiletteur","pension","educateur",
+  "restaurant","hotel","cafe","camping","bar","commerce","plage",
+];
+
+const VELOCITY_THRESHOLD = 0.4; // px/ms
 
 interface PlaceDetailPanelProps {
   place: PetPlace | null;
@@ -84,17 +83,76 @@ interface PlaceDetailPanelProps {
   onReport?: () => void;
 }
 
-const KNOWN_CATEGORIES = [
-  "veterinaire","animalerie","parc","refuge","toiletteur","pension","educateur",
-  "restaurant","hotel","cafe","camping","bar","commerce","plage",
-];
-
 const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport }: PlaceDetailPanelProps) => {
-  if (!place) return null;
-
   const { user, profile } = useAuthContext();
   const isAdmin = profile?.is_admin === true;
 
+  // ── Bottom sheet snap state ──
+  const [snap, setSnap] = useState<"half" | "full">("half");
+  const [dragDelta, setDragDelta] = useState(0); // percentage offset during drag
+  const isDragging = useRef(false);
+  const touchStartY = useRef<number | null>(null);
+  const velPrevY = useRef<number | null>(null);
+  const velPrevT = useRef<number | null>(null);
+  const velCurrY = useRef<number | null>(null);
+  const velCurrT = useRef<number | null>(null);
+
+  // Reset to half-snap whenever a new place opens
+  useEffect(() => { setSnap("half"); setDragDelta(0); }, [place?.id]);
+
+  const baseOffset = snap === "half" ? 52 : 0; // % translateY
+  const currentOffset = Math.max(0, baseOffset + dragDelta);
+
+  const handleDragStart = (e: React.TouchEvent) => {
+    isDragging.current = true;
+    const y = e.touches[0].clientY;
+    touchStartY.current = y;
+    velPrevY.current = null; velPrevT.current = null;
+    velCurrY.current = y; velCurrT.current = Date.now();
+  };
+
+  const handleDragMove = (e: React.TouchEvent) => {
+    if (!isDragging.current || touchStartY.current === null) return;
+    velPrevY.current = velCurrY.current;
+    velPrevT.current = velCurrT.current;
+    velCurrY.current = e.touches[0].clientY;
+    velCurrT.current = Date.now();
+    const dy = e.touches[0].clientY - touchStartY.current;
+    const deltaPercent = (dy / window.innerHeight) * 100;
+    setDragDelta(deltaPercent);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+
+    const vel =
+      velPrevY.current !== null && velCurrY.current !== null &&
+      velPrevT.current !== null && velCurrT.current !== null &&
+      velCurrT.current > velPrevT.current
+        ? (velCurrY.current - velPrevY.current) / (velCurrT.current - velPrevT.current)
+        : 0;
+
+    const finalOffset = baseOffset + dragDelta;
+    setDragDelta(0);
+    touchStartY.current = null;
+
+    if (vel > VELOCITY_THRESHOLD) {
+      // Flick down
+      if (snap === "full") setSnap("half");
+      else onClose();
+    } else if (vel < -VELOCITY_THRESHOLD) {
+      // Flick up
+      setSnap("full");
+    } else {
+      // Snap by position
+      if (finalOffset > 70) onClose();
+      else if (finalOffset > 26) setSnap("half");
+      else setSnap("full");
+    }
+  };
+
+  // ── Place data state ──
   const [activeTab, setActiveTab] = useState<"google" | "community">("google");
   const [reviews, setReviews] = useState<PlaceReview[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
@@ -103,8 +161,6 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   const [newBody, setNewBody] = useState("");
   const [visitedWithPet, setVisitedWithPet] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
-  // Admin edit
   const [adminEditOpen, setAdminEditOpen] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
   const [editForm, setEditForm] = useState<{
@@ -124,62 +180,36 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   const userReview = reviews.find(r => r.user_id === user?.id);
   const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
-  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
-
   useEffect(() => {
-    setActiveTab("google");
-    setReviews([]);
-    setNewRating(0);
-    setNewBody("");
-    setVisitedWithPet(false);
-    setAdminEditOpen(false);
+    setActiveTab("google"); setReviews([]); setNewRating(0);
+    setNewBody(""); setVisitedWithPet(false); setAdminEditOpen(false);
   }, [place?.id]);
 
   useEffect(() => {
-    if (adminEditOpen) {
-      setEditForm({
-        name: place.name ?? "",
-        category: place.category ?? "",
-        subcategory: place.subcategory ?? "",
-        address: place.address ?? "",
-        city: place.city ?? "",
-        country: place.country ?? "",
-        phone: place.phone ?? "",
-        website: place.website ?? "",
-        opening_hours: place.opening_hours ?? "",
-        description: place.description ?? "",
-        photo_url: place.photo_url ?? "",
-        accepts_dogs: place.accepts_dogs ?? false,
-        accepts_cats: place.accepts_cats ?? false,
-        dogs_on_leash_only: place.dogs_on_leash_only ?? false,
-        outdoor_seating: place.outdoor_seating ?? false,
-        water_bowl_provided: (place as any).water_bowl_provided ?? false,
-        verified: place.verified ?? false,
-      });
-    }
+    if (!place || !adminEditOpen) return;
+    setEditForm({
+      name: place.name ?? "", category: place.category ?? "", subcategory: place.subcategory ?? "",
+      address: place.address ?? "", city: place.city ?? "", country: place.country ?? "",
+      phone: place.phone ?? "", website: place.website ?? "", opening_hours: place.opening_hours ?? "",
+      description: place.description ?? "", photo_url: place.photo_url ?? "",
+      accepts_dogs: place.accepts_dogs ?? false, accepts_cats: place.accepts_cats ?? false,
+      dogs_on_leash_only: place.dogs_on_leash_only ?? false, outdoor_seating: place.outdoor_seating ?? false,
+      water_bowl_provided: (place as any).water_bowl_provided ?? false, verified: place.verified ?? false,
+    });
   }, [adminEditOpen]);
 
   async function saveAdminEdit() {
+    if (!place) return;
     setEditSaving(true);
     const { error } = await supabase.from("pet_friendly_places").update({
-      name: editForm.name,
-      category: editForm.category,
-      subcategory: editForm.subcategory || null,
-      address: editForm.address || null,
-      city: editForm.city || null,
-      country: editForm.country || null,
-      phone: editForm.phone || null,
-      website: editForm.website || null,
-      opening_hours: editForm.opening_hours || null,
-      description: editForm.description || null,
-      photo_url: editForm.photo_url || null,
-      accepts_dogs: editForm.accepts_dogs,
-      accepts_cats: editForm.accepts_cats,
-      dogs_on_leash_only: editForm.dogs_on_leash_only,
-      outdoor_seating: editForm.outdoor_seating,
-      water_bowl_provided: editForm.water_bowl_provided,
-      verified: editForm.verified,
-      last_updated: new Date().toISOString(),
+      name: editForm.name, category: editForm.category, subcategory: editForm.subcategory || null,
+      address: editForm.address || null, city: editForm.city || null, country: editForm.country || null,
+      phone: editForm.phone || null, website: editForm.website || null,
+      opening_hours: editForm.opening_hours || null, description: editForm.description || null,
+      photo_url: editForm.photo_url || null, accepts_dogs: editForm.accepts_dogs,
+      accepts_cats: editForm.accepts_cats, dogs_on_leash_only: editForm.dogs_on_leash_only,
+      outdoor_seating: editForm.outdoor_seating, water_bowl_provided: editForm.water_bowl_provided,
+      verified: editForm.verified, last_updated: new Date().toISOString(),
     }).eq("id", place.id);
     setEditSaving(false);
     if (error) { toast.error("Erreur : " + error.message); return; }
@@ -188,334 +218,244 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   }
 
   async function loadReviews() {
+    if (!place) return;
     setLoadingReviews(true);
-    const { data } = await supabase
-      .from("place_reviews")
+    const { data } = await supabase.from("place_reviews")
       .select("*, profiles(display_name, avatar_url)")
-      .eq("place_id", place.id)
-      .eq("is_hidden", false)
+      .eq("place_id", place.id).eq("is_hidden", false)
       .order("created_at", { ascending: false });
     setReviews((data as PlaceReview[]) || []);
     setLoadingReviews(false);
   }
 
+  useEffect(() => { if (activeTab === "community") loadReviews(); }, [activeTab, place?.id]);
   useEffect(() => {
-    if (activeTab === "community") loadReviews();
-  }, [activeTab, place?.id]);
-
-  useEffect(() => {
-    if (userReview) {
-      setNewRating(userReview.rating);
-      setNewBody(userReview.body ?? "");
-      setVisitedWithPet(userReview.visited_with_pet);
-    }
+    if (userReview) { setNewRating(userReview.rating); setNewBody(userReview.body ?? ""); setVisitedWithPet(userReview.visited_with_pet); }
   }, [userReview?.id]);
 
   async function submitReview() {
     if (!user) { toast.error("Connecte-toi pour laisser un avis"); return; }
     if (newRating === 0) { toast.error("Choisis une note"); return; }
+    if (!place) return;
     setSubmitting(true);
     const payload = { place_id: place.id, user_id: user.id, rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet };
     const { error } = userReview
       ? await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet }).eq("id", userReview.id)
       : await supabase.from("place_reviews").insert(payload);
-    if (error) { toast.error("Erreur lors de la publication"); }
+    if (error) toast.error("Erreur lors de la publication");
     else { toast.success(userReview ? "Avis mis à jour !" : "Avis publié !"); await loadReviews(); }
     setSubmitting(false);
   }
 
   async function deleteReview(reviewId: string) {
     await supabase.from("place_reviews").delete().eq("id", reviewId);
-    toast.success("Avis supprimé");
-    await loadReviews();
+    toast.success("Avis supprimé"); await loadReviews();
   }
-
   async function markHelpful(reviewId: string, current: number) {
     await supabase.from("place_reviews").update({ helpful_count: current + 1 }).eq("id", reviewId);
     await loadReviews();
   }
-
   async function reportReview(reviewId: string) {
     await supabase.from("place_reviews").update({ is_reported: true }).eq("id", reviewId);
-    toast.success("Signalement envoyé, merci !");
-    await loadReviews();
+    toast.success("Signalement envoyé, merci !"); await loadReviews();
   }
 
+  if (!place) return null;
+
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
+
   return (
-    <div className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-card z-50 shadow-2xl overflow-y-auto animate-slide-in-right">
-      <div className="sticky top-0 bg-card z-10 flex items-center justify-between p-4 border-b border-border">
-        <div className="flex items-center gap-2 min-w-0">
-          {onBack && (
-            <button onClick={onBack} className="p-1.5 rounded-full hover:bg-muted transition-colors shrink-0" title="Retour">
-              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
-            </button>
-          )}
-          <h2 className="text-lg font-heading font-bold text-foreground truncate">{place.name}</h2>
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          {onToggleFavorite && (
+    <div
+      className="fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-2xl shadow-2xl flex flex-col"
+      style={{
+        height: "calc(100vh - 56px)",
+        transform: `translateY(${currentOffset}%)`,
+        transition: isDragging.current ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+        willChange: "transform",
+      }}
+    >
+      {/* Drag handle — seule zone déclenchant le swipe */}
+      <div
+        className="flex flex-col items-center pt-2.5 pb-1 shrink-0 cursor-grab active:cursor-grabbing select-none"
+        onTouchStart={handleDragStart}
+        onTouchMove={handleDragMove}
+        onTouchEnd={handleDragEnd}
+      >
+        <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mb-2" />
+
+        {/* Header inside handle zone for compact layout */}
+        <div className="w-full flex items-center justify-between px-4 pb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            {onBack && (
+              <button onClick={onBack} className="p-1.5 rounded-full hover:bg-muted transition-colors shrink-0">
+                <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+              </button>
+            )}
+            <h2 className="text-base font-heading font-bold text-foreground truncate">{place.name}</h2>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            {onToggleFavorite && (
+              <button onClick={onToggleFavorite} className="p-1.5 rounded-full hover:bg-muted transition-all active:scale-125">
+                <Heart className={`w-5 h-5 transition-colors ${isFavorite ? "text-destructive fill-destructive" : "text-muted-foreground"}`} />
+              </button>
+            )}
+            {/* Tap handle icon to toggle snap point */}
             <button
-              onClick={onToggleFavorite}
-              className="p-1.5 rounded-full hover:bg-muted transition-all active:scale-125"
+              onClick={() => setSnap(s => s === "half" ? "full" : "half")}
+              className="p-1.5 rounded-full hover:bg-muted transition-colors"
+              title={snap === "half" ? "Agrandir" : "Réduire"}
             >
-              <Heart
-                className={`w-5 h-5 transition-colors ${isFavorite ? "text-destructive fill-destructive" : "text-muted-foreground"}`}
-              />
+              {snap === "half"
+                ? <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                : <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              }
             </button>
-          )}
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
-            <X className="w-5 h-5 text-muted-foreground" />
-          </button>
+            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {place.photo_url && (
-        <img src={place.photo_url} alt={place.name} className="w-full h-48 object-cover" />
-      )}
+      <div className="w-full h-px bg-border shrink-0" />
 
-      <div className="p-5 space-y-5">
-        <Badge className={`${categoryBgColors[place.category] || "bg-gray-500"} text-white`}>
-          {categoryLabels[place.category] || place.category}
-        </Badge>
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto">
+        {place.photo_url && (
+          <img src={place.photo_url} alt={place.name} className="w-full h-40 object-cover" />
+        )}
 
-        <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
-          <p className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
-            ✅ Lieu vérifié pet-friendly
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {place.accepts_dogs && (
-              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1">
-                <Dog className="w-3.5 h-3.5" /> 🐕 Chiens acceptés
-              </Badge>
-            )}
-            {place.accepts_cats && (
-              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1">
-                <Cat className="w-3.5 h-3.5" /> 🐱 Chats acceptés
-              </Badge>
-            )}
-            {place.outdoor_seating && (
-              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1">
-                <TreePine className="w-3.5 h-3.5" /> Terrasse extérieure
-              </Badge>
-            )}
-            {!place.outdoor_seating && (
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 gap-1">
-                <Home className="w-3.5 h-3.5" /> Animaux OK en intérieur
-              </Badge>
-            )}
-            {place.dogs_on_leash_only && (
-              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 gap-1">
-                🐕‍🦺 Laisse obligatoire
-              </Badge>
-            )}
+        <div className="p-4 space-y-4">
+          <Badge className={`${categoryBgColors[place.category] || "bg-gray-500"} text-white`}>
+            {categoryLabels[place.category] || place.category}
+          </Badge>
+
+          <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
+            <p className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">✅ Lieu vérifié pet-friendly</p>
+            <div className="flex flex-wrap gap-2">
+              {place.accepts_dogs && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Dog className="w-3.5 h-3.5" /> 🐕 Chiens acceptés</Badge>}
+              {place.accepts_cats && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Cat className="w-3.5 h-3.5" /> 🐱 Chats acceptés</Badge>}
+              {place.outdoor_seating && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><TreePine className="w-3.5 h-3.5" /> Terrasse extérieure</Badge>}
+              {!place.outdoor_seating && <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 gap-1"><Home className="w-3.5 h-3.5" /> Animaux OK en intérieur</Badge>}
+              {place.dogs_on_leash_only && <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 gap-1">🐕‍🦺 Laisse obligatoire</Badge>}
+            </div>
           </div>
-        </div>
 
-        {/* Tab toggle : Google / Communauté */}
-        <div className="flex rounded-xl border border-border overflow-hidden">
-          <button
-            onClick={() => setActiveTab("google")}
-            className={`flex-1 py-2 text-xs font-semibold transition-colors ${activeTab === "google" ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" : "text-muted-foreground hover:bg-muted"}`}
-          >
-            ⭐ Google{place.rating ? ` · ${place.rating}` : ""}
-          </button>
-          <button
-            onClick={() => setActiveTab("community")}
-            className={`flex-1 py-2 text-xs font-semibold transition-colors ${activeTab === "community" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
-          >
-            💬 Communauté{reviews.length > 0 ? ` · ${reviews.length}` : ""}
-          </button>
-        </div>
+          {/* Tabs */}
+          <div className="flex rounded-xl border border-border overflow-hidden">
+            <button onClick={() => setActiveTab("google")}
+              className={`flex-1 py-2 text-xs font-semibold transition-colors ${activeTab === "google" ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" : "text-muted-foreground hover:bg-muted"}`}>
+              ⭐ Google{place.rating ? ` · ${place.rating}` : ""}
+            </button>
+            <button onClick={() => setActiveTab("community")}
+              className={`flex-1 py-2 text-xs font-semibold transition-colors ${activeTab === "community" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}>
+              💬 Communauté{reviews.length > 0 ? ` · ${reviews.length}` : ""}
+            </button>
+          </div>
 
-        {/* Google tab */}
-        {activeTab === "google" && (
-          <>
-            {place.rating ? (
+          {activeTab === "google" && (
+            place.rating ? (
               <div className="flex items-center gap-2">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className={`w-4 h-4 ${i < Math.round(place.rating!) ? "text-amber-400 fill-amber-400" : "text-muted"}`} />
-                ))}
+                {[...Array(5)].map((_, i) => <Star key={i} className={`w-4 h-4 ${i < Math.round(place.rating!) ? "text-amber-400 fill-amber-400" : "text-muted"}`} />)}
                 <span className="text-sm font-semibold text-foreground">{place.rating}</span>
                 <span className="text-xs text-muted-foreground">(Google)</span>
               </div>
-            ) : (
-              <p className="text-xs text-muted-foreground italic">Aucune note Google disponible.</p>
-            )}
-          </>
-        )}
+            ) : <p className="text-xs text-muted-foreground italic">Aucune note Google disponible.</p>
+          )}
 
-        {/* Community tab */}
-        {activeTab === "community" && (
-          <div className="space-y-4">
-            {reviews.length > 0 && (
-              <div className="flex items-center gap-2">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={`w-4 h-4 ${i < Math.round(avgRating) ? "text-primary fill-primary" : "text-muted"}`} />
+          {activeTab === "community" && (
+            <div className="space-y-4">
+              {reviews.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="flex">{[...Array(5)].map((_, i) => <Star key={i} className={`w-4 h-4 ${i < Math.round(avgRating) ? "text-primary fill-primary" : "text-muted"}`} />)}</div>
+                  <span className="text-sm font-semibold">{avgRating.toFixed(1)}</span>
+                  <span className="text-xs text-muted-foreground">({reviews.length} avis)</span>
+                </div>
+              )}
+              {loadingReviews ? <p className="text-xs text-muted-foreground text-center py-2">Chargement…</p>
+                : reviews.length === 0 ? <p className="text-xs text-muted-foreground italic text-center py-2">Aucun avis. Sois le premier !</p>
+                : <div className="space-y-3">
+                  {reviews.map(r => (
+                    <div key={r.id} className="rounded-xl border border-border bg-muted/40 p-3 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {r.profiles?.avatar_url
+                            ? <img src={r.profiles.avatar_url} className="w-6 h-6 rounded-full object-cover" />
+                            : <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">{(r.profiles?.display_name?.[0] ?? "?").toUpperCase()}</div>
+                          }
+                          <span className="text-xs font-semibold">{r.profiles?.display_name ?? "Anonyme"}</span>
+                        </div>
+                        <div className="flex">{[...Array(5)].map((_, i) => <Star key={i} className={`w-3 h-3 ${i < r.rating ? "text-amber-400 fill-amber-400" : "text-muted"}`} />)}</div>
+                      </div>
+                      {r.visited_with_pet && <span className="text-xs bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full">🐾 Visité avec mon animal</span>}
+                      {r.body && <p className="text-xs text-foreground leading-relaxed">{r.body}</p>}
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-xs text-muted-foreground">{timeAgo(r.created_at)}</span>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => markHelpful(r.id, r.helpful_count)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
+                            <ThumbsUp className="w-3 h-3" />{r.helpful_count > 0 && r.helpful_count}
+                          </button>
+                          {user && user.id !== r.user_id && !r.is_reported && (
+                            <button onClick={() => reportReview(r.id)} className="text-xs text-muted-foreground hover:text-orange-500" title="Signaler"><Flag className="w-3 h-3" /></button>
+                          )}
+                          {user && user.id === r.user_id && (
+                            <button onClick={() => deleteReview(r.id)} className="text-xs text-muted-foreground hover:text-destructive" title="Supprimer"><Trash2 className="w-3 h-3" /></button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
-                <span className="text-sm font-semibold">{avgRating.toFixed(1)}</span>
-                <span className="text-xs text-muted-foreground">({reviews.length} avis)</span>
-              </div>
-            )}
-
-            {loadingReviews ? (
-              <p className="text-xs text-muted-foreground text-center py-2">Chargement…</p>
-            ) : reviews.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic text-center py-2">Aucun avis pour l'instant. Sois le premier !</p>
-            ) : (
-              <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-                {reviews.map(r => (
-                  <div key={r.id} className="rounded-xl border border-border bg-muted/40 p-3 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {r.profiles?.avatar_url ? (
-                          <img src={r.profiles.avatar_url} className="w-6 h-6 rounded-full object-cover" />
-                        ) : (
-                          <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-                            {(r.profiles?.display_name?.[0] ?? "?").toUpperCase()}
-                          </div>
-                        )}
-                        <span className="text-xs font-semibold">{r.profiles?.display_name ?? "Anonyme"}</span>
-                      </div>
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className={`w-3 h-3 ${i < r.rating ? "text-amber-400 fill-amber-400" : "text-muted"}`} />
-                        ))}
-                      </div>
-                    </div>
-                    {r.visited_with_pet && (
-                      <span className="text-xs bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full">🐾 Visité avec mon animal</span>
-                    )}
-                    {r.body && <p className="text-xs text-foreground leading-relaxed">{r.body}</p>}
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-xs text-muted-foreground">{timeAgo(r.created_at)}</span>
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => markHelpful(r.id, r.helpful_count)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
-                          <ThumbsUp className="w-3 h-3" />{r.helpful_count > 0 && r.helpful_count}
-                        </button>
-                        {user && user.id !== r.user_id && !r.is_reported && (
-                          <button onClick={() => reportReview(r.id)} className="text-xs text-muted-foreground hover:text-orange-500 transition-colors" title="Signaler">
-                            <Flag className="w-3 h-3" />
-                          </button>
-                        )}
-                        {user && user.id === r.user_id && (
-                          <button onClick={() => deleteReview(r.id)} className="text-xs text-muted-foreground hover:text-destructive transition-colors" title="Supprimer">
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
+              }
+              {user ? (
+                <div className="border border-border rounded-xl p-3 space-y-3 bg-background">
+                  <p className="text-xs font-semibold">{userReview ? "Modifier ton avis" : "Laisser un avis"}</p>
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(star => (
+                      <button key={star} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} onClick={() => setNewRating(star)}>
+                        <Star className={`w-6 h-6 transition-colors ${star <= (hoverRating || newRating) ? "text-amber-400 fill-amber-400" : "text-muted"}`} />
+                      </button>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-
-            {user ? (
-              <div className="border border-border rounded-xl p-3 space-y-3 bg-background">
-                <p className="text-xs font-semibold text-foreground">{userReview ? "Modifier ton avis" : "Laisser un avis"}</p>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <button key={star} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} onClick={() => setNewRating(star)}>
-                      <Star className={`w-6 h-6 transition-colors ${star <= (hoverRating || newRating) ? "text-amber-400 fill-amber-400" : "text-muted"}`} />
-                    </button>
-                  ))}
+                  <textarea value={newBody} onChange={e => setNewBody(e.target.value)} placeholder="Décris ton expérience (optionnel)…" rows={3}
+                    className="w-full text-xs rounded-lg border border-border bg-muted/40 p-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary" />
+                  <label className="flex items-center gap-2 text-xs cursor-pointer">
+                    <input type="checkbox" checked={visitedWithPet} onChange={e => setVisitedWithPet(e.target.checked)} className="rounded" />
+                    🐾 J'y suis allé(e) avec mon animal
+                  </label>
+                  <button onClick={submitReview} disabled={submitting || newRating === 0}
+                    className="w-full py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50 hover:bg-primary/90 transition-colors">
+                    {submitting ? "Publication…" : userReview ? "Mettre à jour" : "Publier l'avis"}
+                  </button>
                 </div>
-                <textarea
-                  value={newBody}
-                  onChange={e => setNewBody(e.target.value)}
-                  placeholder="Décris ton expérience (optionnel)…"
-                  rows={3}
-                  className="w-full text-xs rounded-lg border border-border bg-muted/40 p-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer">
-                  <input type="checkbox" checked={visitedWithPet} onChange={e => setVisitedWithPet(e.target.checked)} className="rounded" />
-                  🐾 J'y suis allé(e) avec mon animal
-                </label>
-                <button
-                  onClick={submitReview}
-                  disabled={submitting || newRating === 0}
-                  className="w-full py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50 hover:bg-primary/90 transition-colors"
-                >
-                  {submitting ? "Publication…" : userReview ? "Mettre à jour" : "Publier l'avis"}
-                </button>
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground italic text-center">Connecte-toi pour laisser un avis.</p>
-            )}
-          </div>
-        )}
+              ) : <p className="text-xs text-muted-foreground italic text-center">Connecte-toi pour laisser un avis.</p>}
+            </div>
+          )}
 
-        {place.opening_hours && (
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Horaires</p>
-            <p className="text-sm text-foreground">{place.opening_hours}</p>
-          </div>
-        )}
+          {place.opening_hours && <div><p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Horaires</p><p className="text-sm">{place.opening_hours}</p></div>}
+          {place.address && <div className="flex items-start gap-2"><MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" /><p className="text-sm">{place.address}</p></div>}
+          {place.phone && <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-muted-foreground shrink-0" /><a href={`tel:${place.phone}`} className="text-sm text-primary hover:underline">{place.phone}</a></div>}
+          {place.website && <div className="flex items-center gap-2"><Globe className="w-4 h-4 text-muted-foreground shrink-0" /><a href={place.website} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate">{place.website}</a></div>}
+          {place.description && <div><p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Description</p><p className="text-sm leading-relaxed">{place.description}</p></div>}
 
-        {place.address && (
-          <div className="flex items-start gap-2">
-            <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-            <p className="text-sm text-foreground">{place.address}</p>
-          </div>
-        )}
-
-        {place.phone && (
-          <div className="flex items-center gap-2">
-            <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
-            <a href={`tel:${place.phone}`} className="text-sm text-primary hover:underline">{place.phone}</a>
-          </div>
-        )}
-
-        {place.website && (
-          <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
-            <a href={place.website} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate">{place.website}</a>
-          </div>
-        )}
-
-        {place.description && (
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Description</p>
-            <p className="text-sm text-foreground leading-relaxed">{place.description}</p>
-          </div>
-        )}
-
-        {isAdmin && (
-          <div className="rounded-xl border border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-950/30 overflow-hidden">
-            <button
-              onClick={() => setAdminEditOpen(o => !o)}
-              className="w-full flex items-center justify-between px-4 py-3 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors"
-            >
-              <span className="flex items-center gap-2 text-sm font-semibold">
-                <Pencil className="w-4 h-4" /> Modifier ce lieu (Admin)
-              </span>
-              {adminEditOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-
-            {adminEditOpen && (
-              <div className="px-4 pb-4 space-y-4 border-t border-violet-200 dark:border-violet-700 pt-4">
-
-                {/* Informations de base */}
-                <div>
-                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">Informations générales</p>
+          {isAdmin && (
+            <div className="rounded-xl border border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-950/30 overflow-hidden">
+              <button onClick={() => setAdminEditOpen(o => !o)}
+                className="w-full flex items-center justify-between px-4 py-3 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors">
+                <span className="flex items-center gap-2 text-sm font-semibold"><Pencil className="w-4 h-4" /> Modifier ce lieu (Admin)</span>
+                {adminEditOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              {adminEditOpen && (
+                <div className="px-4 pb-4 space-y-4 border-t border-violet-200 dark:border-violet-700 pt-4">
                   <div className="space-y-2">
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-0.5 block">Nom</label>
-                      <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="h-8 text-sm" />
-                    </div>
+                    <label className="text-xs text-muted-foreground block">Nom</label>
+                    <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="h-8 text-sm" />
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="text-xs text-muted-foreground mb-0.5 block">Catégorie</label>
-                        <select
-                          value={editForm.category}
-                          onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}
-                          className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm"
-                        >
+                        <select value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))} className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm">
                           {KNOWN_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                          {!KNOWN_CATEGORIES.includes(editForm.category) && editForm.category && (
-                            <option value={editForm.category}>{editForm.category}</option>
-                          )}
+                          {!KNOWN_CATEGORIES.includes(editForm.category) && editForm.category && <option value={editForm.category}>{editForm.category}</option>}
                         </select>
                       </div>
                       <div>
@@ -523,128 +463,51 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
                         <Input value={editForm.subcategory} onChange={e => setEditForm(f => ({ ...f, subcategory: e.target.value }))} className="h-8 text-sm" placeholder="Optionnel" />
                       </div>
                     </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-0.5 block">Description</label>
-                      <textarea
-                        value={editForm.description}
-                        onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
-                        rows={3}
-                        className="w-full text-sm rounded-md border border-input bg-background px-3 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-                        placeholder="Description du lieu…"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Localisation */}
-                <div>
-                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">Localisation</p>
-                  <div className="space-y-2">
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-0.5 block">Adresse</label>
-                      <Input value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} className="h-8 text-sm" />
-                    </div>
+                    <textarea value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} rows={3} className="w-full text-sm rounded-md border border-input bg-background px-3 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Description…" />
+                    <Input value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} className="h-8 text-sm" placeholder="Adresse" />
                     <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-xs text-muted-foreground mb-0.5 block">Ville</label>
-                        <Input value={editForm.city} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} className="h-8 text-sm" />
-                      </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground mb-0.5 block">Pays</label>
-                        <Input value={editForm.country} onChange={e => setEditForm(f => ({ ...f, country: e.target.value }))} className="h-8 text-sm" />
-                      </div>
+                      <Input value={editForm.city} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} className="h-8 text-sm" placeholder="Ville" />
+                      <Input value={editForm.country} onChange={e => setEditForm(f => ({ ...f, country: e.target.value }))} className="h-8 text-sm" placeholder="Pays" />
                     </div>
-                  </div>
-                </div>
-
-                {/* Contact */}
-                <div>
-                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">Contact</p>
-                  <div className="space-y-2">
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-0.5 block">Téléphone</label>
-                      <Input value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} className="h-8 text-sm" placeholder="+33 1 23 45 67 89" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-0.5 block">Site web</label>
-                      <Input value={editForm.website} onChange={e => setEditForm(f => ({ ...f, website: e.target.value }))} className="h-8 text-sm" placeholder="https://…" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-0.5 block">Horaires</label>
-                      <Input value={editForm.opening_hours} onChange={e => setEditForm(f => ({ ...f, opening_hours: e.target.value }))} className="h-8 text-sm" placeholder="Lun–Ven 9h–18h" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-0.5 block">URL photo</label>
-                      <Input value={editForm.photo_url} onChange={e => setEditForm(f => ({ ...f, photo_url: e.target.value }))} className="h-8 text-sm" placeholder="https://…" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Options pet-friendly */}
-                <div>
-                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">Options Pet-Friendly</p>
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                    {([
-                      { key: "accepts_dogs", label: "🐕 Chiens acceptés" },
-                      { key: "accepts_cats", label: "🐈 Chats acceptés" },
-                      { key: "outdoor_seating", label: "🌿 Terrasse" },
-                      { key: "water_bowl_provided", label: "🥣 Gamelle d'eau" },
-                      { key: "dogs_on_leash_only", label: "🦮 Laisse obligatoire" },
-                    ] as const).map(({ key, label }) => (
-                      <label key={key} className="flex items-center gap-2 cursor-pointer text-xs text-foreground">
-                        <input
-                          type="checkbox"
-                          checked={editForm[key]}
-                          onChange={e => setEditForm(f => ({ ...f, [key]: e.target.checked }))}
-                          className="rounded accent-primary w-4 h-4"
-                        />
-                        {label}
+                    <Input value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} className="h-8 text-sm" placeholder="Téléphone" />
+                    <Input value={editForm.website} onChange={e => setEditForm(f => ({ ...f, website: e.target.value }))} className="h-8 text-sm" placeholder="Site web" />
+                    <Input value={editForm.opening_hours} onChange={e => setEditForm(f => ({ ...f, opening_hours: e.target.value }))} className="h-8 text-sm" placeholder="Horaires" />
+                    <Input value={editForm.photo_url} onChange={e => setEditForm(f => ({ ...f, photo_url: e.target.value }))} className="h-8 text-sm" placeholder="URL photo" />
+                    <div className="grid grid-cols-2 gap-y-2 gap-x-4 pt-1">
+                      {([ { key: "accepts_dogs", label: "🐕 Chiens" }, { key: "accepts_cats", label: "🐈 Chats" }, { key: "outdoor_seating", label: "🌿 Terrasse" }, { key: "water_bowl_provided", label: "🥣 Gamelle" }, { key: "dogs_on_leash_only", label: "🦮 Laisse" } ] as const).map(({ key, label }) => (
+                        <label key={key} className="flex items-center gap-2 cursor-pointer text-xs">
+                          <input type="checkbox" checked={editForm[key]} onChange={e => setEditForm(f => ({ ...f, [key]: e.target.checked }))} className="rounded accent-primary w-4 h-4" />
+                          {label}
+                        </label>
+                      ))}
+                      <label className="flex items-center gap-2 cursor-pointer text-xs col-span-2">
+                        <input type="checkbox" checked={editForm.verified} onChange={e => setEditForm(f => ({ ...f, verified: e.target.checked }))} className="rounded accent-green-500 w-4 h-4" />
+                        <CheckCircle className="w-3.5 h-3.5 text-green-500" /> ✅ Vérifié
                       </label>
-                    ))}
-                    <label className="flex items-center gap-2 cursor-pointer text-xs text-foreground col-span-2">
-                      <input
-                        type="checkbox"
-                        checked={editForm.verified}
-                        onChange={e => setEditForm(f => ({ ...f, verified: e.target.checked }))}
-                        className="rounded accent-green-500 w-4 h-4"
-                      />
-                      <CheckCircle className="w-3.5 h-3.5 text-green-500" /> ✅ Lieu vérifié
-                    </label>
+                    </div>
                   </div>
+                  <Button onClick={saveAdminEdit} disabled={editSaving || !editForm.name.trim()} className="w-full gap-2 bg-violet-600 hover:bg-violet-700 text-white">
+                    <Save className="w-4 h-4" />{editSaving ? "Enregistrement…" : "Enregistrer"}
+                  </Button>
                 </div>
+              )}
+            </div>
+          )}
 
-                <Button
-                  onClick={saveAdminEdit}
-                  disabled={editSaving || !editForm.name.trim()}
-                  className="w-full gap-2 bg-violet-600 hover:bg-violet-700 text-white"
-                >
-                  <Save className="w-4 h-4" />
-                  {editSaving ? "Enregistrement…" : "Enregistrer les modifications"}
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
+          {onReport && (
+            <button onClick={onReport} className="w-full text-xs h-9 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800 transition-colors">
+              ⚠️ Signaler un problème
+            </button>
+          )}
 
-        {onReport && (
-          <button
-            onClick={onReport}
-            className="w-full text-xs h-9 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800 transition-colors"
-          >
-            ⚠️ Signaler un problème
-          </button>
-        )}
+          <Button className="w-full gap-2" onClick={() => window.open(directionsUrl, "_blank")}>
+            <Navigation className="w-4 h-4" /> Itinéraire
+          </Button>
 
-        <Button className="w-full gap-2" onClick={() => window.open(directionsUrl, "_blank")}>
-          <Navigation className="w-4 h-4" />
-          Itinéraire
-        </Button>
-
-        {place.distance_km !== undefined && (
-          <p className="text-xs text-center text-muted-foreground">
-            À {place.distance_km.toFixed(1)} km de votre position
-          </p>
-        )}
+          {place.distance_km !== undefined && (
+            <p className="text-xs text-center text-muted-foreground">À {place.distance_km.toFixed(1)} km de votre position</p>
+          )}
+        </div>
       </div>
     </div>
   );

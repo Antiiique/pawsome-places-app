@@ -885,17 +885,14 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       )}
 
       {selectedPlace && (
-        <>
-          <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setSelectedPlace(null)} />
-          <PlaceDetailPanel
-            place={selectedPlace}
-            onClose={() => { setSelectedPlace(null); prevPopupDataRef.current = null; }}
-            onBack={prevPopupDataRef.current ? () => { setSelectedPlace(null); setPopupData(prevPopupDataRef.current); prevPopupDataRef.current = null; } : undefined}
-            isFavorite={isFavorite?.(selectedPlace.id)}
-            onToggleFavorite={() => handleToggleFav(selectedPlace)}
-            onReport={() => setReportModal({ open: true, placeId: selectedPlace.id, placeName: selectedPlace.name })}
-          />
-        </>
+        <PlaceDetailPanel
+          place={selectedPlace}
+          onClose={() => { setSelectedPlace(null); prevPopupDataRef.current = null; }}
+          onBack={prevPopupDataRef.current ? () => { setSelectedPlace(null); setPopupData(prevPopupDataRef.current); prevPopupDataRef.current = null; } : undefined}
+          isFavorite={isFavorite?.(selectedPlace.id)}
+          onToggleFavorite={() => handleToggleFav(selectedPlace)}
+          onReport={() => setReportModal({ open: true, placeId: selectedPlace.id, placeName: selectedPlace.name })}
+        />
       )}
 
       <ReportModal open={reportModal.open} onClose={() => setReportModal({ open: false, placeId: null, placeName: "" })} placeId={reportModal.placeId} placeName={reportModal.placeName}
