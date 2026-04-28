@@ -29,9 +29,14 @@ function loadGooglePlacesLib(): Promise<void> {
     }
     googlePlacesLoading = true;
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&loading=async`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places`;
     script.async = true;
-    script.onload = () => resolve();
+    // Wait for places lib to be truly ready, not just the script tag to load
+    script.onload = () => {
+      const wait = setInterval(() => {
+        if ((window as any).google?.maps?.places) { clearInterval(wait); resolve(); }
+      }, 50);
+    };
     document.head.appendChild(script);
   });
 }
