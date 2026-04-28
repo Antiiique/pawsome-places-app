@@ -882,28 +882,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       </div>
 
       {/* Category legend */}
-      <div className="absolute bottom-8 left-4 z-20">
-        <button
-          onClick={() => setShowLegend(v => !v)}
-          className="px-3 py-2 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border text-xs font-medium text-foreground hover:bg-muted transition-colors"
-        >
-          🗂️ Légende
-        </button>
-        {showLegend && (
-          <div className="absolute bottom-11 left-0 bg-card/95 backdrop-blur-md border border-border rounded-xl shadow-xl p-3 w-52 max-h-72 overflow-y-auto">
-            <p className="text-[11px] font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Catégories</p>
-            <div className="space-y-1.5">
-              {CATEGORY_FILTERS.filter(f => f.key !== null).map(f => (
-                <div key={String(f.key)} className="flex items-center gap-2">
-                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: CATEGORY_COLORS[f.key as string] || "#9E9E9E", flexShrink: 0, border: "1.5px solid white", boxShadow: "0 1px 3px rgba(0,0,0,.3)" }} />
-                  <span className="text-xs text-foreground">{f.emoji} {f.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Locate me */}
       <button onClick={handleLocateMe} className="absolute bottom-8 right-4 z-20 p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors" title="Ma position">
         <Locate className="w-5 h-5 text-primary" />
