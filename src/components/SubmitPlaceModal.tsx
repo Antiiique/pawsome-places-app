@@ -274,8 +274,6 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
 
   if (!open) return null;
 
-  const subcats = selectedGroup !== null ? TYPE_GROUPS[selectedGroup].subcats : [];
-
   return createPortal(
     <div
       className="fixed inset-0 z-[700]"
@@ -338,45 +336,48 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
               {/* Type de lieu */}
               <section>
                 <h3 className="text-sm font-bold text-foreground mb-3">Type de lieu</h3>
-                <div className="flex justify-between gap-2 mb-3">
+
+                {/* Group filter icons */}
+                <div className="flex justify-between gap-1.5 mb-3">
                   {TYPE_GROUPS.map((g, i) => (
                     <button
                       key={i}
                       onClick={() => { setSelectedGroup(i === selectedGroup ? null : i); setCategory(""); setShowSubcatDropdown(false); }}
-                      className={`flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all ${selectedGroup === i ? "border-primary bg-primary/10" : "border-border bg-background"}`}
+                      className={`flex-1 flex flex-col items-center gap-1 py-2 rounded-xl border-2 transition-all ${selectedGroup === i ? "border-primary bg-primary/10" : "border-border bg-background"}`}
                     >
-                      <span className="text-xl">{g.icon}</span>
-                      <span className="text-[9px] font-medium text-center leading-tight text-muted-foreground">{g.label}</span>
+                      <span className="text-lg">{g.icon}</span>
+                      <span className="text-[8px] font-medium text-center leading-tight text-muted-foreground">{g.label}</span>
                     </button>
                   ))}
                 </div>
 
-                {/* Subcategory dropdown */}
-                {selectedGroup !== null && (
-                  <div className="relative">
-                    <button
-                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-border bg-background text-sm text-left"
-                      onClick={() => setShowSubcatDropdown(p => !p)}
-                    >
-                      <span className={category ? "text-foreground" : "text-muted-foreground"}>
-                        {category ? subcats.find(s => s.value === category)?.label : "Sous-type de lieu…"}
-                      </span>
-                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showSubcatDropdown ? "rotate-180" : ""}`} />
-                    </button>
-                    {showSubcatDropdown && (
-                      <div className="absolute z-10 left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-xl overflow-hidden">
-                        {subcats.map(s => (
-                          <button
-                            key={s.value}
-                            className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${category === s.value ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted text-foreground"}`}
-                            onClick={() => { setCategory(s.value); setShowSubcatDropdown(false); }}
-                          >
-                            {s.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                {/* Category dropdown — always visible, filtered by selected group */}
+                <div className="relative">
+                  <button
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-border bg-background text-sm text-left"
+                    onClick={() => setShowSubcatDropdown(p => !p)}
+                  >
+                    <span className={category ? "text-foreground" : "text-muted-foreground"}>
+                      {category
+                        ? TYPE_GROUPS.flatMap(g => g.subcats).find(s => s.value === category)?.label
+                        : selectedGroup !== null ? `Sous-type — ${TYPE_GROUPS[selectedGroup].label}…` : "Tous les types de lieux…"}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform flex-shrink-0 ${showSubcatDropdown ? "rotate-180" : ""}`} />
+                  </button>
+                  {showSubcatDropdown && (
+                    <div className="absolute z-10 left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-xl overflow-hidden max-h-64 overflow-y-auto">
+                      {(selectedGroup !== null ? TYPE_GROUPS[selectedGroup].subcats : TYPE_GROUPS.flatMap(g => g.subcats)).map(s => (
+                        <button
+                          key={s.value}
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${category === s.value ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted text-foreground"}`}
+                          onClick={() => { setCategory(s.value); setShowSubcatDropdown(false); }}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 )}
               </section>
 
