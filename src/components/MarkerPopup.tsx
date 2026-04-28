@@ -434,19 +434,42 @@ export default function MarkerPopup({
 
         {/* Scrollable body */}
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden" style={{ scrollbarWidth: "thin", scrollbarColor: "hsl(var(--border)) transparent" }}>
-          {/* Départ / Arrivée — top of menu */}
-          <div className="grid grid-cols-2 gap-2 px-4 pt-3 pb-2">
+          {/* Départ / Arrivée + actions — top of menu */}
+          <div className="px-4 pt-3 pb-2 space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                className="text-xs h-9 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-success"
+                onClick={(e) => { e.stopPropagation(); onSetOrigin(); }}
+              >
+                🚩 Point de départ
+              </button>
+              <button
+                className="text-xs h-9 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-destructive"
+                onClick={(e) => { e.stopPropagation(); onSetDestination(); }}
+              >
+                🏁 Point d'arrivée
+              </button>
+            </div>
+
+            {onAddWaypoint && (
+              <button
+                className="w-full text-xs h-10 rounded-xl font-bold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-primary"
+                onClick={(e) => { e.stopPropagation(); onAddWaypoint(); }}
+              >
+                ⛳ Ajouter comme étape
+              </button>
+            )}
+
             <button
-              className="text-xs h-9 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-success"
-              onClick={(e) => { e.stopPropagation(); onSetOrigin(); }}
+              className={`w-full text-xs h-10 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all ${
+                isFavorite
+                  ? "bg-destructive/20 border-destructive/40 text-destructive"
+                  : "bg-warning/20 border-warning/40 text-warning hover:bg-warning/30"
+              }`}
+              onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
             >
-              🚩 Point de départ
-            </button>
-            <button
-              className="text-xs h-9 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-destructive"
-              onClick={(e) => { e.stopPropagation(); onSetDestination(); }}
-            >
-              🏁 Point d'arrivée
+              <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
+              {isFavorite ? "Retirer des favoris" : "❤️ Ajouter aux favoris"}
             </button>
           </div>
 
@@ -545,29 +568,6 @@ export default function MarkerPopup({
               )}
             </div>
 
-            {/* Action buttons */}
-            <div className="space-y-2 pt-1">
-              {onAddWaypoint && (
-                <button
-                  className="w-full text-xs h-10 rounded-xl font-bold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-primary"
-                  onClick={(e) => { e.stopPropagation(); onAddWaypoint(); }}
-                >
-                  ⛳ Ajouter comme étape
-                </button>
-              )}
-
-              <button
-                className={`w-full text-xs h-10 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all ${
-                  isFavorite
-                    ? "bg-destructive/20 border-destructive/40 text-destructive"
-                    : "bg-warning/20 border-warning/40 text-warning hover:bg-warning/30"
-                }`}
-                onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
-              >
-                <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
-                {isFavorite ? "Retirer des favoris" : "❤️ Ajouter aux favoris"}
-              </button>
-            </div>
 
             {/* Reviews section avec onglets */}
             <div className="pt-2 border-t border-border space-y-3">
