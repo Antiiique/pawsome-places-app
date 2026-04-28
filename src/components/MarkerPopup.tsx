@@ -570,7 +570,18 @@ export default function MarkerPopup({
 
 
             {/* Reviews section avec onglets */}
-            <div className="pt-2 border-t border-border space-y-3">
+            <div
+              className="pt-2 border-t border-border space-y-3"
+              onTouchStart={(e) => { (e.currentTarget as any)._swipeX = e.touches[0].clientX; }}
+              onTouchEnd={(e) => {
+                const startX = (e.currentTarget as any)._swipeX;
+                if (startX == null) return;
+                const dx = e.changedTouches[0].clientX - startX;
+                if (Math.abs(dx) < 40) return;
+                if (dx < 0 && reviewTab === "google" && dbId) setReviewTab("community");
+                else if (dx > 0 && reviewTab === "community") setReviewTab("google");
+              }}
+            >
               <div className="flex rounded-xl overflow-hidden border border-border">
                 <button onClick={() => setReviewTab("google")} className={`flex-1 py-2 text-xs font-semibold transition-colors ${reviewTab === "google" ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" : "text-muted-foreground hover:bg-muted"}`}>
                   ⭐ Google{place.rating ? ` · ${place.rating}` : ""}
