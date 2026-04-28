@@ -1,7 +1,7 @@
 /// <reference types="google.maps" />
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, X, ArrowLeft, Camera } from "lucide-react";
+import { Check, ChevronDown, X, ArrowLeft, Camera, LocateFixed, Loader2 } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -123,6 +123,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
   });
   const [photos, setPhotos] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [locatingGPS, setLocatingGPS] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
@@ -164,7 +165,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
     setSelectedGroup(null); setCategory(""); setName(""); setPhone(""); setWebsite("");
     setDescription(""); setOpeningHours(""); setAddress(""); setAddressCoords(null); setCity("");
     setAccessibility({ accepts_dogs: true, accepts_cats: false, dogs_on_leash_only: false, category_dogs: false, multiple_dogs: false, water_bowl: false, outdoor_seating: false });
-    setPhotos([]); setLoading(false); setSuccess(false); setError(null); setSuggestions([]);
+    setPhotos([]); setLoading(false); setLocatingGPS(false); setSuccess(false); setError(null); setSuggestions([]);
     setDragDelta(0);
   }
 
@@ -214,6 +215,36 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
         if (cityComp) setCity(cityComp.long_name);
       }
     });
+  };
+
+  // Use current GPS location
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) { toast.error("La géolocalisation n'est pas supportée par votre appareil."); return; }
+    setLocatingGPS(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setAddressCoords({ lat, lng });
+        try {
+          const MAPBOX_TOKEN = (import.meta.env.VITE_MAPBOX_TOKEN as string) || "pk.eyJ1IjoiZWx2aW5hZ2QiLCJhIjoiY21vNzlzaTZ5MDUxMTJxc2V1Ym5sZzVxNyJ9.QVzHhHQIH-DsrHzfi-STRA";
+          const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&language=fr&limit=1`);
+          const data = await res.json();
+          const place = data.features?.[0];
+          if (place) {
+            setAddress(place.place_name);
+            const cityCtx = place.context?.find((c: any) => c.id?.startsWith("place."));
+            if (cityCtx) setCity(cityCtx.text);
+          }
+        } catch {
+          setAddress(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        }
+        setLocatingGPS(false);
+        toast.success("📍 Position actuelle enregistrée !");
+      },
+      () => { toast.error("Impossible d'obtenir votre position. Vérifiez les permissions."); setLocatingGPS(false); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   // Photos
@@ -465,6 +496,15 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
                     📍 Position depuis la carte : {initialCoords.lat.toFixed(5)}, {initialCoords.lng.toFixed(5)}
                   </div>
                 )}
+                <button
+                  type="button"
+                  onClick={handleUseCurrentLocation}
+                  disabled={locatingGPS}
+                  className="w-full mb-2 py-2.5 rounded-xl border border-primary/40 bg-primary/5 text-primary text-sm font-medium flex items-center justify-center gap-2 hover:bg-primary/10 transition-colors disabled:opacity-60"
+                >
+                  {locatingGPS ? <Loader2 className="w-4 h-4 animate-spin" /> : <LocateFixed className="w-4 h-4" />}
+                  {locatingGPS ? "Localisation en cours…" : "Utiliser ma position actuelle"}
+                </button>
                 <div className="relative">
                   <input
                     value={address}
