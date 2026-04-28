@@ -204,6 +204,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const destMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const scRef = useRef(new Supercluster<{ id: string; placeIndex: number; category: string; accepts_dogs: boolean }>({ radius: 50, maxZoom: 16, minPoints: 3 }));
+  const scLoadedRef = useRef(false);
   const markerClickedRef = useRef(false);
   const prevPopupDataRef = useRef<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
   const pickListenerRef = useRef<((e: mapboxgl.MapMouseEvent) => void) | null>(null);
@@ -300,6 +301,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const renderClusters = useCallback((currentPlaces: PetPlace[]) => {
     const map = mapRef.current;
     if (!map) return;
+    if (!scLoadedRef.current) return;
     const bounds = map.getBounds();
     if (!bounds) return;
     const zoom = Math.floor(map.getZoom());
@@ -414,6 +416,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       geometry: { type: "Point" as const, coordinates: [p.longitude, p.latitude] as [number, number] },
     }));
     scRef.current.load(points);
+    scLoadedRef.current = true;
     renderClusters(results);
 
     // Flagged places

@@ -884,7 +884,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
           </TabsContent>
 
           {/* Bottom tab navigation — accessible au pouce */}
-          <TabsList className="shrink-0 mx-4 mb-4 mt-2">
+          <TabsList className="shrink-0 mx-4 mb-24 mt-2">
             <TabsTrigger value="new" className="flex-1">🗺️ Itinéraire</TabsTrigger>
             <TabsTrigger value="saved" className="flex-1">📋 Mes itinéraires ({savedCount})</TabsTrigger>
           </TabsList>
