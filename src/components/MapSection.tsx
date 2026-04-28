@@ -203,7 +203,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const originMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const destMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const watchIdRef = useRef<number | null>(null);
-  const scRef = useRef(new Supercluster<{ id: string; placeIndex: number; category: string; accepts_dogs: boolean }>({ radius: 30, maxZoom: 13 }));
+  const scRef = useRef(new Supercluster<{ id: string; placeIndex: number; category: string; accepts_dogs: boolean }>({ radius: 50, maxZoom: 16, minPoints: 3 }));
   const markerClickedRef = useRef(false);
   const prevPopupDataRef = useRef<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
   const pickListenerRef = useRef<((e: mapboxgl.MapMouseEvent) => void) | null>(null);
