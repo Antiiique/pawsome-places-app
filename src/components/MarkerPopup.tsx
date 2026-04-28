@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Heart, X, ExternalLink, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { Heart, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -138,11 +138,13 @@ export default function MarkerPopup({
   const [publicProfileUserId, setPublicProfileUserId] = useState<string | null>(null);
   const [mentionSuggestions, setMentionSuggestions] = useState<MentionSuggestion[]>([]);
   const [showMentionDropdown, setShowMentionDropdown] = useState(false);
+  const [snap, setSnap] = useState<"half" | "full">("half");
+  const [dragDelta, setDragDelta] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const userReview = communityReviews.find(r => r.user_id === user?.id);
   const avgCR = communityReviews.length > 0 ? communityReviews.reduce((s, r) => s + r.rating, 0) / communityReviews.length : 0;
 
-  useEffect(() => { setReviewTab("google"); setCommunityReviews([]); setNewRating(0); setNewBody(""); setVisitedWithPet(false); setSelectedPetIds([]); }, [dbId]);
+  useEffect(() => { setReviewTab("google"); setCommunityReviews([]); setNewRating(0); setNewBody(""); setVisitedWithPet(false); setSelectedPetIds([]); setSnap("half"); setDragDelta(0); }, [dbId]);
   useEffect(() => { if (userReview) { setNewRating(userReview.rating); setNewBody(userReview.body ?? ""); setVisitedWithPet(userReview.visited_with_pet); } }, [userReview?.id]);
 
   useEffect(() => {
@@ -302,6 +304,58 @@ export default function MarkerPopup({
     setExpandedReviews(prev => ({ ...prev, [i]: !prev[i] }));
   };
 
+  const isDragging = useRef(false);
+  const dragStartY = useRef(0);
+  const dragStartDelta = useRef(0);
+  const lastVelocity = useRef(0);
+  const lastTouchTime = useRef(0);
+  const lastTouchY = useRef(0);
+
+  const baseOffset = snap === "half" ? 52 : 0;
+  const currentOffset = Math.max(0, baseOffset + dragDelta);
+
+  function handleDragStart(e: React.TouchEvent) {
+    isDragging.current = true;
+    dragStartY.current = e.touches[0].clientY;
+    dragStartDelta.current = dragDelta;
+    lastVelocity.current = 0;
+    lastTouchY.current = e.touches[0].clientY;
+    lastTouchTime.current = Date.now();
+  }
+
+  function handleDragMove(e: React.TouchEvent) {
+    if (!isDragging.current) return;
+    const dy = e.touches[0].clientY - dragStartY.current;
+    const panelH = window.innerHeight - 56;
+    const deltaPercent = (dy / panelH) * 100;
+    const now = Date.now();
+    const dt = now - lastTouchTime.current;
+    if (dt > 0) {
+      const dyV = e.touches[0].clientY - lastTouchY.current;
+      lastVelocity.current = dyV / dt;
+    }
+    lastTouchY.current = e.touches[0].clientY;
+    lastTouchTime.current = now;
+    setDragDelta(Math.max(-baseOffset, dragStartDelta.current + deltaPercent));
+  }
+
+  function handleDragEnd() {
+    isDragging.current = false;
+    const velocity = lastVelocity.current;
+    const total = baseOffset + dragDelta;
+    if (velocity > 0.5) {
+      if (snap === "full") { setSnap("half"); setDragDelta(0); }
+      else { onClose(); }
+    } else if (velocity < -0.5) {
+      setSnap("full"); setDragDelta(0);
+    } else {
+      if (total > 75) { onClose(); }
+      else if (total > 26) { setSnap("half"); setDragDelta(0); }
+      else { setSnap("full"); setDragDelta(0); }
+    }
+    if (velocity <= 0.5) setDragDelta(0);
+  }
+
   return (
     <>
       {publicProfileUserId && (
@@ -325,7 +379,6 @@ export default function MarkerPopup({
         </div>
       )}
 
-      {/* Full photo overlay */}
       {fullPhoto && (
         <div
           className="fixed inset-0 z-[20000] bg-black/92 flex items-center justify-center cursor-pointer"
@@ -336,26 +389,36 @@ export default function MarkerPopup({
         </div>
       )}
 
-      {/* Side panel */}
+      {/* Bottom sheet */}
       <div
         data-panel="place-detail"
-        className="fixed top-[56px] right-0 z-[500] flex flex-col overflow-hidden border-l border-border bg-card animate-slide-in-right"
+        className="fixed bottom-0 left-0 right-0 z-[500] flex flex-col bg-card rounded-t-2xl shadow-2xl"
         style={{
-          width: 380,
-          maxWidth: "95vw",
-          height: "calc(100dvh - 56px)",
-          borderBottomLeftRadius: 14,
+          height: "calc(100vh - 56px)",
+          transform: `translateY(${currentOffset}%)`,
+          transition: isDragging.current ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+          willChange: "transform",
         }}
       >
-        {/* Header */}
-        <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-border">
-          <span className="text-sm font-bold text-foreground">📌 Détails du lieu</span>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
+        {/* Drag handle + header */}
+        <div
+          className="flex-shrink-0 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+        >
+          <div className="flex justify-center pt-2.5 pb-1">
+            <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+          </div>
+          <div className="flex items-center justify-between px-4 py-2 border-b border-border">
+            <span className="text-sm font-bold text-foreground">📌 Détails du lieu</span>
+            <button
+              onClick={onClose}
+              className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable body */}
@@ -768,3 +831,4 @@ export default function MarkerPopup({
     </>
   );
 }
+
