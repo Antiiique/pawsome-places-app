@@ -1,5 +1,6 @@
 /// <reference types="google.maps" />
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronDown, X, ArrowLeft, Camera } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -92,6 +93,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
 
   // Bottom sheet state
   const [visible, setVisible] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const isDragging = useRef(false);
   const dragStartY = useRef(0);
   const lastVelocity = useRef(0);
@@ -129,11 +131,12 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
   const autocompleteRef = useRef<google.maps.places.AutocompleteService | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Open/close animation
+  // Open/close animation — double RAF so browser paints initial frame first
   useEffect(() => {
     if (open) {
-      const raf = requestAnimationFrame(() => setVisible(true));
-      return () => cancelAnimationFrame(raf);
+      let raf1: number, raf2: number;
+      raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(() => setVisible(true)); });
+      return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
     } else {
       setVisible(false);
     }
@@ -168,6 +171,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
   // Drag handle
   function handleDragStart(e: React.TouchEvent) {
     isDragging.current = true;
+    setDragging(true);
     dragStartY.current = e.touches[0].clientY;
     lastVelocity.current = 0;
     lastTouchY.current = e.touches[0].clientY;
@@ -183,6 +187,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
   }
   function handleDragEnd() {
     isDragging.current = false;
+    setDragging(false);
     const pct = (dragDelta / window.innerHeight) * 100;
     if (lastVelocity.current > 0.5 || pct > 40) { handleClose(); } else { setDragDelta(0); }
   }
@@ -271,13 +276,13 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
 
   const subcats = selectedGroup !== null ? TYPE_GROUPS[selectedGroup].subcats : [];
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[700]"
       style={{
         backgroundColor: `rgba(0,0,0,${visible ? 0.45 : 0})`,
-        transition: isDragging.current ? "none" : "background-color 0.3s ease",
-        pointerEvents: visible ? "auto" : "none",
+        transition: dragging ? "none" : "background-color 0.3s ease",
+        pointerEvents: open ? "auto" : "none",
       }}
     >
       {/* Bottom sheet */}
@@ -286,7 +291,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
         style={{
           height: "calc(100vh - 48px)",
           transform: `translateY(${!visible ? 100 : currentOffset}%)`,
-          transition: isDragging.current ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+          transition: dragging ? "none" : "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
           willChange: "transform",
         }}
       >
@@ -527,6 +532,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
