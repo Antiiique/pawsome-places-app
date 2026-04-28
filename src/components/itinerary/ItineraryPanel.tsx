@@ -36,8 +36,7 @@ function distanceBetween(p1: { lat: number; lng: number }, p2: { lat: number; ln
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-const DEFAULT_STEP_DISTANCE = 100;
-const ALL_CATEGORIES = ["outdoor", "restaurant", "hotel", "services", "shop"];
+const ROUTE_CATEGORIES = ["restaurant", "hotel", "outdoor", "parc_chiens", "veterinaire", "cafe_animalier", "shop", "aire_repos"];
 
 const CATEGORY_COLORS: Record<string, string> = {
   restaurant: "#FF6B35",
@@ -442,29 +441,44 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
         pathWithDist.push({ point: decodedPath[i], dist: cumDist });
       }
 
-      const stepDistanceM = DEFAULT_STEP_DISTANCE * 1000;
+      // Adaptive checkpoints: 1 every ~15 km, minimum 4, maximum 25
+      const totalDistKm = cumDist / 1000;
+      const numCheckpoints = Math.min(25, Math.max(4, Math.ceil(totalDistKm / 15)));
+      const stepDistM = cumDist / (numCheckpoints + 1);
+
       const checkpoints: { lat: number; lng: number; dist: number }[] = [];
-      let nextCheckDist = stepDistanceM;
+      let nextCheckDist = stepDistM;
       for (const pd of pathWithDist) {
-        if (pd.dist >= nextCheckDist) {
+        if (pd.dist >= nextCheckDist && checkpoints.length < numCheckpoints) {
           checkpoints.push({ lat: pd.point.lat, lng: pd.point.lng, dist: pd.dist / 1000 });
-          nextCheckDist += stepDistanceM;
+          nextCheckDist += stepDistM;
         }
       }
 
-      const selectedCategories = ALL_CATEGORIES;
+      // Search corridor radius: tighter on short routes, wider on long ones
+      const corridorKm = Math.min(15, Math.max(5, totalDistKm * 0.08));
+
       const allPlaces: ItineraryStep[] = [];
       for (const cp of checkpoints) {
-        for (const cat of selectedCategories) {
-          const { data } = await supabase.rpc("get_nearby_pet_places", { user_lat: cp.lat, user_lon: cp.lng, radius_km: 15, cat_filter: cat, dogs_only: false });
-          if (data) allPlaces.push(...data.slice(0, 3).map((d: any) => ({ ...d, id: d.id as string, distance_from_start_km: cp.dist })));
+        const { data } = await supabase.rpc("get_nearby_pet_places", {
+          user_lat: cp.lat, user_lon: cp.lng,
+          radius_km: corridorKm,
+          cat_filter: null,
+          dogs_only: false,
+        });
+        if (data) {
+          allPlaces.push(...data.slice(0, 5).map((d: any) => ({
+            ...d, id: d.id as string,
+            distance_from_start_km: cp.dist,
+          })));
         }
       }
 
+      // Deduplicate, then sort by position along route
       const seen = new Set<string>();
       const unique = allPlaces.filter((p) => { if (seen.has(p.id)) return false; seen.add(p.id); return true; });
       unique.sort((a, b) => a.distance_from_start_km - b.distance_from_start_km);
-      const steps = unique.slice(0, 8);
+      const steps = unique.slice(0, 20);
 
       const pausePoints: { lat: number; lng: number; distance_km: number }[] = [];
       let nextPause = 160000;
