@@ -202,6 +202,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const itineraryMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const originMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const destMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const watchIdRef = useRef<number | null>(null);
   const scRef = useRef(new Supercluster<{ id: string; placeIndex: number; category: string; accepts_dogs: boolean }>({ radius: 30, maxZoom: 13 }));
   const markerClickedRef = useRef(false);
   const prevPopupDataRef = useRef<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
@@ -449,15 +450,59 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       POI_LAYERS.forEach((layer) => { try { map.setLayoutProperty(layer, "visibility", "none"); } catch {} });
       setIsLoaded(true);
 
+      // ── User location dot ──
+      map.addSource("user-location", {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+      map.addLayer({
+        id: "user-location-halo",
+        type: "circle",
+        source: "user-location",
+        paint: {
+          "circle-radius": 22,
+          "circle-color": "#2196F3",
+          "circle-opacity": 0.18,
+          "circle-stroke-width": 0,
+        },
+      });
+      map.addLayer({
+        id: "user-location-dot",
+        type: "circle",
+        source: "user-location",
+        paint: {
+          "circle-radius": 9,
+          "circle-color": "#2196F3",
+          "circle-stroke-width": 3,
+          "circle-stroke-color": "#ffffff",
+          "circle-opacity": 1,
+        },
+      });
+
+      const updateUserDot = (pos: GeolocationPosition) => {
+        const { latitude, longitude } = pos.coords;
+        const src = map.getSource("user-location") as mapboxgl.GeoJSONSource;
+        src?.setData({
+          type: "FeatureCollection",
+          features: [{ type: "Feature", geometry: { type: "Point", coordinates: [longitude, latitude] }, properties: {} }],
+        });
+      };
+
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
+            updateUserDot(pos);
             const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             map.panTo([loc.lng, loc.lat]);
             setCenter(loc);
             loadPlaces(loc.lat, loc.lng, 20, null);
           },
           () => loadPlaces(48.8566, 2.3522, 20, null)
+        );
+        watchIdRef.current = navigator.geolocation.watchPosition(
+          updateUserDot,
+          () => {},
+          { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
         );
       } else {
         loadPlaces(48.8566, 2.3522, 20, null);
@@ -519,7 +564,11 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     });
 
     mapRef.current = map;
-    return () => { map.remove(); mapRef.current = null; };
+    return () => {
+      if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
+      map.remove();
+      mapRef.current = null;
+    };
   }, []);
 
   // Re-render clusters when places change after moveend
