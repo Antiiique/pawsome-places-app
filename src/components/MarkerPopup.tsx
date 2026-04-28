@@ -400,6 +400,15 @@ export default function MarkerPopup({
         </div>
       )}
 
+      {/* Floating close button — bottom right */}
+      <button
+        onClick={handleClose}
+        className="fixed bottom-6 right-4 z-[501] w-12 h-12 rounded-full bg-card border border-border shadow-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-95"
+        style={{ transform: `translateY(${!visible ? 80 : 0}px)`, transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)" }}
+      >
+        <X className="w-5 h-5" />
+      </button>
+
       {/* Bottom sheet */}
       <div
         data-panel="place-detail"
@@ -423,25 +432,17 @@ export default function MarkerPopup({
           </div>
           <div className="flex items-center justify-between px-4 py-2 border-b border-border">
             <span className="text-sm font-bold text-foreground">📌 Détails du lieu</span>
-            <div className="flex items-center gap-2">
-              <button
-                className={`flex items-center gap-1.5 px-3 h-7 rounded-full text-xs font-semibold border transition-all ${
-                  isFavorite
-                    ? "bg-destructive/20 border-destructive/40 text-destructive"
-                    : "bg-warning/10 border-warning/40 text-warning hover:bg-warning/20"
-                }`}
-                onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
-              >
-                <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-current" : ""}`} />
-                {isFavorite ? "Favori" : "Favoris"}
-              </button>
-              <button
-                onClick={handleClose}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              className={`flex items-center gap-1.5 px-3 h-7 rounded-full text-xs font-semibold border transition-all ${
+                isFavorite
+                  ? "bg-destructive/20 border-destructive/40 text-destructive"
+                  : "bg-warning/10 border-warning/40 text-warning hover:bg-warning/20"
+              }`}
+              onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
+            >
+              <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-current" : ""}`} />
+              {isFavorite ? "Favori" : "Favoris"}
+            </button>
           </div>
         </div>
 

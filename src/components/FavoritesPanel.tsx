@@ -62,6 +62,16 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
 
   return (
     <>
+      {/* Floating close button — bottom right */}
+      {open && (
+        <button
+          onClick={onClose}
+          className="fixed bottom-6 right-4 z-[601] w-12 h-12 rounded-full bg-card border border-border shadow-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-95"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      )}
+
       <div
         data-panel
         className={`fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-l-2xl ${
@@ -72,12 +82,9 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
           ...(dragProgress !== undefined ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" } : {}),
         }}
       >
-        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
-          <div className="flex items-center gap-2">
-            <Heart className="w-5 h-5 text-destructive fill-destructive" />
-            <h2 className="font-heading font-bold text-foreground">Mes lieux favoris ({favorites.length})</h2>
-          </div>
-          <Button variant="ghost" size="icon" onClick={onClose}><X className="w-5 h-5" /></Button>
+        <div className="flex items-center p-4 border-b border-border shrink-0">
+          <Heart className="w-5 h-5 text-destructive fill-destructive mr-2" />
+          <h2 className="font-heading font-bold text-foreground">Mes lieux favoris ({favorites.length})</h2>
         </div>
 
         <div className="p-3 space-y-3 border-b border-border shrink-0">
