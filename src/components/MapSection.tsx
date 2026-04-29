@@ -2,11 +2,12 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Supercluster from "supercluster";
-import { Loader2, Locate, MapPin, Search, X } from "lucide-react";
+import { Camera, Loader2, Locate, MapPin, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
 import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
 import ReportModal from "./ReportModal";
+import StrayReportModal from "./StrayReportModal";
 import { toast } from "sonner";
 import type { FavoritePlace } from "@/hooks/useFavorites";
 import { detectCategoryFromTypes } from "@/hooks/useFavorites";
@@ -202,6 +203,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  const strayMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const itineraryMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const originMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const destMarkerRef = useRef<mapboxgl.Marker | null>(null);
@@ -223,6 +225,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [originPoint, setOriginPoint] = useState<{ lat: number; lng: number } | null>(null);
   const [destPoint, setDestPoint] = useState<{ lat: number; lng: number } | null>(null);
   const [reportModal, setReportModal] = useState<{ open: boolean; placeId: string | null; placeName: string }>({ open: false, placeId: null, placeName: "" });
+  const [strayModal, setStrayModal] = useState(false);
+  const [strayReports, setStrayReports] = useState<{ id: string; lat: number; lng: number; species: string; description: string | null; created_at: string }[]>([]);
   const [localSearch, setLocalSearch] = useState("");
   const [searchPredictions, setSearchPredictions] = useState<{ place_id: string; structured_formatting: { main_text: string; secondary_text: string } }[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -791,6 +795,55 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // ── Stray reports ──
+  const loadStrayReports = useCallback(async () => {
+    const { data } = await supabase
+      .from("stray_reports")
+      .select("id, lat, lng, species, description, created_at")
+      .eq("status", "active")
+      .order("created_at", { ascending: false });
+    if (data) setStrayReports(data as any);
+  }, []);
+
+  useEffect(() => { loadStrayReports(); }, [loadStrayReports]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isLoaded) return;
+
+    // Inject paw blink animation once
+    if (!document.getElementById("stray-marker-style")) {
+      const style = document.createElement("style");
+      style.id = "stray-marker-style";
+      style.textContent = `
+        @keyframes pawPulse {
+          0%, 100% { transform: scale(1);   box-shadow: 0 0 0 0 rgba(220,38,38,0.6); }
+          50%       { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(220,38,38,0); }
+        }
+        .stray-marker { animation: pawPulse 1.6s ease-in-out infinite; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    strayMarkersRef.current.forEach((m) => m.remove());
+    strayMarkersRef.current = [];
+
+    strayReports.forEach((report) => {
+      const el = document.createElement("div");
+      el.innerHTML = `<div class="stray-marker" style="background:#DC2626;color:white;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:3px solid white;box-shadow:0 2px 8px rgba(220,38,38,.5);cursor:pointer">🐾</div>`;
+      const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
+        .setLngLat([report.lng, report.lat])
+        .addTo(map);
+      el.addEventListener("click", () => {
+        const species = report.species === "chien" ? "🐶 Chien" : report.species === "chat" ? "🐱 Chat" : "🐾 Animal";
+        const desc = report.description ? `\n${report.description}` : "";
+        const date = new Date(report.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+        toast(`${species} errant signalé le ${date}${desc}`, { duration: 5000 });
+      });
+      strayMarkersRef.current.push(marker);
+    });
+  }, [strayReports, isLoaded]);
+
   // ── Helpers ──
   const handleLocateMe = () => {
     navigator.geolocation?.getCurrentPosition((pos) => {
@@ -884,7 +937,15 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         ))}
       </div>
 
-      {/* Category legend */}
+      {/* Stray report FAB */}
+      <button
+        onClick={() => setStrayModal(true)}
+        className="absolute bottom-24 right-4 z-20 p-3 bg-destructive rounded-full shadow-lg border-2 border-white hover:bg-destructive/90 transition-colors"
+        title="Signaler un animal errant"
+      >
+        <Camera className="w-5 h-5 text-white" />
+      </button>
+
       {/* Locate me */}
       <button onClick={handleLocateMe} className="absolute bottom-8 right-4 z-20 p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors" title="Ma position">
         <Locate className="w-5 h-5 text-primary" />
@@ -930,6 +991,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
       <ReportModal open={reportModal.open} onClose={() => setReportModal({ open: false, placeId: null, placeName: "" })} placeId={reportModal.placeId} placeName={reportModal.placeName}
         onLoginRequired={() => { setReportModal({ open: false, placeId: null, placeName: "" }); window.dispatchEvent(new CustomEvent("open-auth-modal")); }} />
+
+      <StrayReportModal
+        open={strayModal}
+        onClose={() => setStrayModal(false)}
+        onReported={loadStrayReports}
+      />
     </section>
   );
 };
