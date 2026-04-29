@@ -32,6 +32,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
   const [breed, setBreed]             = useState("");
   const [coords, setCoords]           = useState<{ lat: number; lng: number } | null>(null);
   const [city, setCity]               = useState("");
+  const [address, setAddress]         = useState("");
   const [locating, setLocating]       = useState(false);
   const [loading, setLoading]         = useState(false);
 
@@ -47,6 +48,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
     setBreed("");
     setCoords(null);
     setCity("");
+    setAddress("");
     setLocating(true);
 
     navigator.geolocation.getCurrentPosition(
@@ -56,10 +58,15 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
         setCoords({ lat, lng });
         try {
           const res = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=place&access_token=${MAPBOX_TOKEN}&language=fr`
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=address,neighborhood,place&access_token=${MAPBOX_TOKEN}&language=fr`
           );
           const data = await res.json();
-          setCity(data.features?.[0]?.text || "");
+          const feature = data.features?.[0];
+          if (feature) {
+            setAddress(feature.place_name || "");
+            const cityCtx = feature.context?.find((c: any) => c.id?.startsWith("place."));
+            setCity(cityCtx?.text || feature.text || "");
+          }
         } catch {}
         setLocating(false);
       },
@@ -106,6 +113,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
         photo_url,
         lat:         coords.lat,
         lng:         coords.lng,
+        address:     address || null,
         city:        city || null,
         status:      "active",
       });

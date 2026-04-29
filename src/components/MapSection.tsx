@@ -801,7 +801,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const loadStrayReports = useCallback(async () => {
     const { data } = await supabase
       .from("stray_reports")
-      .select("id, lat, lng, species, description, condition, behavior, color, breed, photo_url, city, created_at")
+      .select("id, user_id, lat, lng, species, description, condition, behavior, color, breed, photo_url, address, city, created_at")
       .eq("status", "active")
       .order("created_at", { ascending: false });
     if (data) setStrayReports(data as any);
@@ -1000,6 +1000,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       <StrayDetailPanel
         report={selectedStray}
         onClose={() => setSelectedStray(null)}
+        onDeleted={loadStrayReports}
       />
     </section>
   );
