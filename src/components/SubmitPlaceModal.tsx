@@ -43,7 +43,8 @@ const TYPE_GROUPS = [
       { value: "osteopathe",         label: "🦴 Ostéopathe animalier" },
       { value: "masseur",            label: "💆 Masseur animalier" },
       { value: "comportementaliste", label: "🧠 Comportementaliste" },
-      { value: "refuge",             label: "🛡️ Refuge / Association" },
+      { value: "refuge",             label: "🏚️ Refuge / Association" },
+      { value: "spa",               label: "🐾 SPA / Société Protectrice" },
     ],
   },
   {
