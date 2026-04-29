@@ -638,6 +638,45 @@ export type Database = {
           },
         ]
       }
+      stray_reports: {
+        Row: {
+          city: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          lat: number
+          lng: number
+          photo_url: string | null
+          species: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          lat: number
+          lng: number
+          photo_url?: string | null
+          species?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          lat?: number
+          lng?: number
+          photo_url?: string | null
+          species?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       submission_photos: {
         Row: {
           created_at: string | null
