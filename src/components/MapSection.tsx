@@ -8,6 +8,7 @@ import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
 import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
 import ReportModal from "./ReportModal";
 import StrayReportModal from "./StrayReportModal";
+import StrayDetailPanel, { type StrayReport } from "./StrayDetailPanel";
 import { toast } from "sonner";
 import type { FavoritePlace } from "@/hooks/useFavorites";
 import { detectCategoryFromTypes } from "@/hooks/useFavorites";
@@ -226,7 +227,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [destPoint, setDestPoint] = useState<{ lat: number; lng: number } | null>(null);
   const [reportModal, setReportModal] = useState<{ open: boolean; placeId: string | null; placeName: string }>({ open: false, placeId: null, placeName: "" });
   const [strayModal, setStrayModal] = useState(false);
-  const [strayReports, setStrayReports] = useState<{ id: string; lat: number; lng: number; species: string; description: string | null; created_at: string }[]>([]);
+  const [strayReports, setStrayReports] = useState<StrayReport[]>([]);
+  const [selectedStray, setSelectedStray] = useState<StrayReport | null>(null);
   const [localSearch, setLocalSearch] = useState("");
   const [searchPredictions, setSearchPredictions] = useState<{ place_id: string; structured_formatting: { main_text: string; secondary_text: string } }[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -799,7 +801,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const loadStrayReports = useCallback(async () => {
     const { data } = await supabase
       .from("stray_reports")
-      .select("id, lat, lng, species, description, created_at")
+      .select("id, lat, lng, species, description, condition, behavior, color, breed, photo_url, city, created_at")
       .eq("status", "active")
       .order("created_at", { ascending: false });
     if (data) setStrayReports(data as any);
@@ -835,10 +837,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         .setLngLat([report.lng, report.lat])
         .addTo(map);
       el.addEventListener("click", () => {
-        const species = report.species === "chien" ? "🐶 Chien" : report.species === "chat" ? "🐱 Chat" : "🐾 Animal";
-        const desc = report.description ? `\n${report.description}` : "";
-        const date = new Date(report.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
-        toast(`${species} errant signalé le ${date}${desc}`, { duration: 5000 });
+        setSelectedStray(report);
       });
       strayMarkersRef.current.push(marker);
     });
@@ -996,6 +995,11 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         open={strayModal}
         onClose={() => setStrayModal(false)}
         onReported={loadStrayReports}
+      />
+
+      <StrayDetailPanel
+        report={selectedStray}
+        onClose={() => setSelectedStray(null)}
       />
     </section>
   );
