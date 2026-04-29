@@ -640,6 +640,7 @@ export type Database = {
       }
       stray_reports: {
         Row: {
+          address: string | null
           behavior: string | null
           breed: string | null
           city: string | null
@@ -656,6 +657,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          address?: string | null
           behavior?: string | null
           breed?: string | null
           city?: string | null
@@ -672,6 +674,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          address?: string | null
           behavior?: string | null
           breed?: string | null
           city?: string | null
