@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { X, MapPin, Star, User, Calendar } from "lucide-react";
+import { X, MapPin, User, Calendar, MessageCircle, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface UserProfile {
   id: string;
@@ -13,11 +16,6 @@ interface UserProfile {
   created_at: string | null;
 }
 
-interface UserProfilePanelProps {
-  userId: string | null;
-  onClose: () => void;
-}
-
 function timeAgo(dateStr: string): string {
   const months = Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24 * 30));
   if (months < 1) return "Ce mois-ci";
@@ -26,11 +24,41 @@ function timeAgo(dateStr: string): string {
   return `Membre depuis ${years} an${years > 1 ? "s" : ""}`;
 }
 
-export default function UserProfilePanel({ userId, onClose }: UserProfilePanelProps) {
+interface UserProfilePanelProps {
+  userId: string | null;
+  onClose: () => void;
+  onOpenChat: (convId: string, other: { id: string; display_name: string | null; avatar_url: string | null }) => void;
+}
+
+export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserProfilePanelProps) {
+  const { user: me } = useAuthContext();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
+  const [starting, setStarting] = useState(false);
   const [strayCount, setStrayCount] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
+
+  const handleMessage = async () => {
+    if (!me) { toast.error("Connectez-vous pour envoyer un message"); window.dispatchEvent(new CustomEvent("open-auth-modal")); return; }
+    if (!userId || !profile) return;
+    setStarting(true);
+    try {
+      const [u1, u2] = [me.id, userId].sort();
+      await supabase.from("conversations").insert({ user1_id: u1, user2_id: u2 });
+      const { data: conv } = await supabase
+        .from("conversations")
+        .select("id")
+        .or(`and(user1_id.eq.${u1},user2_id.eq.${u2}),and(user1_id.eq.${u2},user2_id.eq.${u1})`)
+        .maybeSingle();
+      if (!conv) throw new Error("Impossible de créer la conversation");
+      onOpenChat(conv.id, { id: profile.id, display_name: profile.display_name, avatar_url: profile.avatar_url });
+      onClose();
+    } catch (err: any) {
+      toast.error("Erreur : " + err.message);
+    } finally {
+      setStarting(false);
+    }
+  };
 
   useEffect(() => {
     if (!userId) { setProfile(null); return; }
@@ -118,6 +146,18 @@ export default function UserProfilePanel({ userId, onClose }: UserProfilePanelPr
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">À propos</p>
                 <p className="text-sm text-foreground leading-relaxed">{profile.bio}</p>
               </div>
+            )}
+
+            {/* Message button — only for other users */}
+            {me && me.id !== userId && profile && (
+              <Button
+                onClick={handleMessage}
+                disabled={starting}
+                className="w-full gap-2"
+              >
+                {starting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
+                Envoyer un message
+              </Button>
             )}
 
             {!loading && !profile && (

@@ -3,6 +3,7 @@ import MapSection from "@/components/MapSection";
 import ItineraryPanel from "@/components/itinerary/ItineraryPanel";
 import FavoritesPanel from "@/components/FavoritesPanel";
 import UserProfilePanel from "@/components/UserProfilePanel";
+import MessagesPanel from "@/components/MessagesPanel";
 import type { PickMode } from "@/components/itinerary/ItineraryPanel";
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { ItineraryMapData } from "@/components/itinerary/types";
@@ -18,6 +19,8 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activePanel, setActivePanel] = useState<PanelName>(null);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
+  const [showMessages, setShowMessages] = useState(false);
+  const [pendingChat, setPendingChat] = useState<{ convId: string; other: { id: string; display_name: string | null; avatar_url: string | null } } | null>(null);
   const [itineraryData, setItineraryData] = useState<ItineraryMapData | null>(null);
   const [pickMode, setPickMode] = useState<PickMode>(null);
   const [panelDrag, setPanelDrag] = useState<{ panel: "itinerary" | "favorites"; progress: number } | null>(null);
@@ -180,6 +183,7 @@ const Index = () => {
       <Header
         onItineraryClick={() => openPanel("itinerary")}
         onFavoritesClick={() => openPanel("favorites")}
+        onMessagesClick={() => { setShowMessages(true); setPendingChat(null); }}
         favoritesCount={favCount}
       />
       <MapSection
@@ -257,6 +261,17 @@ const Index = () => {
       <UserProfilePanel
         userId={profileUserId}
         onClose={() => setProfileUserId(null)}
+        onOpenChat={(convId, other) => {
+          setPendingChat({ convId, other });
+          setShowMessages(true);
+        }}
+      />
+
+      <MessagesPanel
+        open={showMessages}
+        onClose={() => { setShowMessages(false); setPendingChat(null); }}
+        initialConvId={pendingChat?.convId ?? null}
+        initialOtherUser={pendingChat?.other ?? null}
       />
     </div>
   );

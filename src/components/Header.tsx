@@ -1,5 +1,5 @@
 import logo from "@/assets/logo-wpf.png";
-import { Navigation, Heart, UserCircle, Bell } from "lucide-react";
+import { Navigation, Heart, UserCircle, Bell, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
@@ -10,15 +10,17 @@ import SubmitPlaceModal from "@/components/SubmitPlaceModal";
 import NotificationPanel from "@/components/NotificationPanel";
 import UserProfileModal from "@/components/UserProfileModal";
 import { useUserNotifications } from "@/hooks/useUserNotifications";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { toast } from "sonner";
 
 interface HeaderProps {
   onItineraryClick?: () => void;
   onFavoritesClick?: () => void;
+  onMessagesClick?: () => void;
   favoritesCount?: number;
 }
 
-const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: HeaderProps) => {
+const Header = ({ onItineraryClick, onFavoritesClick, onMessagesClick, favoritesCount = 0 }: HeaderProps) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitCoords, setSubmitCoords] = useState<{ lat: number; lng: number; address?: string } | null>(null);
@@ -27,6 +29,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const { user, profile, signOut } = useAuthContext();
   const { unreadCount } = useUserNotifications();
+  const { unreadCount: unreadMessages } = useUnreadMessages();
 
   const handleSignOut = async () => {
     await signOut();
@@ -79,6 +82,21 @@ const Header = ({ onItineraryClick, onFavoritesClick, favoritesCount = 0 }: Head
           <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent-soft" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
             <Navigation className="w-5 h-5" />
           </Button>
+
+          {user && (
+            <button
+              onClick={onMessagesClick}
+              className="relative p-2 rounded-full hover:bg-muted transition-colors"
+              title="Messages"
+            >
+              <MessageCircle className="w-5 h-5 text-foreground" />
+              {unreadMessages > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
+                  {unreadMessages > 9 ? "9+" : unreadMessages}
+                </span>
+              )}
+            </button>
+          )}
 
           {user && (
             <div className="relative">
