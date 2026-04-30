@@ -9,7 +9,10 @@ import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
 import ReportModal from "./ReportModal";
 import StrayReportModal from "./StrayReportModal";
 import StrayDetailPanel, { type StrayReport } from "./StrayDetailPanel";
+import LostPetModal from "./LostPetModal";
+import LostPetDetailPanel, { type LostPet } from "./LostPetDetailPanel";
 import { toast } from "sonner";
+import { useAuthContext } from "@/contexts/AuthContext";
 import type { FavoritePlace } from "@/hooks/useFavorites";
 import { detectCategoryFromTypes } from "@/hooks/useFavorites";
 import type { ItineraryMapData } from "./itinerary/types";
@@ -104,8 +107,10 @@ function fetchGooglePlaceByLocation(lat: number, lng: number, name: string): Pro
 const PANEL_EDGE_ZONE = 44; // px from screen edge that triggers panel swipe
 
 const CATEGORY_FILTERS = [
-  { key: null,              label: "Tous",           emoji: "🐾" },
-  { key: "veterinaire",    label: "Vétérinaires",   emoji: "🏥" },
+  { key: null,              label: "Tous",              emoji: "🐾" },
+  { key: "__strays__",      label: "Animaux errants",   emoji: "🚨" },
+  { key: "__lost__",        label: "Animaux perdus",    emoji: "🆘" },
+  { key: "veterinaire",    label: "Vétérinaires",      emoji: "🏥" },
   { key: "restaurant",     label: "Restaurants",    emoji: "🍽️" },
   { key: "hotel",          label: "Hôtels",         emoji: "🛏️" },
   { key: "outdoor",        label: "Parcs & Nature", emoji: "🌿" },
@@ -201,10 +206,12 @@ interface MapSectionProps {
 }
 
 const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavorite, onToggleFavorite, onOpenItinerary, frozen }: MapSectionProps) => {
+  const { user } = useAuthContext();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const strayMarkersRef = useRef<mapboxgl.Marker[]>([]);
+  const lostPetMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const itineraryMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const originMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const destMarkerRef = useRef<mapboxgl.Marker | null>(null);
@@ -229,6 +236,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [strayModal, setStrayModal] = useState(false);
   const [strayReports, setStrayReports] = useState<StrayReport[]>([]);
   const [selectedStray, setSelectedStray] = useState<StrayReport | null>(null);
+  const [lostPetModal, setLostPetModal] = useState(false);
+  const [lostPets, setLostPets] = useState<LostPet[]>([]);
+  const [selectedLostPet, setSelectedLostPet] = useState<LostPet | null>(null);
   const [localSearch, setLocalSearch] = useState("");
   const [searchPredictions, setSearchPredictions] = useState<{ place_id: string; structured_formatting: { main_text: string; secondary_text: string } }[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -646,7 +656,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
   // ── Reload when center/radius/category changes ──
   useEffect(() => {
-    if (isLoaded) loadPlaces(center.lat, center.lng, radiusKm, activeCategory);
+    if (!isLoaded) return;
+    // Special filters show only stray/lost markers, no place data needed
+    if (activeCategory === "__strays__" || activeCategory === "__lost__") {
+      setPlaces([]); clearPlaceMarkers(); scLoadedRef.current = false; setSearching(false); return;
+    }
+    loadPlaces(center.lat, center.lng, radiusKm, activeCategory);
   }, [center, radiusKm, activeCategory, isLoaded, loadPlaces]);
 
   // ── Search query geocoding ──
@@ -809,6 +824,75 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
   useEffect(() => { loadStrayReports(); }, [loadStrayReports]);
 
+  // ── Lost pets ──
+  const loadLostPets = useCallback(async () => {
+    const { data } = await supabase
+      .from("lost_pets" as any)
+      .select("id, user_id, pet_name, species, breed, color, age_description, description, last_seen_address, last_seen_lat, last_seen_lng, last_seen_date, contact_phone, contact_email, status, created_at")
+      .eq("status", "active")
+      .order("created_at", { ascending: false });
+    if (data) setLostPets(data as any);
+  }, []);
+
+  useEffect(() => { loadLostPets(); }, [loadLostPets]);
+
+  // ── Listen for open-lost-pet event (from notifications) ──
+  useEffect(() => {
+    const handler = async (e: Event) => {
+      const petId = (e as CustomEvent).detail?.petId;
+      if (!petId) return;
+      const { data } = await supabase.from("lost_pets" as any).select("*").eq("id", petId).maybeSingle();
+      if (data) setSelectedLostPet(data as any);
+    };
+    window.addEventListener("open-lost-pet", handler);
+    return () => window.removeEventListener("open-lost-pet", handler);
+  }, []);
+
+  // ── Listen for open-lost-pet-modal event (from UserProfilePanel) ──
+  useEffect(() => {
+    const handler = () => setLostPetModal(true);
+    window.addEventListener("open-lost-pet-modal", handler);
+    return () => window.removeEventListener("open-lost-pet-modal", handler);
+  }, []);
+
+  // ── Render lost pet markers ──
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isLoaded) return;
+
+    // Inject animation CSS once
+    if (!document.getElementById("lost-pet-marker-style")) {
+      const style = document.createElement("style");
+      style.id = "lost-pet-marker-style";
+      style.textContent = `
+        @keyframes lostPulse {
+          0%, 100% { transform: scale(1);   box-shadow: 0 0 0 0 rgba(245,158,11,0.7); }
+          50%       { transform: scale(1.15); box-shadow: 0 0 0 10px rgba(245,158,11,0); }
+        }
+        .lost-pet-marker { animation: lostPulse 1.8s ease-in-out infinite; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    lostPetMarkersRef.current.forEach(m => m.remove());
+    lostPetMarkersRef.current = [];
+
+    // Only show lost pet markers when "all" or "__lost__" filter is active
+    const show = activeCategory === null || activeCategory === "__lost__";
+    if (!show) return;
+
+    lostPets.forEach(pet => {
+      if (!pet.last_seen_lat || !pet.last_seen_lng) return;
+      const el = document.createElement("div");
+      el.innerHTML = `<div class="lost-pet-marker" style="background:#D97706;color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid white;box-shadow:0 2px 8px rgba(217,119,6,.5);cursor:pointer">🆘</div>`;
+      const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
+        .setLngLat([pet.last_seen_lng, pet.last_seen_lat])
+        .addTo(map);
+      el.addEventListener("click", () => setSelectedLostPet(pet));
+      lostPetMarkersRef.current.push(marker);
+    });
+  }, [lostPets, isLoaded, activeCategory]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !isLoaded) return;
@@ -849,6 +933,14 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       setCenter(loc);
       mapRef.current?.flyTo({ center: [loc.lng, loc.lat], zoom: 14 });
+      // Save location to profile for nearby notifications
+      if (user) {
+        supabase.from("profiles").update({
+          location_lat: loc.lat,
+          location_lng: loc.lng,
+          location_updated_at: new Date().toISOString(),
+        } as any).eq("id", user.id).then(() => {});
+      }
     });
   };
 
@@ -936,6 +1028,18 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         ))}
       </div>
 
+      {/* Lost pet FAB */}
+      <button
+        onClick={() => {
+          if (!user) { toast.error("Connectez-vous pour publier une annonce"); window.dispatchEvent(new CustomEvent("open-auth-modal")); return; }
+          setLostPetModal(true);
+        }}
+        className="absolute bottom-40 right-4 z-20 p-3 bg-amber-500 rounded-full shadow-lg border-2 border-white hover:bg-amber-600 transition-colors"
+        title="Signaler un animal perdu"
+      >
+        <span className="text-lg leading-none">🆘</span>
+      </button>
+
       {/* Stray report FAB */}
       <button
         onClick={() => setStrayModal(true)}
@@ -1001,6 +1105,18 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         report={selectedStray}
         onClose={() => setSelectedStray(null)}
         onDeleted={loadStrayReports}
+      />
+
+      <LostPetModal
+        open={lostPetModal}
+        onClose={() => setLostPetModal(false)}
+        onPublished={loadLostPets}
+      />
+
+      <LostPetDetailPanel
+        lostPet={selectedLostPet}
+        onClose={() => setSelectedLostPet(null)}
+        onStatusChanged={loadLostPets}
       />
     </section>
   );

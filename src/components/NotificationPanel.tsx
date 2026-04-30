@@ -27,6 +27,7 @@ const typeConfig: Record<string, { icon: string; borderColor: string; bgColor: s
   report_dismissed: { icon: "💬", borderColor: "border-l-muted", bgColor: "bg-muted/50" },
   new_review: { icon: "💬", borderColor: "border-l-primary", bgColor: "bg-primary/10" },
   mention: { icon: "🔖", borderColor: "border-l-violet-500", bgColor: "bg-violet-100 dark:bg-violet-900/30" },
+  lost_pet: { icon: "🆘", borderColor: "border-l-amber-500", bgColor: "bg-amber-100 dark:bg-amber-900/30" },
 };
 
 export default function NotificationPanel({ open, onClose }: NotificationPanelProps) {
@@ -48,6 +49,10 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
     if (!n.is_read) markAsRead(n.id);
     if (n.type === "new_review" && n.related_id) {
       window.dispatchEvent(new CustomEvent("open-community-reviews", { detail: { placeId: n.related_id } }));
+      onClose();
+    }
+    if (n.type === "lost_pet" && n.related_id) {
+      window.dispatchEvent(new CustomEvent("open-lost-pet", { detail: { petId: n.related_id } }));
       onClose();
     }
   };
@@ -92,7 +97,7 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
           ) : (
             notifications.map((n) => {
               const cfg = typeConfig[n.type] || typeConfig.report_dismissed;
-              const isClickable = n.type === "new_review" && !!n.related_id;
+              const isClickable = (n.type === "new_review" || n.type === "lost_pet") && !!n.related_id;
               return (
                 <button
                   key={n.id}
@@ -110,8 +115,11 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <p className="text-[10px] text-muted-foreground">{timeAgo(n.created_at)}</p>
-                        {isClickable && (
+                        {n.type === "new_review" && isClickable && (
                           <span className="text-[10px] text-primary font-medium">→ Voir les avis</span>
+                        )}
+                        {n.type === "lost_pet" && isClickable && (
+                          <span className="text-[10px] text-amber-600 font-medium">→ Voir l'annonce</span>
                         )}
                       </div>
                     </div>
