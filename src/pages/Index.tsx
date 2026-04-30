@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import MapSection from "@/components/MapSection";
 import ItineraryPanel from "@/components/itinerary/ItineraryPanel";
 import FavoritesPanel from "@/components/FavoritesPanel";
+import UserProfilePanel from "@/components/UserProfilePanel";
 import type { PickMode } from "@/components/itinerary/ItineraryPanel";
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { ItineraryMapData } from "@/components/itinerary/types";
@@ -16,6 +17,7 @@ const VELOCITY_THRESHOLD = 0.3; // px/ms
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activePanel, setActivePanel] = useState<PanelName>(null);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [itineraryData, setItineraryData] = useState<ItineraryMapData | null>(null);
   const [pickMode, setPickMode] = useState<PickMode>(null);
   const [panelDrag, setPanelDrag] = useState<{ panel: "itinerary" | "favorites"; progress: number } | null>(null);
@@ -29,6 +31,15 @@ const Index = () => {
   const velCurrT = useRef<number | null>(null);
 
   useEffect(() => { activePanelRef.current = activePanel; }, [activePanel]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const userId = (e as CustomEvent).detail?.userId;
+      if (userId) setProfileUserId(userId);
+    };
+    window.addEventListener("open-user-profile", handler);
+    return () => window.removeEventListener("open-user-profile", handler);
+  }, []);
 
   // Freeze map whenever a panel is open OR being dragged
   useEffect(() => {
@@ -241,6 +252,11 @@ const Index = () => {
         onSetOrigin={handleFavSetOrigin}
         onSetDestination={handleFavSetDest}
         dragProgress={panelDrag?.panel === "favorites" ? panelDrag.progress : undefined}
+      />
+
+      <UserProfilePanel
+        userId={profileUserId}
+        onClose={() => setProfileUserId(null)}
       />
     </div>
   );
