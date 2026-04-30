@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X, Upload, Trash2, Star, Plus, ChevronLeft, Camera } from "lucide-react";
+import { X, Upload, Trash2, Star, Plus, ChevronLeft, Camera, Bell, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,14 @@ interface ProfileData {
   bio: string;
   age: number | null;
   city: string;
+  points: number;
+  alert_radius_km: number | null;
+}
+
+interface LeaderEntry {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
   points: number;
 }
 
@@ -76,6 +84,32 @@ const PERSONALITY_OPTIONS = [
   "Sociable 🐶", "Gourmand 🍖", "Sportif 💪", "Paresseux 😴", "Curieux 👀", "Protecteur 🛡️", "Fidèle 💛",
 ];
 
+const LEVELS = [
+  { min: 0,    max: 99,   label: "Explorateur",  emoji: "🌱", color: "text-green-600 dark:text-green-400",  bg: "bg-green-100 dark:bg-green-900/30",  bar: "bg-green-500" },
+  { min: 100,  max: 299,  label: "Aventurier",   emoji: "🗺️", color: "text-blue-600 dark:text-blue-400",   bg: "bg-blue-100 dark:bg-blue-900/30",    bar: "bg-blue-500" },
+  { min: 300,  max: 699,  label: "Contributeur", emoji: "⭐", color: "text-yellow-600 dark:text-yellow-400", bg: "bg-yellow-100 dark:bg-yellow-900/30", bar: "bg-yellow-500" },
+  { min: 700,  max: 1499, label: "Expert",       emoji: "🏆", color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-100 dark:bg-orange-900/30", bar: "bg-orange-500" },
+  { min: 1500, max: Infinity, label: "Ambassadeur", emoji: "🦁", color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-100 dark:bg-purple-900/30", bar: "bg-purple-500" },
+];
+
+function getLevel(points: number) {
+  return LEVELS.find(l => points >= l.min && points <= l.max) || LEVELS[0];
+}
+
+function getLevelProgress(points: number) {
+  const lvl = getLevel(points);
+  if (lvl.max === Infinity) return 100;
+  return Math.round(((points - lvl.min) / (lvl.max + 1 - lvl.min)) * 100);
+}
+
+const ALERT_RADIUS_OPTIONS = [
+  { value: null, label: "Désactivé" },
+  { value: 5,   label: "5 km" },
+  { value: 10,  label: "10 km" },
+  { value: 25,  label: "25 km" },
+  { value: 50,  label: "50 km" },
+];
+
 const SPECIES_OPTIONS = [
   { value: "dog", label: "Chien", emoji: "🐶" },
   { value: "cat", label: "Chat", emoji: "🐱" },
@@ -117,8 +151,14 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [profile, setProfile] = useState<ProfileData>({
-    display_name: "", avatar_url: null, bio: "", age: null, city: "", points: 0,
+    display_name: "", avatar_url: null, bio: "", age: null, city: "", points: 0, alert_radius_km: null,
   });
+  const [reviewCount, setReviewCount] = useState(0);
+  const [strayCount, setStrayCount] = useState(0);
+  const [approvedSubCount, setApprovedSubCount] = useState(0);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<LeaderEntry[]>([]);
+  const [loadingLeader, setLoadingLeader] = useState(false);
 
   const [pets, setPets] = useState<Pet[]>([]);
   const [petView, setPetView] = useState<PetView>("list");
@@ -149,10 +189,12 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
     if (!user) return;
     setLoading(true);
     setLoadingSubmissions(true);
-    const [{ data: prof }, { data: petData }, { data: subData }] = await Promise.all([
-      supabase.from("profiles").select("display_name, avatar_url, bio, age, city, points").eq("id", user.id).maybeSingle(),
+    const [{ data: prof }, { data: petData }, { data: subData }, { count: revCount }, { count: strayC }] = await Promise.all([
+      supabase.from("profiles").select("display_name, avatar_url, bio, age, city, points, alert_radius_km").eq("id", user.id).maybeSingle(),
       supabase.from("pets" as any).select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
       supabase.from("place_submissions" as any).select("id, name, category, city, address, status, created_at, admin_notes").eq("submitted_by", user.id).order("created_at", { ascending: false }),
+      supabase.from("place_reviews").select("id", { count: "exact" }).eq("user_id", user.id),
+      supabase.from("stray_reports").select("id", { count: "exact" }).eq("user_id", user.id),
     ]);
     if (prof) {
       setProfile({
@@ -162,8 +204,11 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
         age: (prof as any).age ?? null,
         city: (prof as any).city || "",
         points: (prof as any).points ?? 0,
+        alert_radius_km: (prof as any).alert_radius_km ?? null,
       });
     }
+    setReviewCount(revCount || 0);
+    setStrayCount(strayC || 0);
     if (petData) setPets(petData as any);
 
     if (subData && (subData as any[]).length > 0) {
@@ -189,12 +234,20 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
     } else {
       setSubmissions([]);
     }
+    setApprovedSubCount((subData as any[] | null)?.filter((s: any) => s.status === "approved").length || 0);
     setLoadingSubmissions(false);
     setLoading(false);
   }, [user]);
 
+  const fetchLeaderboard = useCallback(async () => {
+    setLoadingLeader(true);
+    const { data } = await supabase.from("profiles").select("id, display_name, avatar_url, points").order("points", { ascending: false }).limit(20);
+    setLeaderboard((data as LeaderEntry[]) || []);
+    setLoadingLeader(false);
+  }, []);
+
   useEffect(() => {
-    if (open) { fetchAll(); setPetView("list"); setEditingPet(null); setAlbumPet(null); setAlbum([]); setSubmissions([]); setNewPetAvatar(null); setNewPetAvatarPreview(null); }
+    if (open) { fetchAll(); setPetView("list"); setEditingPet(null); setAlbumPet(null); setAlbum([]); setSubmissions([]); setNewPetAvatar(null); setNewPetAvatarPreview(null); setShowLeaderboard(false); setLeaderboard([]); }
   }, [open, fetchAll]);
 
   // ── Profile ──
@@ -206,6 +259,7 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
       bio: profile.bio || null,
       age: profile.age,
       city: profile.city || null,
+      alert_radius_km: profile.alert_radius_km,
     } as any).eq("id", user.id);
     setSaving(false);
     if (error) { toast.error("Erreur : " + error.message); return; }
@@ -398,8 +452,47 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
           <TabsContent value="profile" className="p-4 space-y-4">
             {loading ? (
               <p className="text-sm text-muted-foreground text-center py-8">Chargement…</p>
+            ) : showLeaderboard ? (
+              /* ── LEADERBOARD ── */
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setShowLeaderboard(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <h3 className="font-semibold text-foreground text-sm">🏆 Classement des contributeurs</h3>
+                </div>
+                {loadingLeader ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">Chargement…</p>
+                ) : (
+                  <div className="space-y-2">
+                    {leaderboard.map((entry, i) => {
+                      const lvl = getLevel(entry.points);
+                      const isMe = entry.id === user?.id;
+                      return (
+                        <div key={entry.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${isMe ? "bg-primary/5 border-primary/30" : "bg-secondary border-border"}`}>
+                          <span className={`text-sm font-bold w-6 text-center shrink-0 ${i === 0 ? "text-yellow-500" : i === 1 ? "text-slate-400" : i === 2 ? "text-amber-600" : "text-muted-foreground"}`}>
+                            {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}`}
+                          </span>
+                          <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0 border border-border">
+                            {entry.avatar_url ? <img src={entry.avatar_url} alt="" className="w-full h-full object-cover" /> : <span className="text-base">{lvl.emoji}</span>}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">{entry.display_name || "Utilisateur"}{isMe ? " (moi)" : ""}</p>
+                            <p className={`text-[10px] font-medium ${lvl.color}`}>{lvl.emoji} {lvl.label}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-sm font-bold text-foreground">{entry.points}</p>
+                            <p className="text-[10px] text-muted-foreground">pts</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             ) : (
               <>
+                {/* Avatar */}
                 <div className="flex flex-col items-center gap-3">
                   {profile.avatar_url ? (
                     <img src={profile.avatar_url} alt="Avatar" className="w-24 h-24 rounded-full object-cover border-2 border-border" />
@@ -415,14 +508,72 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
                   </Button>
                 </div>
 
-                <div className="flex flex-col items-center gap-1 p-4 rounded-xl bg-secondary border border-border">
-                  <div className="flex items-center gap-2">
-                    <Star className="w-7 h-7 text-warning fill-warning" />
-                    <span className="text-3xl font-extrabold text-foreground">{profile.points}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">points de contribution</p>
-                </div>
+                {/* Niveau & progression */}
+                {(() => {
+                  const lvl = getLevel(profile.points);
+                  const progress = getLevelProgress(profile.points);
+                  const nextLvl = LEVELS[LEVELS.indexOf(lvl) + 1];
+                  return (
+                    <div className={`p-4 rounded-xl border ${lvl.bg} border-border space-y-3`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className={`text-lg font-extrabold ${lvl.color}`}>{lvl.emoji} {lvl.label}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                            <span className="text-sm font-bold text-foreground">{profile.points} pts</span>
+                            {nextLvl && <span className="text-xs text-muted-foreground">/ {nextLvl.min} pour {nextLvl.emoji} {nextLvl.label}</span>}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => { setShowLeaderboard(true); if (leaderboard.length === 0) fetchLeaderboard(); }}
+                          className="flex flex-col items-center gap-0.5 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                        >
+                          <Trophy className="w-5 h-5 text-yellow-500" />
+                          <span className="text-[9px] text-muted-foreground">Classement</span>
+                        </button>
+                      </div>
+                      {nextLvl && (
+                        <div className="space-y-1">
+                          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full transition-all ${lvl.bar}`} style={{ width: `${progress}%` }} />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground text-right">{progress}%</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
+                {/* Badges */}
+                {(() => {
+                  const badges = [
+                    { label: "Premier avis", emoji: "💬", desc: "Publier 1 avis", unlocked: reviewCount >= 1 },
+                    { label: "Critique",      emoji: "⭐", desc: "10 avis",        unlocked: reviewCount >= 10 },
+                    { label: "Connaisseur",   emoji: "🌟", desc: "50 avis",        unlocked: reviewCount >= 50 },
+                    { label: "Bâtisseur",     emoji: "🏗️", desc: "1 lieu approuvé", unlocked: approvedSubCount >= 1 },
+                    { label: "Architecte",    emoji: "🏛️", desc: "5 lieux",        unlocked: approvedSubCount >= 5 },
+                    { label: "Veilleur",      emoji: "👀", desc: "1 signalement",   unlocked: strayCount >= 1 },
+                    { label: "Aventurier",    emoji: "🗺️", desc: "100 pts",        unlocked: profile.points >= 100 },
+                    { label: "Héros",         emoji: "🦁", desc: "500 pts",        unlocked: profile.points >= 500 },
+                    { label: "Légende",       emoji: "💎", desc: "1 000 pts",      unlocked: profile.points >= 1000 },
+                  ];
+                  return (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Badges</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {badges.map(b => (
+                          <div key={b.label} className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-center transition-all ${b.unlocked ? "bg-secondary border-border" : "opacity-35 bg-muted border-transparent"}`}>
+                            <span className="text-2xl">{b.emoji}</span>
+                            <p className="text-[10px] font-semibold text-foreground leading-tight">{b.label}</p>
+                            <p className="text-[9px] text-muted-foreground leading-tight">{b.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Champs profil */}
                 <div className="space-y-3">
                   <div>
                     <label className="text-xs font-medium text-foreground">Nom affiché</label>
@@ -442,6 +593,33 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
                     <label className="text-xs font-medium text-foreground">Bio</label>
                     <Textarea value={profile.bio} onChange={(e) => setProfile(p => ({ ...p, bio: e.target.value }))} rows={3} placeholder="Parle un peu de toi et de tes compagnons…" />
                   </div>
+                </div>
+
+                {/* Alertes de zone */}
+                <div className="p-4 rounded-xl bg-secondary border border-border space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Bell className="w-4 h-4 text-primary" />
+                    <p className="text-xs font-semibold text-foreground">Alertes de zone</p>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">Reçois une notification quand un lieu pet-friendly, un animal errant ou perdu est signalé près de chez toi. Utilise le bouton "Localiser" sur la carte pour définir ton centre.</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ALERT_RADIUS_OPTIONS.map(opt => (
+                      <button
+                        key={String(opt.value)}
+                        onClick={() => setProfile(p => ({ ...p, alert_radius_km: opt.value }))}
+                        className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
+                          profile.alert_radius_km === opt.value
+                            ? "bg-primary/10 border-primary text-primary"
+                            : "border-border text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  {profile.alert_radius_km && (
+                    <p className="text-[10px] text-primary font-medium">✅ Alertes activées dans un rayon de {profile.alert_radius_km} km</p>
+                  )}
                 </div>
 
                 <Button className="w-full bg-primary text-primary-foreground hover:opacity-90" disabled={saving} onClick={handleSave}>

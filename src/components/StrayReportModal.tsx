@@ -102,7 +102,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
         photo_url = urlData.publicUrl;
       }
 
-      const { error } = await supabase.from("stray_reports").insert({
+      const { data: inserted, error } = await supabase.from("stray_reports").insert({
         user_id:     user.id,
         species:     "chien",
         description: description.trim() || null,
@@ -116,8 +116,12 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
         address:     address || null,
         city:        city || null,
         status:      "active",
-      });
+      }).select("id").single();
       if (error) throw error;
+
+      if (inserted?.id) {
+        supabase.rpc("notify_nearby_users_stray" as any, { p_stray_id: inserted.id }).then(() => {});
+      }
 
       toast.success("🐾 Signalement publié sur la carte !");
       onReported();

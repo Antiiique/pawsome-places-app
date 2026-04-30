@@ -847,7 +847,7 @@ const AdminPage = () => {
       reviewed_at: new Date().toISOString(), reviewed_by: user?.id,
     }).eq("id", sub.id);
 
-    // Notification envoyée automatiquement par le trigger DB on_submission_review
+    supabase.rpc("notify_nearby_users_new_place" as any, { p_place_id: newPlace.id }).then(() => {});
 
     toast.success(`✅ "${sub.name}" approuvé et publié sur la carte !`);
     setSubmissions(prev => prev.filter(s => s.id !== sub.id));
@@ -1070,6 +1070,7 @@ const AdminPage = () => {
             related_id: newPlace.id,
           });
         }
+        supabase.rpc("notify_nearby_users_new_place" as any, { p_place_id: newPlace.id }).then(() => {});
         count++;
       }
     }
