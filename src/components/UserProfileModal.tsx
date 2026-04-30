@@ -31,6 +31,12 @@ interface Pet {
   sex: string | null;
   avatar_url: string | null;
   bio: string | null;
+  color: string | null;
+  size_class: string | null;
+  personality_tags: string[] | null;
+  is_vaccinated: boolean | null;
+  is_sterilized: boolean | null;
+  is_microchipped: boolean | null;
 }
 
 interface PetPhoto {
@@ -40,7 +46,7 @@ interface PetPhoto {
   caption: string | null;
 }
 
-type PetView = "list" | "form" | "album";
+type PetView = "list" | "form" | "album" | "visited";
 
 interface UserSubmission {
   id: string;
@@ -57,6 +63,18 @@ interface UserSubmission {
     rating: number | null;
   } | null;
 }
+
+const SIZE_OPTIONS = [
+  { value: "petit",      label: "Petit",     sub: "< 10 kg",   emoji: "🐩" },
+  { value: "moyen",      label: "Moyen",     sub: "10–25 kg",  emoji: "🐕" },
+  { value: "grand",      label: "Grand",     sub: "25–45 kg",  emoji: "🦮" },
+  { value: "tres_grand", label: "Très grand", sub: "> 45 kg",  emoji: "🐻" },
+];
+
+const PERSONALITY_OPTIONS = [
+  "Joueur 🎾", "Câlin 🤗", "Timide 🙈", "Actif 🏃", "Calme 😌",
+  "Sociable 🐶", "Gourmand 🍖", "Sportif 💪", "Paresseux 😴", "Curieux 👀", "Protecteur 🛡️", "Fidèle 💛",
+];
 
 const SPECIES_OPTIONS = [
   { value: "dog", label: "Chien", emoji: "🐶" },
@@ -86,7 +104,11 @@ function getSpeciesLabel(species: string): string {
   return SPECIES_OPTIONS.find(s => s.value === species)?.label || "Autre";
 }
 
-const EMPTY_PET_FORM = { name: "", species: "dog", breed: "", birth_date: "", sex: "", bio: "" };
+const EMPTY_PET_FORM = {
+  name: "", species: "dog", breed: "", birth_date: "", sex: "", bio: "",
+  color: "", size_class: "", personality_tags: [] as string[],
+  is_vaccinated: false, is_sterilized: false, is_microchipped: false,
+};
 
 export default function UserProfileModal({ open, onClose }: UserProfileModalProps) {
   const { user } = useAuthContext();
@@ -108,6 +130,12 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
   const [album, setAlbum] = useState<PetPhoto[]>([]);
   const [loadingAlbum, setLoadingAlbum] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [visitedPet, setVisitedPet] = useState<Pet | null>(null);
+  const [visitedPlaces, setVisitedPlaces] = useState<Array<{ id: string; name: string; city: string | null; photo_url: string | null; category: string }>>([]);
+  const [loadingVisited, setLoadingVisited] = useState(false);
+  const [newPetAvatar, setNewPetAvatar] = useState<File | null>(null);
+  const [newPetAvatarPreview, setNewPetAvatarPreview] = useState<string | null>(null);
+  const newPetAvatarInputRef = useRef<HTMLInputElement>(null);
 
   const [submissions, setSubmissions] = useState<UserSubmission[]>([]);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
@@ -115,6 +143,7 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const petAvatarInputRef = useRef<HTMLInputElement>(null);
   const albumInputRef = useRef<HTMLInputElement>(null);
+  const petVisitedInputRef = useRef<HTMLInputElement>(null);
 
   const fetchAll = useCallback(async () => {
     if (!user) return;
@@ -165,7 +194,7 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
   }, [user]);
 
   useEffect(() => {
-    if (open) { fetchAll(); setPetView("list"); setEditingPet(null); setAlbumPet(null); setAlbum([]); setSubmissions([]); }
+    if (open) { fetchAll(); setPetView("list"); setEditingPet(null); setAlbumPet(null); setAlbum([]); setSubmissions([]); setNewPetAvatar(null); setNewPetAvatarPreview(null); }
   }, [open, fetchAll]);
 
   // ── Profile ──
@@ -200,11 +229,38 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
   };
 
   // ── Pets ──
-  const openCreatePet = () => { setEditingPet(null); setPetForm(EMPTY_PET_FORM); setPetView("form"); };
+  const openCreatePet = () => { setEditingPet(null); setPetForm(EMPTY_PET_FORM); setNewPetAvatar(null); setNewPetAvatarPreview(null); setPetView("form"); };
   const openEditPet = (pet: Pet) => {
     setEditingPet(pet);
-    setPetForm({ name: pet.name, species: pet.species, breed: pet.breed || "", birth_date: pet.birth_date || "", sex: pet.sex || "", bio: pet.bio || "" });
+    setPetForm({
+      name: pet.name, species: pet.species, breed: pet.breed || "",
+      birth_date: pet.birth_date || "", sex: pet.sex || "", bio: pet.bio || "",
+      color: pet.color || "", size_class: pet.size_class || "",
+      personality_tags: pet.personality_tags || [],
+      is_vaccinated: pet.is_vaccinated || false,
+      is_sterilized: pet.is_sterilized || false,
+      is_microchipped: pet.is_microchipped || false,
+    });
+    setNewPetAvatar(null); setNewPetAvatarPreview(null);
     setPetView("form");
+  };
+
+  const openVisited = async (pet: Pet) => {
+    setVisitedPet(pet);
+    setPetView("visited");
+    setLoadingVisited(true);
+    const { data } = await supabase
+      .from("review_pets" as any)
+      .select("place_reviews(place_id, pet_friendly_places(id, name, city, photo_url, category))")
+      .eq("pet_id", pet.id);
+    const places: any[] = [];
+    const seen = new Set<string>();
+    for (const row of (data as any) || []) {
+      const place = row.place_reviews?.pet_friendly_places;
+      if (place && !seen.has(place.id)) { seen.add(place.id); places.push(place); }
+    }
+    setVisitedPlaces(places);
+    setLoadingVisited(false);
   };
 
   const openAlbum = async (pet: Pet) => {
@@ -226,20 +282,40 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
       birth_date: petForm.birth_date || null,
       sex: petForm.sex || null,
       bio: petForm.bio || null,
+      color: petForm.color || null,
+      size_class: petForm.size_class || null,
+      personality_tags: petForm.personality_tags.length ? petForm.personality_tags : null,
+      is_vaccinated: petForm.is_vaccinated,
+      is_sterilized: petForm.is_sterilized,
+      is_microchipped: petForm.is_microchipped,
     };
     if (editingPet) {
       const { error } = await supabase.from("pets" as any).update(payload).eq("id", editingPet.id);
-      setSavingPet(false);
-      if (error) { toast.error("Erreur : " + error.message); return; }
+      if (error) { setSavingPet(false); toast.error("Erreur : " + error.message); return; }
       setPets(prev => prev.map(p => p.id === editingPet.id ? { ...p, ...payload } : p));
       toast.success("Animal mis à jour 🐾");
     } else {
       const { data, error } = await supabase.from("pets" as any).insert({ user_id: user.id, ...payload }).select("*").single();
-      setSavingPet(false);
-      if (error) { toast.error("Erreur : " + error.message); return; }
-      if (data) setPets(prev => [...prev, data as any]);
+      if (error) { setSavingPet(false); toast.error("Erreur : " + error.message); return; }
+      // Upload avatar if selected during creation
+      if (data && newPetAvatar) {
+        const petId = (data as any).id;
+        const path = `${user.id}/${petId}-${Date.now()}.${newPetAvatar.name.split(".").pop() || "jpg"}`;
+        const { error: upErr } = await supabase.storage.from("pet-avatars").upload(path, newPetAvatar, { upsert: true });
+        if (!upErr) {
+          const { data: { publicUrl } } = supabase.storage.from("pet-avatars").getPublicUrl(path);
+          await supabase.from("pets" as any).update({ avatar_url: publicUrl }).eq("id", petId);
+          setPets(prev => [...prev, { ...(data as any), avatar_url: publicUrl }]);
+        } else {
+          setPets(prev => [...prev, data as any]);
+        }
+      } else if (data) {
+        setPets(prev => [...prev, data as any]);
+      }
       toast.success("Animal ajouté 🎉");
     }
+    setSavingPet(false);
+    setNewPetAvatar(null); setNewPetAvatarPreview(null);
     setPetView("list");
   };
 
@@ -396,35 +472,59 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
                 )}
 
                 {pets.map(pet => (
-                  <div key={pet.id} className="bg-secondary border border-border rounded-xl p-3 flex items-center gap-3">
-                    <div className="shrink-0">
-                      {pet.avatar_url ? (
-                        <img src={pet.avatar_url} alt={pet.name} className="w-14 h-14 rounded-full object-cover border border-border" />
-                      ) : (
-                        <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center text-2xl border border-border">
-                          {getSpeciesEmoji(pet.species)}
+                  <div key={pet.id} className="bg-secondary border border-border rounded-xl p-3 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <div className="shrink-0">
+                        {pet.avatar_url ? (
+                          <img src={pet.avatar_url} alt={pet.name} className="w-14 h-14 rounded-full object-cover border border-border" />
+                        ) : (
+                          <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center text-2xl border border-border">
+                            {getSpeciesEmoji(pet.species)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-semibold text-foreground text-sm truncate">{pet.name}</p>
+                          {pet.size_class && (
+                            <span className="text-sm">{SIZE_OPTIONS.find(s => s.value === pet.size_class)?.emoji}</span>
+                          )}
                         </div>
-                      )}
+                        <p className="text-xs text-muted-foreground">
+                          {getSpeciesEmoji(pet.species)} {getSpeciesLabel(pet.species)}
+                          {pet.breed ? ` · ${pet.breed}` : ""}
+                          {pet.color ? ` · ${pet.color}` : ""}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {pet.sex === "M" ? "♂ Mâle" : pet.sex === "F" ? "♀ Femelle" : ""}
+                          {pet.sex && pet.birth_date ? " · " : ""}
+                          {getAge(pet.birth_date)}
+                        </p>
+                        {(pet.is_vaccinated || pet.is_sterilized || pet.is_microchipped) && (
+                          <div className="flex gap-1 mt-1 flex-wrap">
+                            {pet.is_vaccinated && <span className="text-[9px] bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 px-1.5 py-0.5 rounded-full font-medium">💉 Vacciné</span>}
+                            {pet.is_sterilized && <span className="text-[9px] bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-medium">✂️ Stérilisé</span>}
+                            {pet.is_microchipped && <span className="text-[9px] bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 px-1.5 py-0.5 rounded-full font-medium">📡 Pucé</span>}
+                          </div>
+                        )}
+                        {pet.personality_tags && pet.personality_tags.length > 0 && (
+                          <div className="flex gap-1 mt-1 flex-wrap">
+                            {pet.personality_tags.slice(0, 3).map(tag => (
+                              <span key={tag} className="text-[9px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">{tag}</span>
+                            ))}
+                            {pet.personality_tags.length > 3 && (
+                              <span className="text-[9px] text-muted-foreground">+{pet.personality_tags.length - 3}</span>
+                            )}
+                          </div>
+                        )}
+                        {pet.bio && <p className="text-xs text-muted-foreground italic truncate mt-0.5">"{pet.bio}"</p>}
+                      </div>
                     </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-foreground text-sm truncate">{pet.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {getSpeciesEmoji(pet.species)} {getSpeciesLabel(pet.species)}
-                        {pet.breed ? ` · ${pet.breed}` : ""}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {pet.sex === "M" ? "♂ Mâle" : pet.sex === "F" ? "♀ Femelle" : ""}
-                        {pet.sex && pet.birth_date ? " · " : ""}
-                        {getAge(pet.birth_date)}
-                      </p>
-                      {pet.bio && <p className="text-xs text-muted-foreground italic truncate mt-0.5">"{pet.bio}"</p>}
-                    </div>
-
-                    <div className="flex flex-col gap-1 shrink-0">
-                      <button onClick={() => openAlbum(pet)} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-muted transition-colors">📷 Album</button>
-                      <button onClick={() => openEditPet(pet)} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-muted transition-colors">✏️ Modifier</button>
-                      <button onClick={() => handleDeletePet(pet)} className="text-xs text-destructive hover:bg-destructive/10 px-2 py-1 rounded-lg transition-colors">🗑️ Suppr.</button>
+                    <div className="flex gap-1.5 pt-0.5">
+                      <button onClick={() => openVisited(pet)} className="flex-1 text-xs text-muted-foreground hover:text-foreground py-1.5 rounded-lg hover:bg-muted transition-colors text-center">🗺️ Visités</button>
+                      <button onClick={() => openAlbum(pet)} className="flex-1 text-xs text-muted-foreground hover:text-foreground py-1.5 rounded-lg hover:bg-muted transition-colors text-center">📷 Album</button>
+                      <button onClick={() => openEditPet(pet)} className="flex-1 text-xs text-muted-foreground hover:text-foreground py-1.5 rounded-lg hover:bg-muted transition-colors text-center">✏️ Modifier</button>
+                      <button onClick={() => handleDeletePet(pet)} className="flex-1 text-xs text-destructive hover:bg-destructive/10 py-1.5 rounded-lg transition-colors text-center">🗑️</button>
                     </div>
                   </div>
                 ))}
@@ -443,22 +543,45 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
                   </h3>
                 </div>
 
-                {editingPet && (
-                  <div className="flex flex-col items-center gap-2">
-                    {pets.find(p => p.id === editingPet.id)?.avatar_url ? (
-                      <img src={pets.find(p => p.id === editingPet.id)!.avatar_url!} alt={editingPet.name} className="w-20 h-20 rounded-full object-cover border-2 border-border" />
-                    ) : (
-                      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-3xl border-2 border-border">
-                        {getSpeciesEmoji(editingPet.species)}
-                      </div>
-                    )}
-                    <input ref={petAvatarInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleUploadPetAvatar(e, editingPet)} />
-                    <Button variant="outline" size="sm" className="gap-2 text-xs" disabled={uploadingPetAvatar} onClick={() => petAvatarInputRef.current?.click()}>
-                      <Camera className="w-3 h-3" />
-                      {uploadingPetAvatar ? "Envoi…" : "Changer la photo"}
-                    </Button>
-                  </div>
-                )}
+                {/* Avatar */}
+                <div className="flex flex-col items-center gap-2">
+                  {editingPet ? (
+                    <>
+                      {pets.find(p => p.id === editingPet.id)?.avatar_url ? (
+                        <img src={pets.find(p => p.id === editingPet.id)!.avatar_url!} alt={editingPet.name} className="w-20 h-20 rounded-full object-cover border-2 border-border" />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-3xl border-2 border-border">
+                          {getSpeciesEmoji(editingPet.species)}
+                        </div>
+                      )}
+                      <input ref={petAvatarInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleUploadPetAvatar(e, editingPet)} />
+                      <Button variant="outline" size="sm" className="gap-2 text-xs" disabled={uploadingPetAvatar} onClick={() => petAvatarInputRef.current?.click()}>
+                        <Camera className="w-3 h-3" />
+                        {uploadingPetAvatar ? "Envoi…" : "Changer la photo"}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      {newPetAvatarPreview ? (
+                        <img src={newPetAvatarPreview} alt="Aperçu" className="w-20 h-20 rounded-full object-cover border-2 border-primary" />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-3xl border-2 border-dashed border-border">
+                          {getSpeciesEmoji(petForm.species)}
+                        </div>
+                      )}
+                      <input ref={newPetAvatarInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setNewPetAvatar(file);
+                        setNewPetAvatarPreview(URL.createObjectURL(file));
+                      }} />
+                      <Button variant="outline" size="sm" className="gap-2 text-xs" onClick={() => newPetAvatarInputRef.current?.click()}>
+                        <Camera className="w-3 h-3" />
+                        {newPetAvatarPreview ? "Changer" : "Ajouter une photo"}
+                      </Button>
+                    </>
+                  )}
+                </div>
 
                 <div>
                   <label className="text-xs font-medium text-foreground">Nom *</label>
@@ -521,6 +644,82 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
                   {petForm.birth_date && (
                     <p className="text-xs text-primary mt-1">🎂 {getAge(petForm.birth_date)}</p>
                   )}
+                </div>
+
+                {/* Taille */}
+                <div>
+                  <label className="text-xs font-medium text-foreground mb-2 block">Taille</label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {SIZE_OPTIONS.map(s => (
+                      <button
+                        key={s.value}
+                        onClick={() => setPetForm(f => ({ ...f, size_class: f.size_class === s.value ? "" : s.value }))}
+                        className={`py-2 px-1 rounded-lg border text-center transition-colors flex flex-col items-center gap-0.5 ${
+                          petForm.size_class === s.value
+                            ? "bg-primary/10 border-primary text-primary"
+                            : "border-border text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        <span className="text-base">{s.emoji}</span>
+                        <span className="text-[9px] font-semibold leading-none">{s.label}</span>
+                        <span className="text-[8px] text-muted-foreground leading-none">{s.sub}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Couleur */}
+                <div>
+                  <label className="text-xs font-medium text-foreground">Couleur / robe</label>
+                  <Input value={petForm.color} onChange={(e) => setPetForm(f => ({ ...f, color: e.target.value }))} placeholder="Fauve, noir et blanc, tigré…" />
+                </div>
+
+                {/* Personnalité */}
+                <div>
+                  <label className="text-xs font-medium text-foreground mb-2 block">Personnalité</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PERSONALITY_OPTIONS.map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => setPetForm(f => ({
+                          ...f,
+                          personality_tags: f.personality_tags.includes(tag)
+                            ? f.personality_tags.filter(t => t !== tag)
+                            : [...f.personality_tags, tag],
+                        }))}
+                        className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                          petForm.personality_tags.includes(tag)
+                            ? "bg-primary/10 border-primary text-primary font-medium"
+                            : "border-border text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Santé */}
+                <div>
+                  <label className="text-xs font-medium text-foreground mb-2 block">Santé</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([
+                      { key: "is_vaccinated" as const, label: "Vacciné", emoji: "💉", active: "bg-green-100 border-green-500 text-green-700 dark:bg-green-900/30 dark:text-green-300" },
+                      { key: "is_sterilized" as const, label: "Stérilisé", emoji: "✂️", active: "bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
+                      { key: "is_microchipped" as const, label: "Pucé", emoji: "📡", active: "bg-purple-100 border-purple-500 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" },
+                    ] as const).map(item => (
+                      <button
+                        key={item.key}
+                        onClick={() => setPetForm(f => ({ ...f, [item.key]: !f[item.key] }))}
+                        className={`py-2.5 px-2 rounded-lg border text-center transition-colors flex flex-col items-center gap-0.5 ${
+                          petForm[item.key] ? item.active : "border-border text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        <span className="text-base">{item.emoji}</span>
+                        <span className="text-[10px] font-semibold">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div>
@@ -590,6 +789,58 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* VUE LIEUX VISITÉS */}
+            {petView === "visited" && visitedPet && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <button onClick={() => { setPetView("list"); setVisitedPet(null); setVisitedPlaces([]); }} className="text-muted-foreground hover:text-foreground transition-colors">
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <div className="flex items-center gap-2">
+                    {visitedPet.avatar_url ? (
+                      <img src={visitedPet.avatar_url} alt={visitedPet.name} className="w-8 h-8 rounded-full object-cover border border-border" />
+                    ) : (
+                      <span className="text-xl">{getSpeciesEmoji(visitedPet.species)}</span>
+                    )}
+                    <h3 className="font-semibold text-foreground text-sm">Lieux visités · {visitedPet.name}</h3>
+                  </div>
+                </div>
+
+                {loadingVisited && <p className="text-sm text-muted-foreground text-center py-8">Chargement…</p>}
+
+                {!loadingVisited && visitedPlaces.length === 0 && (
+                  <div className="text-center py-12 space-y-2">
+                    <p className="text-4xl">🗺️</p>
+                    <p className="text-sm text-muted-foreground">Aucun lieu visité pour le moment</p>
+                    <p className="text-xs text-muted-foreground">Tague {visitedPet.name} dans tes avis pour voir les lieux ici !</p>
+                  </div>
+                )}
+
+                {visitedPlaces.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">{visitedPlaces.length} lieu{visitedPlaces.length > 1 ? "x" : ""} visité{visitedPlaces.length > 1 ? "s" : ""}</p>
+                    {visitedPlaces.map(place => (
+                      <button
+                        key={place.id}
+                        onClick={() => window.dispatchEvent(new CustomEvent("open-place-panel", { detail: { placeId: place.id } }))}
+                        className="w-full text-left flex gap-3 items-center bg-secondary border border-border rounded-xl p-3 hover:bg-muted transition-colors"
+                      >
+                        {place.photo_url ? (
+                          <img src={place.photo_url} alt={place.name} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-border" />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl bg-muted shrink-0 border border-border flex items-center justify-center text-2xl">🐾</div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-semibold text-foreground text-sm truncate">{place.name}</p>
+                          <p className="text-xs text-muted-foreground">{place.category}{place.city ? ` · ${place.city}` : ""}</p>
+                        </div>
+                      </button>
                     ))}
                   </div>
                 )}
