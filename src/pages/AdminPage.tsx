@@ -133,6 +133,36 @@ interface AdminPetPhoto {
   caption: string | null;
 }
 
+interface AdminStrayReport {
+  id: string;
+  user_id: string | null;
+  lat: number;
+  lng: number;
+  species: string;
+  description: string | null;
+  condition: string | null;
+  behavior: string | null;
+  color: string | null;
+  breed: string | null;
+  photo_url: string | null;
+  address: string | null;
+  city: string | null;
+  status: string;
+  created_at: string;
+  poster_name?: string | null;
+}
+
+interface AdminConversation {
+  id: string;
+  user1_id: string;
+  user2_id: string;
+  created_at: string;
+  user1_name?: string | null;
+  user2_name?: string | null;
+  last_message?: string | null;
+  message_count?: number;
+}
+
 const reasonLabels: Record<string, string> = {
   not_pet_friendly: "🚫 Non pet-friendly",
   closed: "🔒 Fermé définitivement",
@@ -155,20 +185,31 @@ function timeAgo(dateStr: string) {
 const PLACES_PER_PAGE = 15;
 
 const CATEGORY_META: Record<string, { label: string; icon: string }> = {
-  veterinaire:  { label: "Vétérinaires",      icon: "🏥" },
-  animalerie:   { label: "Animaleries",        icon: "🐾" },
-  parc:         { label: "Parcs à chiens",     icon: "🐕" },
-  refuge:       { label: "Refuges / Assoc.",   icon: "🚨" },
-  toiletteur:   { label: "Toiletteurs",        icon: "✂️" },
-  pension:      { label: "Pensions",           icon: "🏠" },
-  educateur:    { label: "Éducateurs canins",  icon: "🎓" },
-  restaurant:   { label: "Restaurants",        icon: "🍽️" },
-  hotel:        { label: "Hôtels",             icon: "🏨" },
-  cafe:         { label: "Cafés",              icon: "☕" },
-  camping:      { label: "Campings",           icon: "⛺" },
-  bar:          { label: "Bars",               icon: "🍺" },
-  commerce:     { label: "Commerces",          icon: "🛍️" },
-  plage:        { label: "Plages",             icon: "🏖️" },
+  veterinaire:   { label: "Vétérinaires",      icon: "🏥" },
+  animalerie:    { label: "Animaleries",        icon: "🐾" },
+  shop:          { label: "Animaleries",        icon: "🐾" },
+  parc:          { label: "Parcs à chiens",     icon: "🐕" },
+  parc_chiens:   { label: "Parcs à chiens",     icon: "🐕" },
+  refuge:        { label: "Refuges / Assoc.",   icon: "🏚️" },
+  spa:           { label: "SPA",                icon: "🐾" },
+  toiletteur:    { label: "Toiletteurs",        icon: "✂️" },
+  pension:       { label: "Pensions",           icon: "🏠" },
+  educateur:     { label: "Éducateurs canins",  icon: "🎓" },
+  restaurant:    { label: "Restaurants",        icon: "🍽️" },
+  hotel:         { label: "Hôtels",             icon: "🏨" },
+  cafe:          { label: "Cafés",              icon: "☕" },
+  camping:       { label: "Campings",           icon: "⛺" },
+  bar:           { label: "Bars",               icon: "🍺" },
+  commerce:      { label: "Commerces",          icon: "🛍️" },
+  plage:         { label: "Plages",             icon: "🏖️" },
+  loisir:        { label: "Loisirs",            icon: "🎯" },
+  outdoor:       { label: "Outdoor",            icon: "🌿" },
+  pet_sitter:    { label: "Pet-sitters",        icon: "🏡" },
+  dog_walker:    { label: "Dog-walkers",        icon: "🦮" },
+  osteopathe:    { label: "Ostéopathes",        icon: "🦴" },
+  transport:     { label: "Transports",         icon: "🚇" },
+  evenement:     { label: "Événements",         icon: "📅" },
+  other:         { label: "Autres",             icon: "📍" },
 };
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -394,6 +435,17 @@ const AdminPage = () => {
   const [albumDialogPet, setAlbumDialogPet] = useState<AdminPet | null>(null);
   const [albumDialogPhotos, setAlbumDialogPhotos] = useState<AdminPetPhoto[]>([]);
   const [albumDialogLoading, setAlbumDialogLoading] = useState(false);
+
+  // Animaux errants
+  const [adminStrays, setAdminStrays] = useState<AdminStrayReport[]>([]);
+  const [adminStraysLoading, setAdminStraysLoading] = useState(false);
+  const [straySearchQuery, setStraySearchQuery] = useState("");
+  const [strayStatusFilter, setStrayStatusFilter] = useState("all");
+
+  // Conversations admin
+  const [adminConvs, setAdminConvs] = useState<AdminConversation[]>([]);
+  const [adminConvsLoading, setAdminConvsLoading] = useState(false);
+  const [convSearchQuery, setConvSearchQuery] = useState("");
 
   const fetchCounts = useCallback(async () => {
     const [s, r, n] = await Promise.all([
@@ -679,6 +731,55 @@ const AdminPage = () => {
       photo_count: pet.pet_photos?.length ?? 0,
     })));
     setAdminPetsLoading(false);
+  }, []);
+
+  const fetchAdminStrays = useCallback(async () => {
+    setAdminStraysLoading(true);
+    const { data } = await supabase
+      .from("stray_reports")
+      .select("id, user_id, lat, lng, species, description, condition, behavior, color, breed, photo_url, address, city, status, created_at")
+      .order("created_at", { ascending: false });
+    if (!data) { setAdminStraysLoading(false); return; }
+    const userIds = [...new Set(data.map((r: any) => r.user_id).filter(Boolean))];
+    const { data: profiles } = userIds.length
+      ? await supabase.from("profiles").select("id, display_name").in("id", userIds)
+      : { data: [] };
+    const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.id, p.display_name]));
+    setAdminStrays(data.map((r: any) => ({ ...r, poster_name: r.user_id ? profileMap[r.user_id] ?? "Utilisateur" : "Anonyme" })));
+    setAdminStraysLoading(false);
+  }, []);
+
+  const fetchAdminConvs = useCallback(async () => {
+    setAdminConvsLoading(true);
+    const { data } = await supabase
+      .from("conversations")
+      .select("id, user1_id, user2_id, created_at")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (!data) { setAdminConvsLoading(false); return; }
+    const userIds = [...new Set(data.flatMap((c: any) => [c.user1_id, c.user2_id]))];
+    const { data: profiles } = userIds.length
+      ? await supabase.from("profiles").select("id, display_name").in("id", userIds)
+      : { data: [] };
+    const pm = Object.fromEntries((profiles || []).map((p: any) => [p.id, p.display_name]));
+    const convIds = data.map((c: any) => c.id);
+    const { data: msgs } = convIds.length
+      ? await supabase.from("messages").select("conversation_id, body, created_at").in("conversation_id", convIds).order("created_at", { ascending: false })
+      : { data: [] };
+    const lastMsgMap: Record<string, string> = {};
+    const countMap: Record<string, number> = {};
+    for (const m of (msgs || [])) {
+      if (!lastMsgMap[m.conversation_id]) lastMsgMap[m.conversation_id] = m.body;
+      countMap[m.conversation_id] = (countMap[m.conversation_id] || 0) + 1;
+    }
+    setAdminConvs(data.map((c: any) => ({
+      ...c,
+      user1_name: pm[c.user1_id] ?? "Utilisateur",
+      user2_name: pm[c.user2_id] ?? "Utilisateur",
+      last_message: lastMsgMap[c.id] ?? null,
+      message_count: countMap[c.id] ?? 0,
+    })));
+    setAdminConvsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -1545,6 +1646,8 @@ const AdminPage = () => {
                 <TabsTrigger value="users" className="rounded-xl px-3 py-2 text-sm font-medium">👥 Utilisateurs</TabsTrigger>
                 <TabsTrigger value="reviews" className="rounded-xl px-3 py-2 text-sm font-medium">💬 Avis</TabsTrigger>
                 <TabsTrigger value="pets" className="rounded-xl px-3 py-2 text-sm font-medium">🐾 Animaux</TabsTrigger>
+                <TabsTrigger value="strays" className="rounded-xl px-3 py-2 text-sm font-medium" onClick={() => { if (adminStrays.length === 0) fetchAdminStrays(); }}>🚨 Errants</TabsTrigger>
+                <TabsTrigger value="messages_admin" className="rounded-xl px-3 py-2 text-sm font-medium" onClick={() => { if (adminConvs.length === 0) fetchAdminConvs(); }}>✉️ Messages</TabsTrigger>
               </div>
             </div>
             <div className="border-t border-border/50 pt-2">
@@ -2887,6 +2990,160 @@ const AdminPage = () => {
                               <Trash2 className="w-3 h-3" /> Supprimer
                             </Button>
                           </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              );
+            })()}
+          </TabsContent>
+
+          {/* ── ANIMAUX ERRANTS ── */}
+          <TabsContent value="strays" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h2 className="text-xl font-bold">Animaux errants signalés</h2>
+              <Button variant="outline" size="sm" onClick={fetchAdminStrays}>🔄 Actualiser</Button>
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input placeholder="Rechercher par ville, race, couleur…" value={straySearchQuery} onChange={e => setStraySearchQuery(e.target.value)} className="pl-9" />
+              </div>
+              <select value={strayStatusFilter} onChange={e => setStrayStatusFilter(e.target.value)} className="h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground">
+                <option value="all">Tous les statuts</option>
+                <option value="active">🔴 Actifs</option>
+                <option value="resolved">✅ Résolus</option>
+              </select>
+            </div>
+
+            {adminStraysLoading && <p className="text-muted-foreground text-center py-8">Chargement…</p>}
+
+            {!adminStraysLoading && (() => {
+              const q = straySearchQuery.toLowerCase();
+              const filtered = adminStrays.filter(r =>
+                (strayStatusFilter === "all" || r.status === strayStatusFilter) &&
+                (!q || (r.city || "").toLowerCase().includes(q) || (r.breed || "").toLowerCase().includes(q) || (r.color || "").toLowerCase().includes(q) || (r.poster_name || "").toLowerCase().includes(q))
+              );
+              if (filtered.length === 0) return <p className="text-muted-foreground text-center py-8">Aucun signalement trouvé</p>;
+              return (
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground">{filtered.length} signalement{filtered.length > 1 ? "s" : ""}</p>
+                  {filtered.map(r => (
+                    <Card key={r.id} className={r.status === "active" ? "border-red-300 dark:border-red-700" : "border-green-300 dark:border-green-700"}>
+                      <CardContent className="pt-4 space-y-3">
+                        <div className="flex items-start gap-3">
+                          {r.photo_url && (
+                            <img src={r.photo_url} alt="" className="w-20 h-20 rounded-xl object-cover shrink-0 border border-border cursor-pointer hover:opacity-90" onClick={() => window.open(r.photo_url!, "_blank")} />
+                          )}
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge className={r.status === "active" ? "bg-red-500 text-white" : "bg-green-600 text-white"}>
+                                {r.status === "active" ? "🔴 Actif" : "✅ Résolu"}
+                              </Badge>
+                              <Badge variant="outline">🐕 {r.species}</Badge>
+                              {r.condition && <Badge variant="secondary">{r.condition}</Badge>}
+                            </div>
+                            <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
+                              {r.color && <span>🎨 {r.color}</span>}
+                              {r.breed && <span>🐾 {r.breed}</span>}
+                              {r.city && <span>📍 {r.city}</span>}
+                              {r.address && <span>{r.address}</span>}
+                            </div>
+                            {r.description && <p className="text-xs text-muted-foreground line-clamp-2">"{r.description}"</p>}
+                            {r.behavior && <p className="text-xs text-muted-foreground">Comportement : {r.behavior}</p>}
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>👤 {r.poster_name}</span>
+                              <span>·</span>
+                              <span>{new Date(r.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                          {r.status === "active" && (
+                            <Button size="sm" variant="outline" className="h-7 text-xs text-green-600 border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+                              onClick={async () => {
+                                await supabase.from("stray_reports").update({ status: "resolved" }).eq("id", r.id);
+                                toast.success("Signalement marqué comme résolu");
+                                fetchAdminStrays();
+                              }}>
+                              ✅ Marquer résolu
+                            </Button>
+                          )}
+                          <Button size="sm" variant="outline" className="h-7 text-xs text-destructive border-destructive hover:bg-destructive/10"
+                            onClick={async () => {
+                              if (!window.confirm("Supprimer ce signalement définitivement ?")) return;
+                              if (r.photo_url) {
+                                const path = r.photo_url.split("/stray-photos/")[1];
+                                if (path) await supabase.storage.from("stray-photos").remove([path]);
+                              }
+                              await supabase.from("stray_reports").delete().eq("id", r.id);
+                              toast.success("Signalement supprimé");
+                              fetchAdminStrays();
+                            }}>
+                            🗑️ Supprimer
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              );
+            })()}
+          </TabsContent>
+
+          {/* ── MESSAGES ADMIN ── */}
+          <TabsContent value="messages_admin" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h2 className="text-xl font-bold">Supervision des messages</h2>
+              <Button variant="outline" size="sm" onClick={fetchAdminConvs}>🔄 Actualiser</Button>
+            </div>
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Rechercher par nom d'utilisateur…" value={convSearchQuery} onChange={e => setConvSearchQuery(e.target.value)} className="pl-9" />
+            </div>
+
+            {adminConvsLoading && <p className="text-muted-foreground text-center py-8">Chargement…</p>}
+
+            {!adminConvsLoading && (() => {
+              const q = convSearchQuery.toLowerCase();
+              const filtered = adminConvs.filter(c =>
+                !q || (c.user1_name || "").toLowerCase().includes(q) || (c.user2_name || "").toLowerCase().includes(q)
+              );
+              if (filtered.length === 0) return <p className="text-muted-foreground text-center py-8">Aucune conversation</p>;
+              return (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">{filtered.length} conversation{filtered.length > 1 ? "s" : ""}</p>
+                  {filtered.map(c => (
+                    <Card key={c.id}>
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-foreground text-sm">{c.user1_name}</span>
+                              <span className="text-muted-foreground text-xs">↔</span>
+                              <span className="font-semibold text-foreground text-sm">{c.user2_name}</span>
+                              <Badge variant="outline" className="text-[10px]">{c.message_count} msg</Badge>
+                            </div>
+                            {c.last_message && (
+                              <p className="text-xs text-muted-foreground line-clamp-1">"{c.last_message}"</p>
+                            )}
+                            <p className="text-[10px] text-muted-foreground">
+                              {new Date(c.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                            </p>
+                          </div>
+                          <Button size="sm" variant="outline" className="h-7 text-xs text-destructive border-destructive hover:bg-destructive/10 shrink-0"
+                            onClick={async () => {
+                              if (!window.confirm(`Supprimer la conversation entre ${c.user1_name} et ${c.user2_name} ?`)) return;
+                              await supabase.from("messages").delete().eq("conversation_id", c.id);
+                              await supabase.from("conversations").delete().eq("id", c.id);
+                              toast.success("Conversation supprimée");
+                              fetchAdminConvs();
+                            }}>
+                            🗑️ Supprimer
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
