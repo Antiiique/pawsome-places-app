@@ -372,10 +372,16 @@ export type Database = {
           bio: string | null
           birth_date: string | null
           breed: string | null
+          color: string | null
           created_at: string | null
           id: string
+          is_microchipped: boolean | null
+          is_sterilized: boolean | null
+          is_vaccinated: boolean | null
           name: string
+          personality_tags: string[] | null
           sex: string | null
+          size_class: string | null
           species: string
           user_id: string
         }
@@ -384,10 +390,16 @@ export type Database = {
           bio?: string | null
           birth_date?: string | null
           breed?: string | null
+          color?: string | null
           created_at?: string | null
           id?: string
+          is_microchipped?: boolean | null
+          is_sterilized?: boolean | null
+          is_vaccinated?: boolean | null
           name: string
+          personality_tags?: string[] | null
           sex?: string | null
+          size_class?: string | null
           species?: string
           user_id: string
         }
@@ -396,10 +408,16 @@ export type Database = {
           bio?: string | null
           birth_date?: string | null
           breed?: string | null
+          color?: string | null
           created_at?: string | null
           id?: string
+          is_microchipped?: boolean | null
+          is_sterilized?: boolean | null
+          is_vaccinated?: boolean | null
           name?: string
+          personality_tags?: string[] | null
           sex?: string | null
+          size_class?: string | null
           species?: string
           user_id?: string
         }
@@ -634,7 +652,9 @@ export type Database = {
           id: string
           is_admin: boolean
           is_banned: boolean
+          last_seen_at: string | null
           points: number
+          postal_code: string | null
         }
         Insert: {
           age?: number | null
@@ -647,7 +667,9 @@ export type Database = {
           id: string
           is_admin?: boolean
           is_banned?: boolean
+          last_seen_at?: string | null
           points?: number
+          postal_code?: string | null
         }
         Update: {
           age?: number | null
@@ -660,7 +682,9 @@ export type Database = {
           id?: string
           is_admin?: boolean
           is_banned?: boolean
+          last_seen_at?: string | null
           points?: number
+          postal_code?: string | null
         }
         Relationships: []
       }
@@ -899,6 +923,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      notify_nearby_users_new_place: {
+        Args: { p_place_id: string }
+        Returns: undefined
+      }
+      notify_nearby_users_stray: {
+        Args: { p_stray_id: string }
+        Returns: undefined
       }
     }
     Enums: {
