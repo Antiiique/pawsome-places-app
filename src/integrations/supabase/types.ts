@@ -652,7 +652,9 @@ export type Database = {
           id: string
           is_admin: boolean
           is_banned: boolean
+          last_seen_at: string | null
           points: number
+          postal_code: string | null
         }
         Insert: {
           age?: number | null
@@ -665,7 +667,9 @@ export type Database = {
           id: string
           is_admin?: boolean
           is_banned?: boolean
+          last_seen_at?: string | null
           points?: number
+          postal_code?: string | null
         }
         Update: {
           age?: number | null
@@ -678,7 +682,9 @@ export type Database = {
           id?: string
           is_admin?: boolean
           is_banned?: boolean
+          last_seen_at?: string | null
           points?: number
+          postal_code?: string | null
         }
         Relationships: []
       }
