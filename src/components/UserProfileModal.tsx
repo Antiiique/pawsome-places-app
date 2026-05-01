@@ -1019,7 +1019,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                     {visitedPlaces.map(place => (
                       <button
                         key={place.id}
-                        onClick={() => window.dispatchEvent(new CustomEvent("open-place-panel", { detail: { placeId: place.id } }))}
+                        onClick={() => window.dispatchEvent(new CustomEvent("open-community-reviews", { detail: { placeId: place.id } }))}
                         className="w-full text-left flex gap-3 items-center bg-secondary border border-border rounded-xl p-3 hover:bg-muted transition-colors"
                       >
                         {place.photo_url ? (

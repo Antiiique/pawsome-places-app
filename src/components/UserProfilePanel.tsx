@@ -475,7 +475,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
 
                     const isClickable = isApproved && !!place.linked_place_id;
                     const handleClick = () => {
-                      if (isClickable) window.dispatchEvent(new CustomEvent("open-place-panel", { detail: { placeId: place.linked_place_id } }));
+                      if (isClickable) window.dispatchEvent(new CustomEvent("open-community-reviews", { detail: { placeId: place.linked_place_id } }));
                     };
 
                     return (
