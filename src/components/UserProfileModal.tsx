@@ -65,7 +65,7 @@ interface UserSubmission {
   address: string | null;
   status: "pending" | "approved" | "rejected";
   created_at: string;
-  admin_notes: string | null;
+  admin_note: string | null;
   linked_place?: {
     id: string;
     photo_url: string | null;
@@ -191,9 +191,9 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
     setLoading(true);
     setLoadingSubmissions(true);
     const [{ data: prof }, { data: petData }, { data: subData }, { count: revCount }, { count: strayC }] = await Promise.all([
-      supabase.from("profiles").select("display_name, avatar_url, bio, age, city, points, alert_radius_km").eq("id", user.id).maybeSingle(),
+      supabase.from("profiles").select("display_name, avatar_url, bio, age, city, points").eq("id", user.id).maybeSingle(),
       supabase.from("pets" as any).select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
-      supabase.from("place_submissions" as any).select("id, name, category, city, address, status, created_at, admin_notes").eq("submitted_by", user.id).order("created_at", { ascending: false }),
+      supabase.from("place_submissions" as any).select("id, name, category, city, address, status, created_at, admin_note").eq("submitted_by", user.id).order("created_at", { ascending: false }),
       supabase.from("place_reviews").select("id", { count: "exact" }).eq("user_id", user.id),
       supabase.from("stray_reports").select("id", { count: "exact" }).eq("user_id", user.id),
     ]);
@@ -1099,9 +1099,9 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                             </p>
                           </div>
                         </div>
-                        {sub.status === "rejected" && sub.admin_notes && (
+                        {sub.status === "rejected" && sub.admin_note && (
                           <div className="px-3 pb-3">
-                            <p className="text-xs text-muted-foreground bg-muted rounded-lg px-2.5 py-2 italic">💬 {sub.admin_notes}</p>
+                            <p className="text-xs text-muted-foreground bg-muted rounded-lg px-2.5 py-2 italic">💬 {sub.admin_note}</p>
                           </div>
                         )}
                       </div>
