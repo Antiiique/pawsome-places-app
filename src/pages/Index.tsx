@@ -112,7 +112,7 @@ const Index = () => {
       if (flickClose || (!flickOpen && progress < SNAP_THRESHOLD)) {
         setActivePanel(null);
       } else {
-        setActivePanel("profile");
+        setActivePanel(panel as PanelName);
       }
     }
   };

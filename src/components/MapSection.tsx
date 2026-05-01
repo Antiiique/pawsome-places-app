@@ -1058,10 +1058,11 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             detail: { lat: center?.lat ?? 48.8566, lng: center?.lng ?? 2.3522 },
           }));
         }}
-        className="absolute bottom-56 right-4 z-20 p-3 bg-primary rounded-full shadow-lg border-2 border-white hover:bg-primary/90 transition-colors"
+        className="absolute bottom-56 right-4 z-20 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+        style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" } as React.CSSProperties}
         title="Ajouter un lieu"
       >
-        <Plus className="w-5 h-5 text-white" />
+        <Plus className="w-5 h-5 text-primary" />
       </button>
 
       {/* Lost pet FAB */}
@@ -1070,23 +1071,30 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           if (!user) { toast.error("Connectez-vous pour publier une annonce"); window.dispatchEvent(new CustomEvent("open-auth-modal")); return; }
           setLostPetModal(true);
         }}
-        className="absolute bottom-40 right-4 z-20 p-3 bg-amber-500 rounded-full shadow-lg border-2 border-white hover:bg-amber-600 transition-colors"
+        className="absolute bottom-40 right-4 z-20 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+        style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" } as React.CSSProperties}
         title="Signaler un animal perdu"
       >
-        <span className="text-lg leading-none">🆘</span>
+        <span style={{ fontSize: 20, lineHeight: 1 }}>🆘</span>
       </button>
 
       {/* Stray report FAB */}
       <button
         onClick={() => setStrayModal(true)}
-        className="absolute bottom-24 right-4 z-20 p-3 bg-destructive rounded-full shadow-lg border-2 border-white hover:bg-destructive/90 transition-colors"
+        className="absolute bottom-24 right-4 z-20 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+        style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" } as React.CSSProperties}
         title="Signaler un animal errant"
       >
-        <Camera className="w-5 h-5 text-white" />
+        <Camera className="w-5 h-5 text-destructive" />
       </button>
 
       {/* Locate me */}
-      <button onClick={handleLocateMe} className="absolute bottom-8 right-4 z-20 p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors" title="Ma position">
+      <button
+        onClick={handleLocateMe}
+        className="absolute bottom-8 right-4 z-20 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+        style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" } as React.CSSProperties}
+        title="Ma position"
+      >
         <Locate className="w-5 h-5 text-primary" />
       </button>
 
