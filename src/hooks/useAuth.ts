@@ -26,6 +26,12 @@ export function useAuth() {
     if (prof) {
       setProfile({ ...prof, is_admin: prof.is_admin ?? false });
     }
+
+    // Update last_seen_at (column must exist: ALTER TABLE profiles ADD COLUMN IF NOT EXISTS last_seen_at timestamptz)
+    await (supabase as any)
+      .from("profiles")
+      .update({ last_seen_at: new Date().toISOString() })
+      .eq("id", userId);
   };
 
   useEffect(() => {

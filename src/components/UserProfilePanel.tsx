@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { X, MapPin, User, Calendar, MessageCircle, Loader2, AlertTriangle } from "lucide-react";
+import { X, MapPin, User, Calendar, MessageCircle, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface UserProfile {
   id: string;
@@ -14,9 +16,82 @@ interface UserProfile {
   city: string | null;
   points: number;
   created_at: string | null;
+  last_seen_at?: string | null;
+  postal_code?: string | null;
 }
 
-function timeAgo(dateStr: string): string {
+interface Pet {
+  id: string;
+  name: string;
+  species: string;
+  breed: string | null;
+  avatar_url: string | null;
+}
+
+interface SubmittedPlace {
+  id: string;
+  name: string;
+  city: string | null;
+  category: string;
+}
+
+interface StrayReport {
+  id: string;
+  species: string | null;
+  breed: string | null;
+  city: string | null;
+  created_at: string | null;
+}
+
+interface LostPet {
+  id: string;
+  pet_name: string;
+  breed: string | null;
+  color: string | null;
+  status: string;
+  last_seen_address: string | null;
+  created_at: string;
+}
+
+// ─── Levels ──────────────────────────────────────────────────────────────────
+
+const LEVELS = [
+  { min: 0,    max: 99,       emoji: "🌱", label: "Explorateur" },
+  { min: 100,  max: 299,      emoji: "🐾", label: "Aventurier" },
+  { min: 300,  max: 699,      emoji: "🦮", label: "Contributeur" },
+  { min: 700,  max: 1499,     emoji: "⭐", label: "Expert" },
+  { min: 1500, max: Infinity, emoji: "🦁", label: "Ambassadeur" },
+];
+
+function getLevel(points: number) {
+  return LEVELS.find(l => points >= l.min && points <= l.max) ?? LEVELS[0];
+}
+
+function getLevelProgress(points: number) {
+  const lvl = getLevel(points);
+  if (lvl.max === Infinity) return 100;
+  return Math.min(100, Math.round(((points - lvl.min) / (lvl.max - lvl.min)) * 100));
+}
+
+// ─── Badges ───────────────────────────────────────────────────────────────────
+
+function getBadges(reviewCount: number, strayCount: number, approvedSubCount: number, points: number) {
+  return [
+    { id: "first_review",  emoji: "🐾", label: "Premier pas",  unlocked: reviewCount >= 1,       tip: "1 avis" },
+    { id: "critic",        emoji: "📝", label: "Critique",     unlocked: reviewCount >= 10,      tip: "10 avis" },
+    { id: "explorer",      emoji: "🗺️", label: "Explorateur",  unlocked: reviewCount >= 50,      tip: "50 avis" },
+    { id: "rescuer1",      emoji: "🆘", label: "Secouriste",   unlocked: strayCount >= 1,        tip: "1 signalement" },
+    { id: "watcher",       emoji: "🐕", label: "Veilleur",     unlocked: strayCount >= 5,        tip: "5 signalements" },
+    { id: "rescuer10",     emoji: "🏆", label: "Sauveteur",    unlocked: strayCount >= 10,       tip: "10 signalements" },
+    { id: "pioneer",       emoji: "📍", label: "Pionnier",     unlocked: approvedSubCount >= 1,  tip: "1 lieu ajouté" },
+    { id: "ambassador",    emoji: "🌟", label: "Ambassadeur",  unlocked: points >= 500,          tip: "500 points" },
+    { id: "legend",        emoji: "💎", label: "Légende",      unlocked: points >= 1500,         tip: "1500 points" },
+  ];
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function memberSince(dateStr: string): string {
   const months = Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24 * 30));
   if (months < 1) return "Ce mois-ci";
   if (months < 12) return `Membre depuis ${months} mois`;
@@ -24,11 +99,43 @@ function timeAgo(dateStr: string): string {
   return `Membre depuis ${years} an${years > 1 ? "s" : ""}`;
 }
 
+function lastSeenBadge(dateStr: string | null | undefined): { label: string; color: string } {
+  if (!dateStr) return { label: "Absent depuis longtemps", color: "bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400" };
+  const diffDays = (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24);
+  if (diffDays < 1)   return { label: "🟢 En ligne aujourd'hui",      color: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300" };
+  if (diffDays < 7)   return { label: "🟡 Actif cette semaine",        color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300" };
+  if (diffDays < 30)  return { label: "🟠 Actif ce mois-ci",           color: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300" };
+  if (diffDays < 90)  return { label: "🔴 Peu actif",                  color: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" };
+  return                       { label: "⚫ Absent depuis longtemps",   color: "bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400" };
+}
+
+function speciesEmoji(s: string | null): string {
+  if (!s) return "🐾";
+  const l = s.toLowerCase();
+  if (l.includes("chien") || l.includes("dog"))  return "🐕";
+  if (l.includes("chat") || l.includes("cat"))   return "🐈";
+  if (l.includes("lapin") || l.includes("rabbit")) return "🐇";
+  if (l.includes("oiseau") || l.includes("bird")) return "🦜";
+  return "🐾";
+}
+
+function categoryLabel(cat: string): string {
+  const map: Record<string, string> = {
+    restaurant: "🍽️ Restaurant", hotel: "🏨 Hôtel", shop: "🛍️ Commerce",
+    park: "🌳 Parc", vet: "🏥 Vétérinaire", cafe: "☕ Café", other: "📍 Autre",
+  };
+  return map[cat] ?? `📍 ${cat}`;
+}
+
+// ─── Props ───────────────────────────────────────────────────────────────────
+
 interface UserProfilePanelProps {
   userId: string | null;
   onClose: () => void;
   onOpenChat: (convId: string, other: { id: string; display_name: string | null; avatar_url: string | null }) => void;
 }
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserProfilePanelProps) {
   const { user: me } = useAuthContext();
@@ -37,7 +144,11 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
   const [starting, setStarting] = useState(false);
   const [strayCount, setStrayCount] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
-  const [lostPets, setLostPets] = useState<Array<{ id: string; pet_name: string; breed: string | null; color: string | null; status: string; last_seen_address: string | null; created_at: string }>>([]);
+  const [approvedSubCount, setApprovedSubCount] = useState(0);
+  const [lostPets, setLostPets] = useState<LostPet[]>([]);
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [submittedPlaces, setSubmittedPlaces] = useState<SubmittedPlace[]>([]);
+  const [recentStrays, setRecentStrays] = useState<StrayReport[]>([]);
 
   const handleMessage = async () => {
     if (!me) { toast.error("Connectez-vous pour envoyer un message"); window.dispatchEvent(new CustomEvent("open-auth-modal")); return; }
@@ -65,28 +176,62 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
     if (!userId) { setProfile(null); return; }
     setLoading(true);
 
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
     Promise.all([
-      supabase.from("profiles").select("id, display_name, avatar_url, bio, city, points, created_at").eq("id", userId).maybeSingle(),
-      supabase.from("stray_reports").select("id", { count: "exact" }).eq("user_id", userId).eq("status", "active"),
-      supabase.from("place_reviews").select("id", { count: "exact" }).eq("user_id", userId),
-      supabase.from("lost_pets" as any).select("id, pet_name, breed, color, status, last_seen_address, created_at").eq("user_id", userId).order("created_at", { ascending: false }),
-    ]).then(([{ data: prof }, { count: strays }, { count: reviews }, { data: pets }]) => {
+      (supabase as any).from("profiles").select("id, display_name, avatar_url, bio, city, points, created_at, last_seen_at, postal_code").eq("id", userId).maybeSingle(),
+      supabase.from("stray_reports").select("id", { count: "exact", head: true }).eq("user_id", userId),
+      supabase.from("place_reviews").select("id", { count: "exact", head: true }).eq("user_id", userId),
+      supabase.from("place_submissions").select("id", { count: "exact", head: true }).eq("submitted_by", userId).eq("status", "approved"),
+      supabase.from("pets").select("id, name, species, breed, avatar_url").eq("user_id", userId).order("created_at", { ascending: false }),
+      supabase.from("place_submissions").select("id, name, city, category").eq("submitted_by", userId).eq("status", "approved").order("reviewed_at", { ascending: false }).limit(5),
+      supabase.from("stray_reports").select("id, species, breed, city, created_at").eq("user_id", userId).gte("created_at", sevenDaysAgo).order("created_at", { ascending: false }),
+      (supabase as any).from("lost_pets").select("id, pet_name, breed, color, status, last_seen_address, created_at").eq("user_id", userId).order("created_at", { ascending: false }),
+    ]).then(([
+      { data: prof },
+      { count: strays },
+      { count: reviews },
+      { count: approvedSubs },
+      { data: petsData },
+      { data: placesData },
+      { data: straysData },
+      { data: lostPetsData },
+    ]) => {
       setProfile(prof as UserProfile);
       setStrayCount(strays || 0);
       setReviewCount(reviews || 0);
-      setLostPets((pets as any) || []);
+      setApprovedSubCount(approvedSubs || 0);
+      setPets((petsData as Pet[]) || []);
+      setSubmittedPlaces((placesData as SubmittedPlace[]) || []);
+      setRecentStrays((straysData as StrayReport[]) || []);
+      setLostPets((lostPetsData as LostPet[]) || []);
       setLoading(false);
     });
   }, [userId]);
 
   if (!userId) return null;
 
+  const points = profile?.points ?? 0;
+  const level = getLevel(points);
+  const progress = getLevelProgress(points);
+  const nextLevel = LEVELS[LEVELS.indexOf(level) + 1];
+  const badges = getBadges(reviewCount, strayCount, approvedSubCount, points);
+  const seenBadge = lastSeenBadge(profile?.last_seen_at);
+  const activeLostPets = lostPets.filter(p => p.status === "active");
+
   return (
     <>
-      {/* FAB close */}
+      {/* Floating X */}
       <button
         onClick={onClose}
-        className="fixed bottom-8 right-4 z-[701] p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors"
+        className="fixed bottom-8 right-4 z-[701] w-12 h-12 flex items-center justify-center rounded-full"
+        style={{
+          background: "color-mix(in srgb, var(--card) 55%, transparent)",
+          border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+        }}
       >
         <X className="w-5 h-5 text-foreground" />
       </button>
@@ -104,89 +249,217 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
                 : <User className="w-8 h-8 text-muted-foreground" />
               }
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <h2 className="font-bold text-foreground text-xl truncate">
                 {loading ? "…" : profile?.display_name || "Utilisateur"}
               </h2>
-              {profile?.city && (
+              {(profile?.city || profile?.postal_code) && (
                 <div className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
-                  <MapPin className="w-3 h-3" />
-                  <span>{profile.city}</span>
+                  <MapPin className="w-3 h-3 shrink-0" />
+                  <span className="truncate">
+                    {[profile.postal_code, profile.city].filter(Boolean).join(" ")}
+                  </span>
                 </div>
               )}
               {profile?.created_at && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                  <Calendar className="w-3 h-3" />
-                  <span>{timeAgo(profile.created_at)}</span>
+                  <Calendar className="w-3 h-3 shrink-0" />
+                  <span>{memberSince(profile.created_at)}</span>
                 </div>
+              )}
+              {!loading && profile && (
+                <span className={`inline-block mt-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full ${seenBadge.color}`}>
+                  {seenBadge.label}
+                </span>
               )}
             </div>
           </div>
         </div>
 
         <ScrollArea className="flex-1 min-h-0">
-          <div className="p-5 space-y-5">
+          <div className="p-5 space-y-6">
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-muted rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-foreground">{profile?.points ?? 0}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Points</p>
+            {/* Level + progress */}
+            {!loading && profile && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{level.emoji}</span>
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">{level.label}</p>
+                      {nextLevel && (
+                        <p className="text-[10px] text-muted-foreground">
+                          {nextLevel.min - points} pts pour {nextLevel.emoji} {nextLevel.label}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs font-bold text-foreground">{points} pts</p>
+                </div>
+                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-700"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
               </div>
-              <div className="bg-muted rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-foreground">{strayCount}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Signalements</p>
-              </div>
-              <div className="bg-muted rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-foreground">{reviewCount}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Avis</p>
-              </div>
+            )}
+
+            {/* Stats grid */}
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { value: points,          label: "Points" },
+                { value: strayCount,      label: "Signalements" },
+                { value: reviewCount,     label: "Avis" },
+                { value: approvedSubCount, label: "Lieux" },
+              ].map(({ value, label }) => (
+                <div key={label} className="bg-muted rounded-xl p-2 text-center">
+                  <p className="text-lg font-bold text-foreground">{loading ? "–" : value}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{label}</p>
+                </div>
+              ))}
             </div>
+
+            {/* Badges */}
+            {!loading && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Badges</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {badges.map(b => (
+                    <div
+                      key={b.id}
+                      className={`rounded-xl p-2.5 text-center transition-opacity ${b.unlocked ? "bg-muted opacity-100" : "bg-muted/40 opacity-40"}`}
+                    >
+                      <p className="text-xl">{b.emoji}</p>
+                      <p className="text-[10px] font-medium text-foreground mt-0.5 leading-tight">{b.label}</p>
+                      {!b.unlocked && <p className="text-[9px] text-muted-foreground">{b.tip}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Bio */}
             {profile?.bio && (
               <div className="space-y-1">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">À propos</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">À propos</p>
                 <p className="text-sm text-foreground leading-relaxed">{profile.bio}</p>
               </div>
             )}
 
-            {/* Lost pets section */}
-            {(lostPets.length > 0 || (me && me.id === userId)) && (
+            {/* Pets */}
+            {!loading && pets.length > 0 && (
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🆘 Animaux perdus</p>
-                  {me && me.id === userId && (
-                    <button
-                      onClick={() => window.dispatchEvent(new CustomEvent("open-lost-pet-modal"))}
-                      className="text-xs text-amber-600 dark:text-amber-400 font-semibold hover:underline"
-                    >
-                      + Signaler
-                    </button>
-                  )}
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Animaux de compagnie</p>
+                <div className="flex gap-3 flex-wrap">
+                  {pets.map(pet => (
+                    <div key={pet.id} className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2">
+                      <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center overflow-hidden border border-border shrink-0">
+                        {pet.avatar_url
+                          ? <img src={pet.avatar_url} alt="" className="w-full h-full object-cover" />
+                          : <span className="text-base">{speciesEmoji(pet.species)}</span>
+                        }
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground leading-tight">{pet.name}</p>
+                        {pet.breed && <p className="text-[10px] text-muted-foreground">{pet.breed}</p>}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                {lostPets.length === 0 && me && me.id === userId && (
-                  <p className="text-xs text-muted-foreground italic">Aucun signalement actif</p>
-                )}
-                {lostPets.map(pet => (
+              </div>
+            )}
+
+            {/* Submitted places */}
+            {!loading && submittedPlaces.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Lieux ajoutés</p>
+                <div className="space-y-1.5">
+                  {submittedPlaces.map(place => (
+                    <div key={place.id} className="flex items-center justify-between bg-muted rounded-xl px-3 py-2.5">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{place.name}</p>
+                        {place.city && <p className="text-[10px] text-muted-foreground">📍 {place.city}</p>}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground ml-2 shrink-0">{categoryLabel(place.category)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recent activity */}
+            {!loading && (activeLostPets.length > 0 || recentStrays.length > 0) && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Activité récente</p>
+
+                {activeLostPets.map(pet => (
                   <button
                     key={pet.id}
                     onClick={() => window.dispatchEvent(new CustomEvent("open-lost-pet", { detail: { petId: pet.id } }))}
-                    className="w-full text-left p-3 rounded-xl border border-border hover:bg-muted transition-colors space-y-0.5"
+                    className="w-full text-left p-3 rounded-xl border border-border hover:bg-muted transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-semibold text-foreground text-sm">{pet.pet_name}</p>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${pet.status === "active" ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"}`}>
-                        {pet.status === "active" ? "🆘 Perdu" : "✅ Retrouvé"}
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
+                        🆘 Perdu
                       </span>
                     </div>
-                    <div className="flex gap-2 text-xs text-muted-foreground flex-wrap">
+                    <div className="flex gap-2 text-xs text-muted-foreground flex-wrap mt-0.5">
                       {pet.breed && <span>{pet.breed}</span>}
                       {pet.color && <span>· {pet.color}</span>}
                     </div>
                     {pet.last_seen_address && (
-                      <p className="text-xs text-muted-foreground truncate">📍 {pet.last_seen_address}</p>
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">📍 {pet.last_seen_address}</p>
                     )}
+                  </button>
+                ))}
+
+                {recentStrays.map(r => (
+                  <div key={r.id} className="p-3 rounded-xl border border-border bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{speciesEmoji(r.species)}</span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground leading-tight">
+                          Animal errant signalé
+                          {r.species ? ` — ${r.species}` : ""}
+                        </p>
+                        {(r.breed || r.city) && (
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            {[r.breed, r.city].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Lost pets (all, for own profile) */}
+            {!loading && lostPets.length > 0 && me?.id === userId && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🆘 Mes animaux perdus</p>
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent("open-lost-pet-modal"))}
+                    className="text-xs text-amber-600 dark:text-amber-400 font-semibold hover:underline"
+                  >
+                    + Signaler
+                  </button>
+                </div>
+                {lostPets.filter(p => p.status !== "active").map(pet => (
+                  <button
+                    key={pet.id}
+                    onClick={() => window.dispatchEvent(new CustomEvent("open-lost-pet", { detail: { petId: pet.id } }))}
+                    className="w-full text-left p-3 rounded-xl border border-border hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-semibold text-foreground text-sm">{pet.pet_name}</p>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
+                        ✅ Retrouvé
+                      </span>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -194,11 +467,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
 
             {/* Message button — only for other users */}
             {me && me.id !== userId && profile && (
-              <Button
-                onClick={handleMessage}
-                disabled={starting}
-                className="w-full gap-2"
-              >
+              <Button onClick={handleMessage} disabled={starting} className="w-full gap-2">
                 {starting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
                 Envoyer un message
               </Button>
