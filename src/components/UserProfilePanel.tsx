@@ -26,6 +26,14 @@ interface Pet {
   species: string;
   breed: string | null;
   avatar_url: string | null;
+  birth_date: string | null;
+  sex: string | null;
+  bio: string | null;
+  color: string | null;
+  size_class: string | null;
+  is_vaccinated: boolean | null;
+  is_sterilized: boolean | null;
+  is_microchipped: boolean | null;
 }
 
 interface SubmittedPlace {
@@ -200,8 +208,8 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
       supabase.from("stray_reports").select("id", { count: "exact", head: true }).eq("user_id", userId),
       supabase.from("place_reviews").select("id", { count: "exact", head: true }).eq("user_id", userId),
       supabase.from("place_submissions").select("id", { count: "exact", head: true }).eq("submitted_by", userId).eq("status", "approved"),
-      supabase.from("pets").select("id, name, species, breed, avatar_url").eq("user_id", userId).order("created_at", { ascending: false }),
-      supabase.from("place_submissions").select("id, name, city, address, category, subcategory, status, created_at, reviewed_at, description, phone, website, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided").eq("submitted_by", userId).order("created_at", { ascending: false }).limit(10),
+      supabase.from("pets").select("id, name, species, breed, avatar_url, birth_date, sex, bio, color, size_class, is_vaccinated, is_sterilized, is_microchipped").eq("user_id", userId).order("created_at", { ascending: false }),
+      supabase.from("place_submissions").select("id, name, city, address, category, subcategory, status, created_at, reviewed_at, description, phone, website, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided").eq("submitted_by", userId).eq("status", "approved").order("reviewed_at", { ascending: false }).limit(10),
       supabase.from("stray_reports").select("id, species, breed, city, created_at").eq("user_id", userId).gte("created_at", sevenDaysAgo).order("created_at", { ascending: false }),
       (supabase as any).from("lost_pets").select("id, pet_name, breed, color, status, last_seen_address, created_at").eq("user_id", userId).order("created_at", { ascending: false }),
     ]).then(async ([
@@ -387,23 +395,65 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
 
             {/* Pets */}
             {!loading && pets.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Animaux de compagnie</p>
-                <div className="flex gap-3 flex-wrap">
-                  {pets.map(pet => (
-                    <div key={pet.id} className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2">
-                      <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center overflow-hidden border border-border shrink-0">
-                        {pet.avatar_url
-                          ? <img src={pet.avatar_url} alt="" className="w-full h-full object-cover" />
-                          : <span className="text-base">{speciesEmoji(pet.species)}</span>
-                        }
+                <div className="space-y-3">
+                  {pets.map(pet => {
+                    const age = (() => {
+                      if (!pet.birth_date) return null;
+                      const months = Math.floor((Date.now() - new Date(pet.birth_date).getTime()) / (1000 * 60 * 60 * 24 * 30));
+                      if (months < 1) return "< 1 mois";
+                      if (months < 12) return `${months} mois`;
+                      const y = Math.floor(months / 12);
+                      return `${y} an${y > 1 ? "s" : ""}`;
+                    })();
+
+                    return (
+                      <div key={pet.id} className="rounded-2xl border border-border overflow-hidden bg-card">
+                        {/* Photo banner */}
+                        <div className="relative w-full h-36 bg-muted">
+                          {pet.avatar_url
+                            ? <img src={pet.avatar_url} alt={pet.name} className="w-full h-full object-cover" />
+                            : <div className="w-full h-full flex items-center justify-center text-5xl">{speciesEmoji(pet.species)}</div>
+                          }
+                          {/* Species badge */}
+                          <span className="absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white backdrop-blur-sm">
+                            {speciesEmoji(pet.species)} {pet.species}
+                          </span>
+                        </div>
+
+                        {/* Info */}
+                        <div className="p-3 space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-bold text-foreground text-base">{pet.name}</p>
+                            <div className="flex gap-1">
+                              {pet.sex === "M" && <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-medium">♂ Mâle</span>}
+                              {pet.sex === "F" && <span className="text-[10px] bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300 px-1.5 py-0.5 rounded-full font-medium">♀ Femelle</span>}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                            {pet.breed && <span>{pet.breed}</span>}
+                            {pet.color && <span>· {pet.color}</span>}
+                            {age && <span>· {age}</span>}
+                            {pet.size_class && <span>· {({ petit: "Petit", moyen: "Moyen", grand: "Grand", tres_grand: "Très grand" } as Record<string,string>)[pet.size_class] ?? pet.size_class}</span>}
+                          </div>
+
+                          {pet.bio && (
+                            <p className="text-xs text-muted-foreground italic leading-relaxed">"{pet.bio}"</p>
+                          )}
+
+                          {(pet.is_vaccinated || pet.is_sterilized || pet.is_microchipped) && (
+                            <div className="flex gap-1.5 flex-wrap">
+                              {pet.is_vaccinated  && <span className="text-[9px] bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 px-1.5 py-0.5 rounded-full font-medium">💉 Vacciné</span>}
+                              {pet.is_sterilized  && <span className="text-[9px] bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-medium">✂️ Stérilisé</span>}
+                              {pet.is_microchipped && <span className="text-[9px] bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 px-1.5 py-0.5 rounded-full font-medium">📡 Pucé</span>}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground leading-tight">{pet.name}</p>
-                        {pet.breed && <p className="text-[10px] text-muted-foreground">{pet.breed}</p>}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -411,12 +461,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
             {/* Submitted places */}
             {!loading && submittedPlaces.length > 0 && (
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Lieux ajoutés</p>
-                  <span className="text-[10px] text-muted-foreground">
-                    {submittedPlaces.filter(p => p.status === "approved").length} approuvé{submittedPlaces.filter(p => p.status === "approved").length > 1 ? "s" : ""} · {submittedPlaces.length} total
-                  </span>
-                </div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Lieux ajoutés</p>
                 <div className="space-y-2.5">
                   {submittedPlaces.map(place => {
                     const isApproved = place.status === "approved";
