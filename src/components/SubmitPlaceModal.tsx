@@ -315,6 +315,18 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
         pointerEvents: open ? "auto" : "none",
       }}
     >
+      {/* Floating close button — bottom-right, same liquid glass style as map FABs */}
+      {visible && (
+        <button
+          onClick={handleClose}
+          className="fixed bottom-8 right-4 z-[701] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+          style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.18)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" } as React.CSSProperties}
+          title="Fermer"
+        >
+          <X className="w-5 h-5 text-foreground" />
+        </button>
+      )}
+
       {/* Bottom sheet */}
       <div
         className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl shadow-2xl flex flex-col"
@@ -325,7 +337,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
           willChange: "transform",
         }}
       >
-        {/* Drag handle */}
+        {/* Drag handle + header — both support swipe-to-close */}
         <div
           className="flex-shrink-0 pt-2.5 pb-1 flex flex-col items-center cursor-grab active:cursor-grabbing"
           onTouchStart={handleDragStart}
@@ -335,11 +347,13 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
           <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
         </div>
 
-        {/* Header */}
-        <div className="flex-shrink-0 flex items-center px-4 py-3 border-b border-border gap-3">
-          <button onClick={handleClose} className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-          </button>
+        {/* Header — swipeable too */}
+        <div
+          className="flex-shrink-0 flex items-center px-4 py-3 border-b border-border gap-3"
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+        >
           <h2 className="text-base font-bold text-foreground flex-1">Ajouter un lieu</h2>
         </div>
 
