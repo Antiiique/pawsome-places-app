@@ -548,19 +548,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       renderClusters(places);
     });
 
-    map.on("click", (e) => {
-      setTimeout(() => {
-        if (markerClickedRef.current) return;
-        const rect = mapContainerRef.current?.getBoundingClientRect();
-        const px = { x: (rect?.left || 0) + e.point.x, y: (rect?.top || 0) + e.point.y };
-        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${e.lngLat.lng},${e.lngLat.lat}.json?access_token=${MAPBOX_TOKEN}`)
-          .then((r) => r.json())
-          .then((data) => {
-            const address = data.features?.[0]?.place_name || "";
-            setPopupData({ place: { name: address || "Ce lieu", address, lat: e.lngLat.lat, lng: e.lngLat.lng, types: ["point_on_map"], isPetFriendly: false }, position: px });
-          });
-      }, 50);
-    });
+    // Click on empty map area intentionally does nothing
 
     // Long press (mobile) + right-click (desktop) → add a place
     let lpTimer: ReturnType<typeof setTimeout> | null = null;
@@ -1059,7 +1047,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           }));
         }}
         className="absolute bottom-56 right-4 z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
-        style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", touchAction: "manipulation" } as React.CSSProperties}
+        style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Ajouter un lieu"
       >
         <Plus className="w-5 h-5 text-primary" />
@@ -1072,7 +1060,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           setLostPetModal(true);
         }}
         className="absolute bottom-40 right-4 z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
-        style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", touchAction: "manipulation" } as React.CSSProperties}
+        style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal perdu"
       >
         <span style={{ fontSize: 20, lineHeight: 1 }}>🆘</span>
@@ -1082,7 +1070,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       <button
         onClick={() => setStrayModal(true)}
         className="absolute bottom-24 right-4 z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
-        style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", touchAction: "manipulation" } as React.CSSProperties}
+        style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal errant"
       >
         <Camera className="w-5 h-5 text-destructive" />
@@ -1092,7 +1080,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       <button
         onClick={handleLocateMe}
         className="absolute bottom-8 right-4 z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
-        style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", touchAction: "manipulation" } as React.CSSProperties}
+        style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Ma position"
       >
         <Locate className="w-5 h-5 text-primary" />

@@ -94,6 +94,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
 
   // Bottom sheet state
   const [visible, setVisible] = useState(false);
+  const [snapState, setSnapState] = useState<"half" | "full">("half");
   const [dragging, setDragging] = useState(false);
   const isDragging = useRef(false);
   const dragStartY = useRef(0);
@@ -133,9 +134,9 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
   const autocompleteRef = useRef<google.maps.places.AutocompleteService | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Open/close animation — double RAF so browser paints initial frame first
   useEffect(() => {
     if (open) {
+      setSnapState("half");
       let raf1: number, raf2: number;
       raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(() => setVisible(true)); });
       return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
@@ -181,20 +182,31 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
   }
   function handleDragMove(e: React.TouchEvent) {
     if (!isDragging.current) return;
-    const dy = e.touches[0].clientY - dragStartY.current;
+    const dy = e.touches[0].clientY - dragStartY.current; // signed
     const now = Date.now(); const dt = now - lastTouchTime.current;
     if (dt > 0) lastVelocity.current = (e.touches[0].clientY - lastTouchY.current) / dt;
     lastTouchY.current = e.touches[0].clientY; lastTouchTime.current = now;
-    setDragDelta(Math.max(0, dy));
+    setDragDelta(dy);
   }
   function handleDragEnd() {
     isDragging.current = false;
     setDragging(false);
-    const pct = (dragDelta / window.innerHeight) * 100;
-    if (lastVelocity.current > 0.5 || pct > 40) { handleClose(); } else { setDragDelta(0); }
+    const h = window.innerHeight - 56;
+    const deltaPct = h > 0 ? (dragDelta / h) * 100 : 0;
+    const vel = lastVelocity.current;
+    if (snapState === "half") {
+      if (vel < -0.3 || deltaPct < -15) { setSnapState("full"); }
+      else if (vel > 0.3 || deltaPct > 15) { handleClose(); }
+    } else {
+      if (vel > 0.5 || deltaPct > 25) { setSnapState("half"); }
+    }
+    setDragDelta(0);
   }
 
-  const currentOffset = dragDelta > 0 ? (dragDelta / window.innerHeight) * 100 : 0;
+  const snapBase = snapState === "full" ? 0 : 55;
+  const h = window.innerHeight - 56;
+  const dragPct = dragging && h > 0 ? (dragDelta / h) * 100 : 0;
+  const currentPct = Math.max(0, Math.min(100, snapBase + dragPct));
 
   // Address autocomplete
   const handleAddressChange = useCallback((val: string) => {
@@ -320,7 +332,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
         <button
           onClick={handleClose}
           className="fixed bottom-8 right-4 z-[701] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
-          style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.18)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" } as React.CSSProperties}
+          style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
           title="Fermer"
         >
           <X className="w-5 h-5 text-foreground" />
@@ -332,7 +344,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
         className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
           height: "calc(100vh - 56px)",
-          transform: `translateY(${!visible ? 100 : currentOffset}%)`,
+          transform: `translateY(${!visible ? 100 : currentPct}%)`,
           transition: dragging ? "none" : "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
           willChange: "transform",
         }}
@@ -357,8 +369,8 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
           <h2 className="text-base font-bold text-foreground flex-1">Ajouter un lieu</h2>
         </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Scrollable content — only scrolls in full mode */}
+        <div className="flex-1" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
           {!user ? (
             <div className="flex flex-col items-center text-center gap-4 p-8">
               <span className="text-6xl">📍</span>

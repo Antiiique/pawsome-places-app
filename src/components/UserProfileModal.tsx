@@ -434,7 +434,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
         <button
           onClick={onClose}
           className="fixed bottom-8 right-4 z-[601] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
-          style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.18)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", touchAction: "manipulation" } as React.CSSProperties}
+          style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
           title="Fermer"
         >
           <X className="w-5 h-5 text-foreground" />

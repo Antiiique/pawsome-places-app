@@ -24,6 +24,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
   const galleryRef = useRef<HTMLInputElement>(null);
 
   const [visible, setVisible] = useState(false);
+  const [snapState, setSnapState] = useState<"half" | "full">("half");
   const [step, setStep]               = useState<Step>("source");
   const [photo, setPhoto]             = useState<File | null>(null);
   const [preview, setPreview]         = useState<string | null>(null);
@@ -49,6 +50,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
   useEffect(() => {
     if (!open) return;
     setVisible(true);
+    setSnapState("half");
     setStep("source");
     setPhoto(null);
     setPreview(null);
@@ -109,19 +111,23 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
     if (dt > 0) lastVelocity.current = (y - lastTouchY.current) / dt;
     lastTouchY.current = y;
     lastTouchTime.current = now;
-    setDragDelta(Math.max(0, y - dragStartY.current));
+    setDragDelta(y - dragStartY.current); // signed
   };
 
   const handleDragEnd = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
     setDragging(false);
-    const pct = (dragDelta / window.innerHeight) * 100;
-    if (lastVelocity.current > 0.5 || pct > 40) {
-      handleClose();
+    const h = window.innerHeight - 56;
+    const deltaPct = h > 0 ? (dragDelta / h) * 100 : 0;
+    const vel = lastVelocity.current;
+    if (snapState === "half") {
+      if (vel < -0.3 || deltaPct < -15) { setSnapState("full"); }
+      else if (vel > 0.3 || deltaPct > 15) { handleClose(); }
     } else {
-      setDragDelta(0);
+      if (vel > 0.5 || deltaPct > 25) { setSnapState("half"); }
     }
+    setDragDelta(0);
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,11 +202,17 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
       {/* Bottom sheet — full screen */}
       <div
         className="fixed left-0 right-0 bottom-0 z-[700] bg-card rounded-t-2xl shadow-2xl flex flex-col"
-        style={{
-          top: 56,
-          transform: `translateY(${visible ? dragDelta + "px" : "100%"})`,
-          transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
-        }}
+        style={(() => {
+          const snapBase = snapState === "full" ? 0 : 55;
+          const h = window.innerHeight - 56;
+          const dragPct = dragging && h > 0 ? (dragDelta / h) * 100 : 0;
+          const currentPct = Math.max(0, Math.min(100, snapBase + dragPct));
+          return {
+            top: 56,
+            transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
+            transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+          };
+        })()}
       >
         {/* Drag handle */}
         <div
@@ -235,8 +247,8 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
           </div>
         </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Scrollable content — only scrolls in full mode */}
+        <div className="flex-1" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
           {/* Step 1 — Source choice */}
           {step === "source" && (
             <div className="p-5 space-y-3">
@@ -363,11 +375,11 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
           onClick={handleClose}
           className="fixed bottom-8 right-4 z-[701] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
           style={{
-            background: "var(--card)",
-            border: "1px solid var(--border)",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
+            background: "color-mix(in srgb, var(--card) 55%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
             touchAction: "manipulation",
           } as React.CSSProperties}
         >

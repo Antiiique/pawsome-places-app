@@ -211,11 +211,11 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
           transition: `width ${ANIM_MS}ms cubic-bezier(0.4, 0, 0.2, 1)`,
           overflow: "hidden",
           borderRadius: 9999,
-          background: "var(--card)",
-          border: "1px solid var(--border)",
-          boxShadow: isExpanded ? "0 4px 20px rgba(0,0,0,0.15)" : "0 2px 8px rgba(0,0,0,0.12)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
+          background: "color-mix(in srgb, var(--card) 55%, transparent)",
+          border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
         } as React.CSSProperties}
       >
         {/* Input — fills space left of icon */}
