@@ -201,13 +201,26 @@ function PlaceCard({ sub }: { sub: UserSubmission }) {
 function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
   const [activeStatus, setActiveStatus] = useState<StatusKey>("approved");
 
-  const counts: Record<StatusKey, number> = {
-    approved: submissions.filter(s => s.status === "approved").length,
-    pending:  submissions.filter(s => s.status === "pending").length,
-    rejected: submissions.filter(s => s.status === "rejected").length,
+  // Approved: only those whose linked place still exists in the DB
+  const visibleByStatus: Record<StatusKey, UserSubmission[]> = {
+    approved: submissions.filter(s => s.status === "approved" && s.linked_place?.id),
+    pending:  submissions.filter(s => s.status === "pending"),
+    rejected: submissions.filter(s => s.status === "rejected"),
   };
 
-  const filtered = submissions.filter(s => s.status === activeStatus);
+  const filtered = visibleByStatus[activeStatus];
+
+  const emptyLabel: Record<StatusKey, string> = {
+    approved: "Aucun lieu approuvé actif",
+    pending:  "Aucun lieu en attente",
+    rejected: "Aucun lieu refusé",
+  };
+
+  const emptyEmoji: Record<StatusKey, string> = {
+    approved: "✅",
+    pending:  "⏳",
+    rejected: "❌",
+  };
 
   return (
     <div className="space-y-3">
@@ -215,27 +228,30 @@ function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
       <div className="flex rounded-xl overflow-hidden border border-border">
         {STATUS_TABS.map((tab, i) => {
           const isActive = activeStatus === tab.key;
+          const count = visibleByStatus[tab.key].length;
           return (
             <button
               key={tab.key}
               onClick={() => setActiveStatus(tab.key)}
-              className={`flex-1 py-2 text-center transition-colors ${i > 0 ? "border-l border-border" : ""} ${isActive ? "bg-muted" : "bg-background hover:bg-muted/50"}`}
+              className={`flex-1 py-2.5 text-center transition-all ${i > 0 ? "border-l border-border" : ""} ${isActive ? "bg-muted" : "bg-background hover:bg-muted/40"}`}
             >
-              <p className={`text-base font-bold leading-none ${tab.color}`}>{counts[tab.key]}</p>
-              <p className="text-[9px] text-muted-foreground mt-0.5 leading-tight">{tab.label}</p>
-              {isActive && <div className={`h-0.5 mt-1.5 mx-auto w-6 rounded-full ${tab.activeBar}`} />}
+              <p className={`text-lg font-bold leading-none ${isActive ? tab.color : "text-muted-foreground"}`}>
+                {count}
+              </p>
+              <p className={`text-[9px] mt-0.5 leading-tight font-medium ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                {tab.label}
+              </p>
+              <div className={`h-0.5 mt-1.5 mx-auto rounded-full transition-all duration-200 ${isActive ? `w-8 ${tab.activeBar}` : "w-0 bg-transparent"}`} />
             </button>
           );
         })}
       </div>
 
-      {/* List */}
+      {/* Isolated content per tab */}
       {filtered.length === 0 ? (
-        <div className="text-center py-8 space-y-1">
-          <p className="text-3xl">{activeStatus === "approved" ? "✅" : activeStatus === "pending" ? "⏳" : "❌"}</p>
-          <p className="text-sm text-muted-foreground">
-            {activeStatus === "approved" ? "Aucun lieu approuvé" : activeStatus === "pending" ? "Aucun lieu en attente" : "Aucun lieu refusé"}
-          </p>
+        <div className="text-center py-10 space-y-1.5">
+          <p className="text-4xl">{emptyEmoji[activeStatus]}</p>
+          <p className="text-sm text-muted-foreground">{emptyLabel[activeStatus]}</p>
         </div>
       ) : (
         <div className="space-y-2">
