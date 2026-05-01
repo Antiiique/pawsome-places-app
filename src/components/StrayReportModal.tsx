@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Camera, FolderOpen, Loader2, MapPin, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
 
+  const [visible, setVisible] = useState(false);
   const [step, setStep]               = useState<Step>("source");
   const [photo, setPhoto]             = useState<File | null>(null);
   const [preview, setPreview]         = useState<string | null>(null);
@@ -36,8 +38,17 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
   const [locating, setLocating]       = useState(false);
   const [loading, setLoading]         = useState(false);
 
+  const [dragging, setDragging]   = useState(false);
+  const [dragDelta, setDragDelta] = useState(0);
+  const isDragging    = useRef(false);
+  const dragStartY    = useRef(0);
+  const lastTouchY    = useRef(0);
+  const lastTouchTime = useRef(0);
+  const lastVelocity  = useRef(0);
+
   useEffect(() => {
     if (!open) return;
+    setVisible(true);
     setStep("source");
     setPhoto(null);
     setPreview(null);
@@ -74,6 +85,44 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }, [open]);
+
+  const handleClose = () => {
+    setVisible(false);
+    setTimeout(onClose, 300);
+  };
+
+  const handleDragStart = (e: React.TouchEvent) => {
+    isDragging.current = true;
+    dragStartY.current = e.touches[0].clientY;
+    lastTouchY.current = e.touches[0].clientY;
+    lastTouchTime.current = Date.now();
+    lastVelocity.current = 0;
+    setDragging(true);
+    setDragDelta(0);
+  };
+
+  const handleDragMove = (e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    const y = e.touches[0].clientY;
+    const now = Date.now();
+    const dt = now - lastTouchTime.current;
+    if (dt > 0) lastVelocity.current = (y - lastTouchY.current) / dt;
+    lastTouchY.current = y;
+    lastTouchTime.current = now;
+    setDragDelta(Math.max(0, y - dragStartY.current));
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    setDragging(false);
+    const pct = (dragDelta / window.innerHeight) * 100;
+    if (lastVelocity.current > 0.5 || pct > 40) {
+      handleClose();
+    } else {
+      setDragDelta(0);
+    }
+  };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -125,7 +174,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
 
       toast.success("🐾 Signalement publié sur la carte !");
       onReported();
-      onClose();
+      handleClose();
     } catch (err: any) {
       toast.error(`Erreur : ${err.message || "réessayez"}`);
     } finally {
@@ -133,16 +182,45 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
     }
   };
 
-  if (!open) return null;
+  if (!open && !visible) return null;
 
-  return (
-    <div className="fixed inset-0 z-[700] flex items-end justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+  return createPortal(
+    <>
+      {/* Scrim */}
+      <div
+        className="fixed inset-0 z-[700] bg-black/50"
+        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease" }}
+        onClick={handleClose}
+      />
 
-      <div className="relative w-full max-w-lg bg-card rounded-t-2xl shadow-2xl animate-in slide-in-from-bottom-4">
+      {/* Bottom sheet — full screen */}
+      <div
+        className="fixed left-0 right-0 bottom-0 z-[700] bg-card rounded-t-2xl shadow-2xl flex flex-col"
+        style={{
+          top: 56,
+          transform: `translateY(${visible ? dragDelta + "px" : "100%"})`,
+          transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+        }}
+      >
+        {/* Drag handle */}
+        <div
+          className="shrink-0 flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+          style={{ touchAction: "none" }}
+        >
+          <div className="w-10 h-1 rounded-full bg-border" />
+        </div>
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-border">
+        {/* Header (swipeable) */}
+        <div
+          className="flex items-center px-5 pt-3 pb-3 border-b border-border shrink-0"
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+          style={{ touchAction: "none" }}
+        >
           <div>
             <h2 className="font-bold text-foreground text-lg">🐾 Signaler un chien errant</h2>
             <div className="flex items-center gap-1.5 mt-0.5">
@@ -155,157 +233,148 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
               )}
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-muted">
-            <X className="w-5 h-5 text-muted-foreground" />
-          </button>
         </div>
 
-        {/* Step 1 — Source choice */}
-        {step === "source" && (
-          <div className="p-5 space-y-3">
-            <p className="text-sm text-muted-foreground text-center mb-4">Comment souhaitez-vous ajouter une photo ?</p>
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Step 1 — Source choice */}
+          {step === "source" && (
+            <div className="p-5 space-y-3">
+              <p className="text-sm text-muted-foreground text-center mb-4">Comment souhaitez-vous ajouter une photo ?</p>
 
-            <input ref={cameraRef}  type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
-            <input ref={galleryRef} type="file" accept="image/*"                       className="hidden" onChange={handleFile} />
+              <input ref={cameraRef}  type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
+              <input ref={galleryRef} type="file" accept="image/*"                       className="hidden" onChange={handleFile} />
 
-            <button
-              onClick={() => cameraRef.current?.click()}
-              className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-destructive hover:bg-destructive/5 transition-colors"
-            >
-              <div className="w-12 h-12 bg-destructive/10 rounded-xl flex items-center justify-center shrink-0">
-                <Camera className="w-6 h-6 text-destructive" />
-              </div>
-              <div className="text-left">
-                <p className="font-semibold text-foreground">Ouvrir la caméra</p>
-                <p className="text-xs text-muted-foreground">Prendre une photo maintenant</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
-            </button>
-
-            <button
-              onClick={() => galleryRef.current?.click()}
-              className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-primary hover:bg-primary/5 transition-colors"
-            >
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                <FolderOpen className="w-6 h-6 text-primary" />
-              </div>
-              <div className="text-left">
-                <p className="font-semibold text-foreground">Importer depuis le téléphone</p>
-                <p className="text-xs text-muted-foreground">Choisir une photo existante</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
-            </button>
-
-            <button
-              onClick={() => setStep("form")}
-              className="w-full text-center text-xs text-muted-foreground pt-2 hover:text-foreground transition-colors"
-            >
-              Continuer sans photo →
-            </button>
-          </div>
-        )}
-
-        {/* Step 2 — Form */}
-        {step === "form" && (
-          <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
-
-            {/* Photo preview / change */}
-            {preview ? (
-              <div className="relative">
-                <img src={preview} alt="Photo" className="w-full h-44 object-cover rounded-xl" />
-                <button
-                  onClick={() => { setPhoto(null); setPreview(null); setStep("source"); }}
-                  className="absolute top-2 right-2 bg-black/60 rounded-full p-1.5"
-                >
-                  <X className="w-3.5 h-3.5 text-white" />
-                </button>
-              </div>
-            ) : (
               <button
-                onClick={() => setStep("source")}
-                className="w-full h-20 border-2 border-dashed border-border rounded-xl flex items-center justify-center gap-2 text-muted-foreground hover:bg-muted transition-colors text-sm"
+                onClick={() => cameraRef.current?.click()}
+                className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-destructive hover:bg-destructive/5 transition-colors"
               >
-                <Camera className="w-5 h-5" /> Ajouter une photo
+                <div className="w-12 h-12 bg-destructive/10 rounded-xl flex items-center justify-center shrink-0">
+                  <Camera className="w-6 h-6 text-destructive" />
+                </div>
+                <div className="text-left">
+                  <p className="font-semibold text-foreground">Ouvrir la caméra</p>
+                  <p className="text-xs text-muted-foreground">Prendre une photo maintenant</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
               </button>
-            )}
 
-            {/* Couleur */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Couleur</label>
-              <input
-                type="text"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                placeholder="Ex : fauve, noir, blanc et marron…"
-                className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground outline-none"
-              />
+              <button
+                onClick={() => galleryRef.current?.click()}
+                className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-primary hover:bg-primary/5 transition-colors"
+              >
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                  <FolderOpen className="w-6 h-6 text-primary" />
+                </div>
+                <div className="text-left">
+                  <p className="font-semibold text-foreground">Importer depuis le téléphone</p>
+                  <p className="text-xs text-muted-foreground">Choisir une photo existante</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+              </button>
+
+              <button
+                onClick={() => setStep("form")}
+                className="w-full text-center text-xs text-muted-foreground pt-2 hover:text-foreground transition-colors"
+              >
+                Continuer sans photo →
+              </button>
             </div>
+          )}
 
-            {/* Race */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Race (si connue)</label>
-              <input
-                type="text"
-                value={breed}
-                onChange={(e) => setBreed(e.target.value)}
-                placeholder="Ex : Labrador, Berger allemand…"
-                className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground outline-none"
-              />
-            </div>
-
-            {/* État */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">État de l'animal</label>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {CONDITIONS.map((c) => (
+          {/* Step 2 — Form */}
+          {step === "form" && (
+            <div className="p-5 space-y-4 pb-24">
+              {preview ? (
+                <div className="relative">
+                  <img src={preview} alt="Photo" className="w-full h-44 object-cover rounded-xl" />
                   <button
-                    key={c}
-                    onClick={() => setCondition(condition === c ? "" : c)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                      condition === c ? "bg-destructive text-white border-destructive" : "bg-muted text-foreground border-border"
-                    }`}
+                    onClick={() => { setPhoto(null); setPreview(null); setStep("source"); }}
+                    className="absolute top-2 right-2 bg-black/60 rounded-full p-1.5"
                   >
-                    {c}
+                    <X className="w-3.5 h-3.5 text-white" />
                   </button>
-                ))}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setStep("source")}
+                  className="w-full h-20 border-2 border-dashed border-border rounded-xl flex items-center justify-center gap-2 text-muted-foreground hover:bg-muted transition-colors text-sm"
+                >
+                  <Camera className="w-5 h-5" /> Ajouter une photo
+                </button>
+              )}
+
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Couleur</label>
+                <input type="text" value={color} onChange={(e) => setColor(e.target.value)}
+                  placeholder="Ex : fauve, noir, blanc et marron…"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground outline-none" />
               </div>
-            </div>
 
-            {/* Comportement */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Comportement</label>
-              <input
-                type="text"
-                value={behavior}
-                onChange={(e) => setBehavior(e.target.value)}
-                placeholder="Ex : cherche de la nourriture, se cache…"
-                className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground outline-none"
-              />
-            </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Race (si connue)</label>
+                <input type="text" value={breed} onChange={(e) => setBreed(e.target.value)}
+                  placeholder="Ex : Labrador, Berger allemand…"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground outline-none" />
+              </div>
 
-            {/* Description */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Description complémentaire</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Tout autre détail utile pour l'identifier…"
-                rows={3}
-                className="w-full mt-1 border border-border rounded-xl px-3 py-2 text-sm bg-background text-foreground outline-none resize-none"
-              />
-            </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">État de l'animal</label>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {CONDITIONS.map((c) => (
+                    <button key={c} onClick={() => setCondition(condition === c ? "" : c)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                        condition === c ? "bg-destructive text-white border-destructive" : "bg-muted text-foreground border-border"
+                      }`}>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-            <Button
-              onClick={handleSubmit}
-              disabled={loading || locating || !coords}
-              className="w-full bg-destructive hover:bg-destructive/90 text-white font-semibold"
-            >
-              {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-              🐾 Publier le signalement
-            </Button>
-          </div>
-        )}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Comportement</label>
+                <input type="text" value={behavior} onChange={(e) => setBehavior(e.target.value)}
+                  placeholder="Ex : cherche de la nourriture, se cache…"
+                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground outline-none" />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Description complémentaire</label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Tout autre détail utile pour l'identifier…"
+                  rows={3}
+                  className="w-full mt-1 border border-border rounded-xl px-3 py-2 text-sm bg-background text-foreground outline-none resize-none" />
+              </div>
+
+              <Button onClick={handleSubmit} disabled={loading || locating || !coords}
+                className="w-full bg-destructive hover:bg-destructive/90 text-white font-semibold">
+                {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                🐾 Publier le signalement
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* Floating close button */}
+      {visible && (
+        <button
+          onClick={handleClose}
+          className="fixed bottom-8 right-4 z-[701] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--border)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            touchAction: "manipulation",
+          } as React.CSSProperties}
+        >
+          <X className="w-5 h-5 text-foreground" />
+        </button>
+      )}
+    </>,
+    document.body
   );
 }

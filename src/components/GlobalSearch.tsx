@@ -250,7 +250,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
             display: "flex", alignItems: "center", justifyContent: "center",
             background: "transparent", border: "none",
             cursor: "pointer", borderRadius: 9999,
-            zIndex: 1,
+            zIndex: 1, touchAction: "manipulation",
           }}
         >
           {loading && hasSearch
