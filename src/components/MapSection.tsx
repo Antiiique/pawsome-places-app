@@ -1043,18 +1043,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         )}
       </div>
 
-      {/* Category filters */}
-      <div className="absolute top-16 left-0 right-0 z-20 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide">
-        {CATEGORY_FILTERS.map((f) => (
-          <button key={f.label} onClick={() => setActiveCategory(f.key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shadow-sm ${activeCategory === f.key ? "bg-primary text-primary-foreground" : "bg-card/90 backdrop-blur-sm border border-border text-foreground hover:bg-muted"}`}>
-            {f.emoji} {f.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Global search bar */}
-      <GlobalSearch mapRef={mapRef} />
+      {/* Global search bar — also controls map category filter */}
+      <GlobalSearch
+        mapRef={mapRef}
+        activeCategory={activeCategory}
+        onCategoryChange={setActiveCategory}
+      />
 
       {/* Lost pet FAB */}
       <button
