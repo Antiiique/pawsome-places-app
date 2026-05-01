@@ -32,7 +32,24 @@ interface SubmittedPlace {
   id: string;
   name: string;
   city: string | null;
+  address: string | null;
   category: string;
+  subcategory: string | null;
+  status: string | null;
+  created_at: string | null;
+  reviewed_at: string | null;
+  description: string | null;
+  phone: string | null;
+  website: string | null;
+  accepts_dogs: boolean | null;
+  accepts_cats: boolean | null;
+  dogs_on_leash_only: boolean | null;
+  outdoor_seating: boolean | null;
+  water_bowl_provided: boolean | null;
+  // enriched from pet_friendly_places join
+  linked_place_id: string | null;
+  linked_photo_url: string | null;
+  linked_rating: number | null;
 }
 
 interface StrayReport {
@@ -184,16 +201,16 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
       supabase.from("place_reviews").select("id", { count: "exact", head: true }).eq("user_id", userId),
       supabase.from("place_submissions").select("id", { count: "exact", head: true }).eq("submitted_by", userId).eq("status", "approved"),
       supabase.from("pets").select("id, name, species, breed, avatar_url").eq("user_id", userId).order("created_at", { ascending: false }),
-      supabase.from("place_submissions").select("id, name, city, category").eq("submitted_by", userId).eq("status", "approved").order("reviewed_at", { ascending: false }).limit(5),
+      supabase.from("place_submissions").select("id, name, city, address, category, subcategory, status, created_at, reviewed_at, description, phone, website, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, water_bowl_provided").eq("submitted_by", userId).order("created_at", { ascending: false }).limit(10),
       supabase.from("stray_reports").select("id, species, breed, city, created_at").eq("user_id", userId).gte("created_at", sevenDaysAgo).order("created_at", { ascending: false }),
       (supabase as any).from("lost_pets").select("id, pet_name, breed, color, status, last_seen_address, created_at").eq("user_id", userId).order("created_at", { ascending: false }),
-    ]).then(([
+    ]).then(async ([
       { data: prof },
       { count: strays },
       { count: reviews },
       { count: approvedSubs },
       { data: petsData },
-      { data: placesData },
+      { data: subsData },
       { data: straysData },
       { data: lostPetsData },
     ]) => {
@@ -202,9 +219,30 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
       setReviewCount(reviews || 0);
       setApprovedSubCount(approvedSubs || 0);
       setPets((petsData as Pet[]) || []);
-      setSubmittedPlaces((placesData as SubmittedPlace[]) || []);
       setRecentStrays((straysData as StrayReport[]) || []);
       setLostPets((lostPetsData as LostPet[]) || []);
+
+      // Enrich approved submissions with linked pet_friendly_places data
+      const rawSubs = (subsData as any[]) || [];
+      const approvedIds = rawSubs.filter(s => s.status === "approved").map(s => s.id);
+      let linkedMap: Record<string, { id: string; photo_url: string | null; rating: number | null }> = {};
+      if (approvedIds.length > 0) {
+        const { data: linked } = await supabase
+          .from("pet_friendly_places")
+          .select("id, photo_url, rating, source_id")
+          .eq("source", "user_submission")
+          .in("source_id", approvedIds);
+        for (const p of (linked as any[]) || []) {
+          linkedMap[p.source_id] = { id: p.id, photo_url: p.photo_url, rating: p.rating };
+        }
+      }
+      const enriched: SubmittedPlace[] = rawSubs.map(s => ({
+        ...s,
+        linked_place_id: linkedMap[s.id]?.id ?? null,
+        linked_photo_url: linkedMap[s.id]?.photo_url ?? null,
+        linked_rating: linkedMap[s.id]?.rating ?? null,
+      }));
+      setSubmittedPlaces(enriched);
       setLoading(false);
     });
   }, [userId]);
@@ -373,17 +411,96 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
             {/* Submitted places */}
             {!loading && submittedPlaces.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Lieux ajoutés</p>
-                <div className="space-y-1.5">
-                  {submittedPlaces.map(place => (
-                    <div key={place.id} className="flex items-center justify-between bg-muted rounded-xl px-3 py-2.5">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{place.name}</p>
-                        {place.city && <p className="text-[10px] text-muted-foreground">📍 {place.city}</p>}
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Lieux ajoutés</p>
+                  <span className="text-[10px] text-muted-foreground">
+                    {submittedPlaces.filter(p => p.status === "approved").length} approuvé{submittedPlaces.filter(p => p.status === "approved").length > 1 ? "s" : ""} · {submittedPlaces.length} total
+                  </span>
+                </div>
+                <div className="space-y-2.5">
+                  {submittedPlaces.map(place => {
+                    const isApproved = place.status === "approved";
+                    const isPending  = place.status === "pending";
+                    const isRejected = place.status === "rejected";
+                    const statusBadge = isApproved
+                      ? { label: "✅ Approuvé",    cls: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300" }
+                      : isPending
+                      ? { label: "⏳ En attente",  cls: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300" }
+                      : { label: "❌ Refusé",       cls: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" };
+
+                    const isClickable = isApproved && !!place.linked_place_id;
+                    const handleClick = () => {
+                      if (isClickable) window.dispatchEvent(new CustomEvent("open-place-panel", { detail: { placeId: place.linked_place_id } }));
+                    };
+
+                    return (
+                      <div
+                        key={place.id}
+                        onClick={isClickable ? handleClick : undefined}
+                        role={isClickable ? "button" : undefined}
+                        className={`w-full text-left rounded-xl border border-border overflow-hidden bg-card ${isClickable ? "hover:bg-muted/60 active:scale-[0.99] transition-all cursor-pointer" : ""}`}
+                      >
+                        {/* Photo + header */}
+                        <div className="flex gap-3 p-3">
+                          <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-muted border border-border">
+                            {place.linked_photo_url
+                              ? <img src={place.linked_photo_url} alt={place.name} className="w-full h-full object-cover" />
+                              : <div className="w-full h-full flex items-center justify-center text-2xl">{categoryLabel(place.category).split(" ")[0]}</div>
+                            }
+                          </div>
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="font-semibold text-foreground text-sm leading-tight truncate">{place.name}</p>
+                              <span className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${statusBadge.cls}`}>
+                                {statusBadge.label}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground">{categoryLabel(place.category)}{place.subcategory ? ` · ${place.subcategory}` : ""}</p>
+                            {(place.city || place.address) && (
+                              <p className="text-[10px] text-muted-foreground truncate">
+                                📍 {[place.address, place.city].filter(Boolean).join(", ")}
+                              </p>
+                            )}
+                            {place.linked_rating != null && (
+                              <p className="text-[10px] text-yellow-500 font-medium">★ {place.linked_rating.toFixed(1)}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Amenities row */}
+                        {(place.accepts_dogs || place.accepts_cats || place.dogs_on_leash_only || place.outdoor_seating || place.water_bowl_provided) && (
+                          <div className="px-3 pb-2 flex gap-1.5 flex-wrap">
+                            {place.accepts_dogs      && <span className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">🐕 Chiens</span>}
+                            {place.accepts_cats      && <span className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">🐈 Chats</span>}
+                            {place.dogs_on_leash_only && <span className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">🪢 Laisse</span>}
+                            {place.outdoor_seating   && <span className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">🌿 Terrasse</span>}
+                            {place.water_bowl_provided && <span className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">🥤 Gamelle</span>}
+                          </div>
+                        )}
+
+                        {/* Contact + dates */}
+                        <div className="px-3 pb-3 space-y-0.5">
+                          {place.phone && <p className="text-[10px] text-muted-foreground">📞 {place.phone}</p>}
+                          {place.website && (
+                            <p className="text-[10px] text-primary truncate">🌐 {place.website.replace(/^https?:\/\//, "")}</p>
+                          )}
+                          <div className="flex gap-3 pt-0.5">
+                            <p className="text-[9px] text-muted-foreground">
+                              Soumis le {new Date(place.created_at!).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                            </p>
+                            {place.reviewed_at && isApproved && (
+                              <p className="text-[9px] text-green-600 dark:text-green-400">
+                                Approuvé le {new Date(place.reviewed_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                              </p>
+                            )}
+                          </div>
+                          {isApproved && place.linked_place_id && (
+                            <p className="text-[9px] text-primary font-medium mt-0.5">Appuyer pour voir sur la carte →</p>
+                          )}
+                        </div>
                       </div>
-                      <span className="text-[10px] text-muted-foreground ml-2 shrink-0">{categoryLabel(place.category)}</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
