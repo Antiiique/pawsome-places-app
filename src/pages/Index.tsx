@@ -77,8 +77,8 @@ const Index = () => {
       const base = current === "itinerary" ? 1 : 0;
       setPanelDrag({ panel: "itinerary", progress: Math.max(0, Math.min(1, base + dx / screenW)) });
     } else {
-      const base = current === "favorites" ? 1 : 0;
-      setPanelDrag({ panel: "favorites", progress: Math.max(0, Math.min(1, base - dx / screenW)) });
+      const base = current === "profile" ? 1 : 0;
+      setPanelDrag({ panel: "profile", progress: Math.max(0, Math.min(1, base - dx / screenW)) });
     }
   };
 
@@ -112,7 +112,7 @@ const Index = () => {
       if (flickClose || (!flickOpen && progress < SNAP_THRESHOLD)) {
         setActivePanel(null);
       } else {
-        setActivePanel("favorites");
+        setActivePanel("profile");
       }
     }
   };
@@ -218,7 +218,7 @@ const Index = () => {
           <div
             className="fixed bottom-0 right-0 z-20"
             style={{ top: 56, width: EDGE_ZONE, touchAction: "none" }}
-            onTouchStart={handleStripStart("favorites")}
+            onTouchStart={handleStripStart("profile")}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           />
