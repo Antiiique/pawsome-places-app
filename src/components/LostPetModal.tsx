@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X, Image, Loader2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -27,6 +28,7 @@ const emptyForm = {
 
 export default function LostPetModal({ open, onClose, onPublished }: LostPetModalProps) {
   const { user } = useAuthContext();
+  const [visible, setVisible] = useState(false);
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [form, setForm] = useState(emptyForm);
@@ -35,6 +37,65 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
   const [geoLoading, setGeoLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
+
+  // Drag state
+  const [dragging, setDragging] = useState(false);
+  const [dragDelta, setDragDelta] = useState(0);
+  const isDragging    = useRef(false);
+  const dragStartY    = useRef(0);
+  const lastTouchY    = useRef(0);
+  const lastTouchTime = useRef(0);
+  const lastVelocity  = useRef(0);
+
+  // Sync visible with open
+  const prevOpen = useRef(false);
+  if (open !== prevOpen.current) {
+    prevOpen.current = open;
+    if (open) setTimeout(() => setVisible(true), 10);
+  }
+
+  const handleClose = () => {
+    setVisible(false);
+    setTimeout(() => {
+      setPhotos([]); setPreviews([]);
+      setForm(emptyForm);
+      setLat(null); setLng(null);
+      onClose();
+    }, 300);
+  };
+
+  const handleDragStart = (e: React.TouchEvent) => {
+    isDragging.current = true;
+    dragStartY.current = e.touches[0].clientY;
+    lastTouchY.current = e.touches[0].clientY;
+    lastTouchTime.current = Date.now();
+    lastVelocity.current = 0;
+    setDragging(true);
+    setDragDelta(0);
+  };
+
+  const handleDragMove = (e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    const y = e.touches[0].clientY;
+    const now = Date.now();
+    const dt = now - lastTouchTime.current;
+    if (dt > 0) lastVelocity.current = (y - lastTouchY.current) / dt;
+    lastTouchY.current = y;
+    lastTouchTime.current = now;
+    setDragDelta(Math.max(0, y - dragStartY.current));
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    setDragging(false);
+    const pct = (dragDelta / window.innerHeight) * 100;
+    if (lastVelocity.current > 0.5 || pct > 40) {
+      handleClose();
+    } else {
+      setDragDelta(0);
+    }
+  };
 
   const getGPS = () => {
     setGeoLoading(true);
@@ -122,31 +183,51 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
     }
   };
 
-  const handleClose = () => {
-    setPhotos([]); setPreviews([]);
-    setForm(emptyForm);
-    setLat(null); setLng(null);
-    onClose();
-  };
+  if (!open && !visible) return null;
 
-  if (!open) return null;
+  return createPortal(
+    <>
+      {/* Scrim */}
+      <div
+        className="fixed inset-0 z-[700] bg-black/60"
+        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease" }}
+        onClick={handleClose}
+      />
 
-  return (
-    <div className="fixed inset-0 z-[800] flex items-end justify-center sm:items-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
-      <div className="relative w-full max-w-md bg-card rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[92dvh] flex flex-col">
-
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-border shrink-0">
-          <div>
-            <h2 className="font-bold text-lg text-foreground">🆘 Signaler un animal perdu</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Les utilisateurs à moins de 50 km seront notifiés</p>
-          </div>
-          <button onClick={handleClose} className="p-2 rounded-full hover:bg-muted transition-colors">
-            <X className="w-5 h-5 text-foreground" />
-          </button>
+      {/* Bottom sheet — full screen */}
+      <div
+        className="fixed left-0 right-0 bottom-0 z-[700] bg-card rounded-t-2xl shadow-2xl flex flex-col"
+        style={{
+          top: 56,
+          transform: `translateY(${visible ? dragDelta + "px" : "100%"})`,
+          transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+        }}
+      >
+        {/* Drag handle */}
+        <div
+          className="shrink-0 flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+          style={{ touchAction: "none" }}
+        >
+          <div className="w-10 h-1 rounded-full bg-border" />
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+        {/* Header (swipeable) */}
+        <div
+          className="px-5 pt-3 pb-3 border-b border-border shrink-0"
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+          style={{ touchAction: "none" }}
+        >
+          <h2 className="font-bold text-lg text-foreground">🆘 Signaler un animal perdu</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Les utilisateurs à moins de 50 km seront notifiés</p>
+        </div>
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4 pb-24">
           {/* Photos */}
           <div className="space-y-2">
             <p className="text-xs font-semibold text-foreground uppercase tracking-wide">Photos <span className="text-muted-foreground font-normal normal-case">(jusqu'à 5)</span></p>
@@ -244,14 +325,31 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
                 placeholder="✉️ Email" />
             </div>
           </div>
-        </div>
 
-        <div className="shrink-0 px-5 py-4 border-t border-border">
           <Button onClick={handleSubmit} disabled={submitting || !form.pet_name.trim()} className="w-full gap-2 bg-amber-500 hover:bg-amber-600 text-white">
             {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Publication…</> : "🆘 Publier l'annonce"}
           </Button>
         </div>
       </div>
-    </div>
+
+      {/* Floating close button */}
+      {visible && (
+        <button
+          onClick={handleClose}
+          className="fixed bottom-8 right-4 z-[701] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--border)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            touchAction: "manipulation",
+          } as React.CSSProperties}
+        >
+          <X className="w-5 h-5 text-foreground" />
+        </button>
+      )}
+    </>,
+    document.body
   );
 }
