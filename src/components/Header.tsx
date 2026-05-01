@@ -1,5 +1,5 @@
 import logo from "@/assets/logo-wpf.png";
-import { Navigation, UserCircle, Bell, MessageCircle, User } from "lucide-react";
+import { Navigation, Heart, UserCircle, Bell, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
@@ -69,7 +69,7 @@ const Header = ({ onItineraryClick, onProfileClick, onMessagesClick }: HeaderPro
 
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="relative text-foreground hover:bg-accent-soft" onClick={onProfileClick} title="Mon profil">
-            <User className="w-5 h-5" />
+            <Heart className="w-5 h-5" />
           </Button>
 
           <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent-soft" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">

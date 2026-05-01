@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Supercluster from "supercluster";
-import { Camera, Loader2, Locate, MapPin, Search, X } from "lucide-react";
+import { Camera, Loader2, Locate, MapPin, Plus, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
 import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
@@ -1049,6 +1049,20 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
       />
+
+      {/* Add place FAB — between search and SOS */}
+      <button
+        onClick={() => {
+          const center = mapRef.current?.getCenter?.();
+          window.dispatchEvent(new CustomEvent("open-submit-modal", {
+            detail: { lat: center?.lat ?? 48.8566, lng: center?.lng ?? 2.3522 },
+          }));
+        }}
+        className="absolute bottom-52 right-4 z-20 p-3 bg-primary rounded-full shadow-lg border-2 border-white hover:bg-primary/90 transition-colors"
+        title="Ajouter un lieu"
+      >
+        <Plus className="w-5 h-5 text-white" />
+      </button>
 
       {/* Lost pet FAB */}
       <button

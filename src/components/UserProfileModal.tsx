@@ -445,13 +445,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
       className={`fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${open ? "translate-x-0" : "translate-x-full"}`}
       style={{
         top: 56,
-        width: 400,
-        maxWidth: "95vw",
-        left: "auto",
-        borderTopLeftRadius: 16,
-        borderBottomLeftRadius: 16,
         overflowX: "hidden",
-        borderLeft: "1px solid var(--border)",
         ...(dragProgress !== undefined ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" } : {}),
       }}
     >
