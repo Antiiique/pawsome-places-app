@@ -1,31 +1,29 @@
 import logo from "@/assets/logo-wpf.png";
-import { Navigation, Heart, UserCircle, Bell, MessageCircle } from "lucide-react";
+import { Navigation, UserCircle, Bell, MessageCircle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAuthContext } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import SubmitPlaceModal from "@/components/SubmitPlaceModal";
 import NotificationPanel from "@/components/NotificationPanel";
-import UserProfileModal from "@/components/UserProfileModal";
 import { useUserNotifications } from "@/hooks/useUserNotifications";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { toast } from "sonner";
 
 interface HeaderProps {
   onItineraryClick?: () => void;
-  onFavoritesClick?: () => void;
+  onProfileClick?: () => void;
   onMessagesClick?: () => void;
-  favoritesCount?: number;
 }
 
-const Header = ({ onItineraryClick, onFavoritesClick, onMessagesClick, favoritesCount = 0 }: HeaderProps) => {
+const Header = ({ onItineraryClick, onProfileClick, onMessagesClick }: HeaderProps) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitCoords, setSubmitCoords] = useState<{ lat: number; lng: number; address?: string } | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const { user, profile, signOut } = useAuthContext();
   const { unreadCount } = useUserNotifications();
@@ -70,13 +68,8 @@ const Header = ({ onItineraryClick, onFavoritesClick, onMessagesClick, favorites
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative text-foreground hover:bg-accent-soft" onClick={onFavoritesClick} title="Mes favoris">
-            <Heart className="w-5 h-5" />
-            {favoritesCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                {favoritesCount > 99 ? "99+" : favoritesCount}
-              </span>
-            )}
+          <Button variant="ghost" size="icon" className="relative text-foreground hover:bg-accent-soft" onClick={onProfileClick} title="Mon profil">
+            <User className="w-5 h-5" />
           </Button>
 
           <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent-soft" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
@@ -112,7 +105,10 @@ const Header = ({ onItineraryClick, onFavoritesClick, onMessagesClick, favorites
                   </span>
                 )}
               </button>
-              <NotificationPanel open={showNotifications} onClose={() => setShowNotifications(false)} />
+              {createPortal(
+                <NotificationPanel open={showNotifications} onClose={() => setShowNotifications(false)} />,
+                document.body
+              )}
             </div>
           )}
 
@@ -136,11 +132,8 @@ const Header = ({ onItineraryClick, onFavoritesClick, onMessagesClick, favorites
                 <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); setShowSubmitModal(true); }}>
                   ➕ Ajouter un lieu
                 </button>
-                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); setShowProfileModal(true); }}>
+                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onProfileClick?.(); }}>
                   👤 Mon profil
-                </button>
-                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onFavoritesClick?.(); }}>
-                  ❤️ Mes favoris
                 </button>
                 <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onItineraryClick?.(); }}>
                   🗺️ Mes itinéraires
@@ -171,7 +164,6 @@ const Header = ({ onItineraryClick, onFavoritesClick, onMessagesClick, favorites
 
 <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
       <SubmitPlaceModal open={showSubmitModal} onClose={() => { setShowSubmitModal(false); setSubmitCoords(null); }} onLoginRequired={() => { setShowSubmitModal(false); setShowAuthModal(true); }} initialCoords={submitCoords ?? undefined} />
-      <UserProfileModal open={showProfileModal} onClose={() => setShowProfileModal(false)} />
     </header>
   );
 };

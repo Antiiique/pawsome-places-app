@@ -11,6 +11,7 @@ import { toast } from "sonner";
 interface UserProfileModalProps {
   open: boolean;
   onClose: () => void;
+  dragProgress?: number;
 }
 
 interface ProfileData {
@@ -144,7 +145,7 @@ const EMPTY_PET_FORM = {
   is_vaccinated: false, is_sterilized: false, is_microchipped: false,
 };
 
-export default function UserProfileModal({ open, onClose }: UserProfileModalProps) {
+export default function UserProfileModal({ open, onClose, dragProgress }: UserProfileModalProps) {
   const { user } = useAuthContext();
 
   const [loading, setLoading] = useState(false);
@@ -424,17 +425,38 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
     toast.success("Photo supprimée");
   };
 
-  if (!open) return null;
-
-  const initial = (profile.display_name?.[0] || user?.email?.[0] || "?").toUpperCase();
+  const initial = open ? (profile.display_name?.[0] || user?.email?.[0] || "?").toUpperCase() : "?";
 
   return (
+    <>
+      {/* Floating close button — same as FavoritesPanel */}
+      {open && (
+        <button
+          onClick={onClose}
+          className="fixed bottom-8 right-4 z-[601] p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors"
+          title="Fermer"
+        >
+          <X className="w-5 h-5 text-foreground" />
+        </button>
+      )}
+
     <div
-      className="fixed top-[56px] right-0 z-[500] flex flex-col overflow-hidden border-l border-border bg-card animate-slide-in-right"
-      style={{ width: 400, maxWidth: "95vw", height: "calc(100dvh - 56px)", borderBottomLeftRadius: 14 }}
+      data-panel
+      className={`fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${open ? "translate-x-0" : "translate-x-full"}`}
+      style={{
+        top: 56,
+        width: 400,
+        maxWidth: "95vw",
+        left: "auto",
+        borderTopLeftRadius: 16,
+        borderBottomLeftRadius: 16,
+        overflowX: "hidden",
+        borderLeft: "1px solid var(--border)",
+        ...(dragProgress !== undefined ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" } : {}),
+      }}
     >
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-border">
-        <span className="text-sm font-bold text-foreground">👤 Mon compte</span>
+        <span className="text-sm font-bold text-foreground">👤 Mon profil</span>
         <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
           <X className="w-4 h-4" />
         </button>
@@ -1101,5 +1123,6 @@ export default function UserProfileModal({ open, onClose }: UserProfileModalProp
         </Tabs>
       </div>
     </div>
+    </>
   );
 }

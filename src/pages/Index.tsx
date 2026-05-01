@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import MapSection from "@/components/MapSection";
 import ItineraryPanel from "@/components/itinerary/ItineraryPanel";
-import FavoritesPanel from "@/components/FavoritesPanel";
+import UserProfileModal from "@/components/UserProfileModal";
 import UserProfilePanel from "@/components/UserProfilePanel";
 import MessagesPanel from "@/components/MessagesPanel";
 import type { PickMode } from "@/components/itinerary/ItineraryPanel";
@@ -9,7 +9,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import type { ItineraryMapData } from "@/components/itinerary/types";
 import { useFavorites } from "@/hooks/useFavorites";
 
-type PanelName = "itinerary" | "favorites" | null;
+type PanelName = "itinerary" | "profile" | null;
 
 const EDGE_ZONE = 44;
 const SNAP_THRESHOLD = 0.25;
@@ -23,7 +23,7 @@ const Index = () => {
   const [pendingChat, setPendingChat] = useState<{ convId: string; other: { id: string; display_name: string | null; avatar_url: string | null } } | null>(null);
   const [itineraryData, setItineraryData] = useState<ItineraryMapData | null>(null);
   const [pickMode, setPickMode] = useState<PickMode>(null);
-  const [panelDrag, setPanelDrag] = useState<{ panel: "itinerary" | "favorites"; progress: number } | null>(null);
+  const [panelDrag, setPanelDrag] = useState<{ panel: "itinerary" | "profile"; progress: number } | null>(null);
 
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -76,8 +76,8 @@ const Index = () => {
       const base = current === "itinerary" ? 1 : 0;
       setPanelDrag({ panel: "itinerary", progress: Math.max(0, Math.min(1, base + dx / screenW)) });
     } else {
-      const base = current === "favorites" ? 1 : 0;
-      setPanelDrag({ panel: "favorites", progress: Math.max(0, Math.min(1, base - dx / screenW)) });
+      const base = current === "profile" ? 1 : 0;
+      setPanelDrag({ panel: "profile", progress: Math.max(0, Math.min(1, base - dx / screenW)) });
     }
   };
 
@@ -111,7 +111,7 @@ const Index = () => {
       if (flickClose || (!flickOpen && progress < SNAP_THRESHOLD)) {
         setActivePanel(null);
       } else {
-        setActivePanel("favorites");
+        setActivePanel("profile");
       }
     }
   };
@@ -182,9 +182,8 @@ const Index = () => {
     >
       <Header
         onItineraryClick={() => openPanel("itinerary")}
-        onFavoritesClick={() => openPanel("favorites")}
+        onProfileClick={() => openPanel("profile")}
         onMessagesClick={() => { setShowMessages(true); setPendingChat(null); }}
-        favoritesCount={favCount}
       />
       <MapSection
         searchQuery={searchQuery}
@@ -216,7 +215,7 @@ const Index = () => {
           <div
             className="fixed bottom-0 right-0 z-20"
             style={{ top: 56, width: EDGE_ZONE, touchAction: "none" }}
-            onTouchStart={handleStripStart("favorites")}
+            onTouchStart={handleStripStart("profile")}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           />
@@ -247,15 +246,10 @@ const Index = () => {
         dragProgress={panelDrag?.panel === "itinerary" ? panelDrag.progress : undefined}
       />
 
-      <FavoritesPanel
-        open={activePanel === "favorites"}
-        favorites={favorites}
+      <UserProfileModal
+        open={activePanel === "profile"}
         onClose={() => setActivePanel(null)}
-        onRemove={removeFavorite}
-        onViewOnMap={handleFavViewOnMap}
-        onSetOrigin={handleFavSetOrigin}
-        onSetDestination={handleFavSetDest}
-        dragProgress={panelDrag?.panel === "favorites" ? panelDrag.progress : undefined}
+        dragProgress={panelDrag?.panel === "profile" ? panelDrag.progress : undefined}
       />
 
       <UserProfilePanel
