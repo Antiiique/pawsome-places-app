@@ -1058,7 +1058,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             detail: { lat: center?.lat ?? 48.8566, lng: center?.lng ?? 2.3522 },
           }));
         }}
-        className="absolute bottom-52 right-4 z-20 p-3 bg-primary rounded-full shadow-lg border-2 border-white hover:bg-primary/90 transition-colors"
+        className="absolute bottom-56 right-4 z-20 p-3 bg-primary rounded-full shadow-lg border-2 border-white hover:bg-primary/90 transition-colors"
         title="Ajouter un lieu"
       >
         <Plus className="w-5 h-5 text-white" />

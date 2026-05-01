@@ -199,7 +199,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
         ref={barRef}
         style={{
           position: "absolute",
-          bottom: "14rem",
+          bottom: "18rem",   /* bottom-72: above add(bottom-56)→lostpet(bottom-40)→stray(bottom-24)→locate(bottom-8) */
           right: "1rem",
           zIndex: 20,
           /* ── The bar uses position:relative so the icon button can be

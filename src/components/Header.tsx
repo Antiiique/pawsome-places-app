@@ -15,11 +15,13 @@ import { toast } from "sonner";
 
 interface HeaderProps {
   onItineraryClick?: () => void;
+  onFavoritesClick?: () => void;
   onProfileClick?: () => void;
   onMessagesClick?: () => void;
+  favoritesCount?: number;
 }
 
-const Header = ({ onItineraryClick, onProfileClick, onMessagesClick }: HeaderProps) => {
+const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessagesClick, favoritesCount = 0 }: HeaderProps) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitCoords, setSubmitCoords] = useState<{ lat: number; lng: number; address?: string } | null>(null);
@@ -68,8 +70,13 @@ const Header = ({ onItineraryClick, onProfileClick, onMessagesClick }: HeaderPro
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative text-foreground hover:bg-accent-soft" onClick={onProfileClick} title="Mon profil">
+          <Button variant="ghost" size="icon" className="relative text-foreground hover:bg-accent-soft" onClick={onFavoritesClick} title="Mes favoris">
             <Heart className="w-5 h-5" />
+            {favoritesCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                {favoritesCount > 99 ? "99+" : favoritesCount}
+              </span>
+            )}
           </Button>
 
           <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent-soft" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
@@ -134,6 +141,9 @@ const Header = ({ onItineraryClick, onProfileClick, onMessagesClick }: HeaderPro
                 </button>
                 <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onProfileClick?.(); }}>
                   👤 Mon profil
+                </button>
+                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onFavoritesClick?.(); }}>
+                  ❤️ Mes favoris
                 </button>
                 <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onItineraryClick?.(); }}>
                   🗺️ Mes itinéraires
