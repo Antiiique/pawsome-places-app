@@ -429,11 +429,12 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
 
   return (
     <>
-      {/* Floating close button — same as FavoritesPanel */}
+      {/* Floating close button — liquid glass */}
       {open && (
         <button
           onClick={onClose}
-          className="fixed bottom-8 right-4 z-[601] p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors"
+          className="fixed bottom-8 right-4 z-[601] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+          style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.18)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", touchAction: "manipulation" } as React.CSSProperties}
           title="Fermer"
         >
           <X className="w-5 h-5 text-foreground" />
@@ -442,18 +443,15 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
 
     <div
       data-panel
-      className={`fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${open ? "translate-x-0" : "translate-x-full"}`}
+      className={`fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-l-2xl ${open ? "translate-x-0" : "translate-x-full"}`}
       style={{
         top: 56,
         overflowX: "hidden",
         ...(dragProgress !== undefined ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" } : {}),
       }}
     >
-      <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-border">
+      <div className="flex-shrink-0 flex items-center px-4 py-3 border-b border-border">
         <span className="text-sm font-bold text-foreground">👤 Mon profil</span>
-        <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-          <X className="w-4 h-4" />
-        </button>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto">

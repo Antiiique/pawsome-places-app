@@ -331,7 +331,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
       <div
         className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
-          height: "calc(100vh - 48px)",
+          height: "calc(100vh - 56px)",
           transform: `translateY(${!visible ? 100 : currentOffset}%)`,
           transition: dragging ? "none" : "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
           willChange: "transform",

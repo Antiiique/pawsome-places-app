@@ -201,7 +201,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
           position: "absolute",
           bottom: "18rem",   /* bottom-72: above add(bottom-56)→lostpet(bottom-40)→stray(bottom-24)→locate(bottom-8) */
           right: "1rem",
-          zIndex: 20,
+          zIndex: 30,
           /* ── The bar uses position:relative so the icon button can be
              absolutely anchored to the right edge — guaranteeing a full
              48×48 hit zone regardless of the animated width. ── */
