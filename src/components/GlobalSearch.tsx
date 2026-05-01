@@ -1,41 +1,108 @@
-import { useState, useRef, useEffect, MutableRefObject } from "react";
-import { Search, X, Loader2, User } from "lucide-react";
-import { useGlobalSearch, type SearchResult } from "@/hooks/useGlobalSearch";
+import { useState, useRef, useEffect, useCallback, MutableRefObject } from "react";
+import { Search, X, Loader2, User, SlidersHorizontal } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useGlobalSearch, type SearchResult, type ResultType, type SearchFilters } from "@/hooks/useGlobalSearch";
 
-const CATEGORY_ICONS: Record<string, string> = {
-  veterinaire: "🏥", shop: "🐾", parc_chiens: "🐕", refuge: "🏚️", spa: "🛁",
-  restaurant: "🍽️", hotel: "🏨", cafe: "☕", loisir: "🎯", outdoor: "🌿",
-  parc: "🌳", plage: "🏖️", camping: "⛺", transport: "🚌", autre: "📍",
-};
+/* ── Constants ─────────────────────────────────────────── */
+
+const FAB     = 48;
+const OPEN_W  = "min(calc(100vw - 96px), 440px)";
+const ANIM_MS = 320;
+
+const ALL_TYPES: ResultType[] = ["place", "user", "stray", "lost_pet"];
+
+const TYPE_CHIPS = [
+  { value: "place"    as ResultType, label: "Lieux",    emoji: "📍" },
+  { value: "user"     as ResultType, label: "Membres",  emoji: "👤" },
+  { value: "stray"    as ResultType, label: "Errants",  emoji: "🚨" },
+  { value: "lost_pet" as ResultType, label: "Perdus",   emoji: "🆘" },
+];
+
+const CATEGORY_CHIPS = [
+  { value: "veterinaire", label: "Vétérinaire", emoji: "🏥" },
+  { value: "shop",        label: "Animalerie",  emoji: "🐾" },
+  { value: "parc_chiens", label: "Parc chiens", emoji: "🐕" },
+  { value: "refuge",      label: "Refuge",      emoji: "🏚️" },
+  { value: "restaurant",  label: "Restaurant",  emoji: "🍽️" },
+  { value: "hotel",       label: "Hôtel",       emoji: "🏨" },
+  { value: "cafe",        label: "Café",        emoji: "☕" },
+  { value: "spa",         label: "Spa",         emoji: "🛁" },
+  { value: "loisir",      label: "Loisir",      emoji: "🎯" },
+  { value: "outdoor",     label: "Outdoor",     emoji: "🌿" },
+  { value: "plage",       label: "Plage",       emoji: "🏖️" },
+  { value: "camping",     label: "Camping",     emoji: "⛺" },
+];
+
+const CATEGORY_ICONS: Record<string, string> = Object.fromEntries(CATEGORY_CHIPS.map(c => [c.value, c.emoji]));
 const catIcon = (c: string) => CATEGORY_ICONS[c] || "📍";
 
-const FAB        = 48;   // circle diameter (px)
-const OPEN_W     = "min(calc(100vw - 96px), 440px)";
-const ANIM_MS    = 320;  // bar open/close duration
+/* ── Sub-components ─────────────────────────────────────── */
 
 function SectionHeader({ label }: { label: string }) {
   return (
-    <div className="px-4 pt-3 pb-1.5 flex items-center gap-2">
+    <div className="px-4 pt-2.5 pb-1.5 flex items-center gap-2">
       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest shrink-0">{label}</p>
       <div className="flex-1 h-px bg-border" />
     </div>
   );
 }
 
+/* ── Main component ─────────────────────────────────────── */
+
 interface GlobalSearchProps { mapRef: MutableRefObject<any>; }
 
 export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
+  /* open/close state */
   const [open,    setOpen]    = useState(false);
   const [closing, setClosing] = useState(false);
-  const [query,   setQuery]   = useState("");
+
+  /* text query */
+  const [query, setQuery] = useState("");
+
+  /* filters */
+  const [filterCategory, setFilterCategory] = useState<string | null>(null);
+  const [filterTypes,    setFilterTypes]    = useState<ResultType[]>(ALL_TYPES);
+  const [filterCity,     setFilterCity]     = useState<string | null>(null);
+  const [cityInput,      setCityInput]      = useState("");
+  const [citySuggestions, setCitySuggestions] = useState<string[]>([]);
+
   const { results, loading, search, clear } = useGlobalSearch();
-  const inputRef     = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const closeTimer   = useRef<ReturnType<typeof setTimeout>>();
+  const inputRef      = useRef<HTMLInputElement>(null);
+  const cityInputRef  = useRef<HTMLInputElement>(null);
+  const containerRef  = useRef<HTMLDivElement>(null);
+  const closeTimer    = useRef<ReturnType<typeof setTimeout>>();
 
-  useEffect(() => { search(query); }, [query, search]);
+  /* ── Active filter count for badge ── */
+  const activeFilterCount =
+    (filterCategory ? 1 : 0) +
+    (filterCity     ? 1 : 0) +
+    (filterTypes.length < ALL_TYPES.length ? 1 : 0);
 
-  /* ── Outside tap → close ── */
+  /* ── Build filters object ── */
+  const filters: SearchFilters = { category: filterCategory, types: filterTypes, city: filterCity };
+
+  /* ── Re-search on query or filter change ── */
+  useEffect(() => {
+    search(query, filters);
+  }, [query, filterCategory, filterCity, filterTypes]);    // eslint-disable-line
+
+  /* ── City autocomplete ── */
+  useEffect(() => {
+    if (cityInput.length < 2) { setCitySuggestions([]); return; }
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("pet_friendly_places")
+        .select("city")
+        .ilike("city", `%${cityInput}%`)
+        .not("city", "is", null)
+        .limit(6);
+      const cities = [...new Set((data || []).map((r: any) => r.city).filter(Boolean))] as string[];
+      setCitySuggestions(cities);
+    }, 200);
+    return () => clearTimeout(t);
+  }, [cityInput]);
+
+  /* ── Outside tap closes ── */
   useEffect(() => {
     const h = (e: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) startClose();
@@ -43,8 +110,9 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
     document.addEventListener("mousedown", h);
     document.addEventListener("touchstart", h, { passive: true });
     return () => { document.removeEventListener("mousedown", h); document.removeEventListener("touchstart", h); };
-  }, []);
+  }, [open]);   // eslint-disable-line
 
+  /* ── Open / Close ── */
   const openSearch = () => {
     clearTimeout(closeTimer.current);
     setClosing(false);
@@ -52,20 +120,41 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
     setTimeout(() => inputRef.current?.focus(), ANIM_MS);
   };
 
-  /* Trigger close animation, then actually unmount content after bar finishes */
   const startClose = () => {
     if (!open) return;
     inputRef.current?.blur();
-    setClosing(true);                        // bar starts shrinking, dropdown starts fading
+    cityInputRef.current?.blur();
+    setClosing(true);
     clearTimeout(closeTimer.current);
     closeTimer.current = setTimeout(() => {
       setOpen(false);
       setClosing(false);
       setQuery("");
+      setCityInput("");
+      setCitySuggestions([]);
       clear();
     }, ANIM_MS);
   };
 
+  const clearAllFilters = useCallback(() => {
+    setFilterCategory(null);
+    setFilterTypes(ALL_TYPES);
+    setFilterCity(null);
+    setCityInput("");
+    setCitySuggestions([]);
+  }, []);
+
+  const toggleType = (t: ResultType) => {
+    setFilterTypes(prev => {
+      if (prev.includes(t)) {
+        const next = prev.filter(x => x !== t);
+        return next.length === 0 ? ALL_TYPES : next; // never empty
+      }
+      return [...prev, t];
+    });
+  };
+
+  /* ── Result click ── */
   const handleResult = (r: SearchResult) => {
     startClose();
     if (r.type === "place") {
@@ -83,18 +172,21 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
     }
   };
 
-  const isExpanded   = open && !closing;       // fully open
-  const showDropdown = isExpanded && query.length > 0 && (results.length > 0 || loading);
+  /* ── Derived ── */
+  const isExpanded   = open && !closing;
+  const showDropdown = isExpanded; // always visible while open (shows filters even with no query)
 
   const places   = results.filter(r => r.type === "place")    as Extract<SearchResult, { type: "place" }>[];
   const users    = results.filter(r => r.type === "user")     as Extract<SearchResult, { type: "user" }>[];
   const strays   = results.filter(r => r.type === "stray")    as Extract<SearchResult, { type: "stray" }>[];
   const lostPets = results.filter(r => r.type === "lost_pet") as Extract<SearchResult, { type: "lost_pet" }>[];
+  const hasResults = results.length > 0;
 
+  /* ══════════════════════════════════════════════════════ */
   return (
     <div ref={containerRef} className="absolute bottom-24 left-4 z-20">
 
-      {/* ══ Dropdown — sits above bar, animates with same ANIM_MS timing ══ */}
+      {/* ══ Dropdown panel ══ */}
       <div
         style={{
           position: "absolute",
@@ -104,10 +196,12 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
           opacity: showDropdown ? 1 : 0,
           visibility: showDropdown ? "visible" : "hidden",
           transform: showDropdown ? "translateY(0)" : "translateY(10px)",
-          /* Same duration as bar so both finish together */
           transition: `opacity ${ANIM_MS}ms cubic-bezier(0.4,0,0.2,1), transform ${ANIM_MS}ms cubic-bezier(0.4,0,0.2,1), visibility 0s linear ${showDropdown ? "0s" : `${ANIM_MS}ms`}`,
           borderRadius: 16,
           overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          maxHeight: "58vh",
           background: "var(--card)",
           border: "1px solid var(--border)",
           boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
@@ -115,10 +209,112 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
           WebkitBackdropFilter: "blur(20px)",
         } as React.CSSProperties}
       >
-        {/* Scrollable area — height never animates → touch events stable */}
+
+        {/* ── FILTER HEADER (fixed, never scrolls) ── */}
+        <div style={{ flexShrink: 0, borderBottom: "1px solid var(--border)" }}>
+
+          {/* Header title + clear */}
+          <div className="flex items-center justify-between px-4 pt-3 pb-1.5">
+            <div className="flex items-center gap-1.5">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+              <p className="text-xs font-semibold text-muted-foreground">Filtres</p>
+              {activeFilterCount > 0 && (
+                <span className="text-[10px] font-bold bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full leading-none">
+                  {activeFilterCount}
+                </span>
+              )}
+            </div>
+            {activeFilterCount > 0 && (
+              <button onClick={clearAllFilters} className="text-[11px] text-primary font-medium hover:underline">
+                Tout effacer
+              </button>
+            )}
+          </div>
+
+          {/* Type of result chips */}
+          <div className="flex gap-1.5 px-3 pb-2 overflow-x-auto scrollbar-hide">
+            {TYPE_CHIPS.map(t => {
+              const active = !filterTypes.includes(t.value) ? false : filterTypes.length < ALL_TYPES.length;
+              const selected = filterTypes.length < ALL_TYPES.length && filterTypes.includes(t.value);
+              return (
+                <button
+                  key={t.value}
+                  onClick={() => toggleType(t.value)}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full border text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                    selected
+                      ? "bg-primary/10 border-primary text-primary"
+                      : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {t.emoji} {t.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Category chips (horizontal scroll) */}
+          <div className="flex gap-1.5 px-3 pb-2 overflow-x-auto scrollbar-hide">
+            {CATEGORY_CHIPS.map(c => (
+              <button
+                key={c.value}
+                onClick={() => setFilterCategory(prev => prev === c.value ? null : c.value)}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full border text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                  filterCategory === c.value
+                    ? "bg-primary/10 border-primary text-primary"
+                    : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {c.emoji} {c.label}
+              </button>
+            ))}
+          </div>
+
+          {/* City filter */}
+          <div className="px-3 pb-3">
+            {filterCity ? (
+              <div className="flex items-center gap-1.5">
+                <div className="inline-flex items-center gap-1.5 bg-primary/10 border border-primary/30 rounded-full px-3 py-1.5">
+                  <span className="text-xs font-medium text-primary">📍 {filterCity}</span>
+                  <button
+                    onClick={() => { setFilterCity(null); setCityInput(""); setCitySuggestions([]); }}
+                    className="text-primary/70 hover:text-primary transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="relative">
+                <input
+                  ref={cityInputRef}
+                  value={cityInput}
+                  onChange={e => setCityInput(e.target.value)}
+                  placeholder="Filtrer par ville…"
+                  style={{ fontSize: 16 }}
+                  className="w-full bg-muted/50 border border-border rounded-full px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 transition-colors"
+                />
+                {citySuggestions.length > 0 && (
+                  <div className="absolute bottom-full mb-1 left-0 right-0 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-20">
+                    {citySuggestions.map(city => (
+                      <button
+                        key={city}
+                        onClick={() => { setFilterCity(city); setCityInput(city); setCitySuggestions([]); }}
+                        className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted active:bg-muted/80 transition-colors"
+                      >
+                        📍 {city}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── RESULTS (scrollable) ── */}
         <div
           style={{
-            maxHeight: "54vh",
+            flex: 1,
             overflowY: "scroll",
             overflowX: "hidden",
             WebkitOverflowScrolling: "touch",
@@ -126,12 +322,31 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
             touchAction: "pan-y",
           } as React.CSSProperties}
         >
-          {loading && results.length === 0 && (
+          {/* Loading */}
+          {loading && results.length === 0 && (query || filterCity || filterCategory) && (
             <div className="flex items-center gap-2 px-4 py-4 text-sm text-muted-foreground">
               <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" /> Recherche en cours…
             </div>
           )}
 
+          {/* Empty state */}
+          {!loading && !hasResults && !query && !filterCity && !filterCategory && (
+            <div className="px-4 py-6 text-center">
+              <p className="text-sm text-muted-foreground">Tapez un nom, une ville</p>
+              <p className="text-xs text-muted-foreground mt-1">ou sélectionnez un filtre ci-dessus</p>
+            </div>
+          )}
+
+          {/* No results */}
+          {!loading && hasResults === false && (query.length >= 2 || filterCity || filterCategory) && !loading && (
+            !hasResults && (query || filterCity || filterCategory) && results.length === 0 && !loading && (
+              <p className="px-4 py-6 text-sm text-muted-foreground text-center">
+                Aucun résultat pour cette recherche
+              </p>
+            )
+          )}
+
+          {/* Places */}
           {places.length > 0 && (
             <section>
               <SectionHeader label={`📍 Lieux (${places.length})`} />
@@ -150,9 +365,10 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
             </section>
           )}
 
+          {/* Users */}
           {users.length > 0 && (
             <section>
-              <SectionHeader label={`👤 Utilisateurs (${users.length})`} />
+              <SectionHeader label={`👤 Membres (${users.length})`} />
               {users.map(r => (
                 <button key={r.id} onClick={() => handleResult(r)}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/60 active:bg-muted/80 transition-colors text-left">
@@ -168,6 +384,7 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
             </section>
           )}
 
+          {/* Strays */}
           {strays.length > 0 && (
             <section>
               <SectionHeader label={`🚨 Animaux errants (${strays.length})`} />
@@ -184,6 +401,7 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
             </section>
           )}
 
+          {/* Lost pets */}
           {lostPets.length > 0 && (
             <section>
               <SectionHeader label={`🆘 Animaux perdus (${lostPets.length})`} />
@@ -202,16 +420,11 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
             </section>
           )}
 
-          {!loading && results.length === 0 && query.length >= 2 && (
-            <p className="px-4 py-6 text-sm text-muted-foreground text-center">
-              Aucun résultat pour &ldquo;{query}&rdquo;
-            </p>
-          )}
           <div className="h-3" />
         </div>
       </div>
 
-      {/* ══ Pill bar — circle when closed, expands when open ══ */}
+      {/* ══ Animated bar ══ */}
       <div
         style={{
           width: isExpanded ? OPEN_W : FAB,
@@ -228,67 +441,61 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
           WebkitBackdropFilter: "blur(12px)",
         } as React.CSSProperties}
       >
-        {/* ── Search icon button — full 48×48 hit-target, no offset ── */}
+        {/* Icon button — exact 48×48 hit target */}
         <button
           onClick={() => { if (!open || closing) openSearch(); }}
           style={{
-            width: FAB,
-            height: FAB,
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            /* Always covers the full circle — no pointer interference from parent */
-            pointerEvents: "auto",
-            background: "transparent",
-            border: "none",
+            position: "relative",
+            width: FAB, height: FAB, flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "transparent", border: "none",
             cursor: isExpanded ? "default" : "pointer",
             borderRadius: 9999,
+            pointerEvents: "auto",
           }}
         >
-          {loading && query
+          {loading && (query || filterCity || filterCategory)
             ? <Loader2 className="w-5 h-5 text-primary animate-spin" />
             : <Search className="w-5 h-5 text-primary" />}
+
+          {/* Active filter badge */}
+          {activeFilterCount > 0 && !open && (
+            <span style={{
+              position: "absolute", top: 9, right: 9,
+              width: 9, height: 9, borderRadius: "50%",
+              background: "var(--primary)",
+              border: "1.5px solid var(--card)",
+            }} />
+          )}
         </button>
 
-        {/* ── Input ── */}
+        {/* Input */}
         <input
           ref={inputRef}
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Lieu, ville, type…"
           style={{
-            fontSize: 16,               // prevents iOS auto-zoom
+            fontSize: 16,
             opacity: isExpanded ? 1 : 0,
             transition: `opacity 0.15s ease ${isExpanded ? "0.18s" : "0s"}`,
             pointerEvents: isExpanded ? "auto" : "none",
-            flex: 1,
-            background: "transparent",
-            outline: "none",
-            color: "var(--foreground)",
-            minWidth: 0,
+            flex: 1, background: "transparent", outline: "none",
+            color: "var(--foreground)", minWidth: 0,
           }}
         />
 
-        {/* ── Close button ── */}
+        {/* Close */}
         <button
           onClick={e => { e.stopPropagation(); startClose(); }}
           style={{
-            width: 40,
-            height: 40,
-            flexShrink: 0,
-            marginRight: 4,
+            width: 40, height: 40, flexShrink: 0, marginRight: 4,
             opacity: isExpanded ? 1 : 0,
             transition: `opacity 0.15s ease ${isExpanded ? "0.22s" : "0s"}`,
             pointerEvents: isExpanded ? "auto" : "none",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 9999,
-            color: "var(--muted-foreground)",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            borderRadius: 9999, color: "var(--muted-foreground)",
+            background: "transparent", border: "none", cursor: "pointer",
           }}
           className="hover:bg-muted transition-colors"
         >
