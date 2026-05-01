@@ -643,6 +643,7 @@ export type Database = {
       profiles: {
         Row: {
           age: number | null
+          alert_radius_km: number | null
           avatar_url: string | null
           bio: string | null
           city: string | null
@@ -658,6 +659,7 @@ export type Database = {
         }
         Insert: {
           age?: number | null
+          alert_radius_km?: number | null
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
@@ -673,6 +675,7 @@ export type Database = {
         }
         Update: {
           age?: number | null
+          alert_radius_km?: number | null
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
