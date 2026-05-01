@@ -11,30 +11,36 @@ const ANIM_MS = 320;
 
 const ALL_TYPES: ResultType[] = ["place", "user", "stray", "lost_pet"];
 
-const TYPE_CHIPS = [
-  { value: "place"    as ResultType, label: "Lieux",    emoji: "📍" },
-  { value: "user"     as ResultType, label: "Membres",  emoji: "👤" },
-  { value: "stray"    as ResultType, label: "Errants",  emoji: "🚨" },
-  { value: "lost_pet" as ResultType, label: "Perdus",   emoji: "🆘" },
+const CATEGORY_FILTERS: { value: string | null; label: string; emoji: string }[] = [
+  { value: null,           label: "Tous",        emoji: "🗺️" },
+  { value: "veterinaire",  label: "Vétérinaire", emoji: "🏥" },
+  { value: "shop",         label: "Animalerie",  emoji: "🐾" },
+  { value: "parc_chiens",  label: "Parc chiens", emoji: "🐕" },
+  { value: "refuge",       label: "Refuge",      emoji: "🏚️" },
+  { value: "restaurant",   label: "Restaurant",  emoji: "🍽️" },
+  { value: "hotel",        label: "Hôtel",       emoji: "🏨" },
+  { value: "cafe",         label: "Café",        emoji: "☕" },
+  { value: "spa",          label: "Spa",         emoji: "🛁" },
+  { value: "loisir",       label: "Loisir",      emoji: "🎯" },
+  { value: "outdoor",      label: "Outdoor",     emoji: "🌿" },
+  { value: "plage",        label: "Plage",       emoji: "🏖️" },
+  { value: "camping",      label: "Camping",     emoji: "⛺" },
+  { value: "__strays__",   label: "Errants",     emoji: "🚨" },
+  { value: "__lost__",     label: "Perdus",      emoji: "🆘" },
 ];
 
-const CATEGORY_CHIPS = [
-  { value: "veterinaire", label: "Vétérinaire", emoji: "🏥" },
-  { value: "shop",        label: "Animalerie",  emoji: "🐾" },
-  { value: "parc_chiens", label: "Parc chiens", emoji: "🐕" },
-  { value: "refuge",      label: "Refuge",      emoji: "🏚️" },
-  { value: "restaurant",  label: "Restaurant",  emoji: "🍽️" },
-  { value: "hotel",       label: "Hôtel",       emoji: "🏨" },
-  { value: "cafe",        label: "Café",        emoji: "☕" },
-  { value: "spa",         label: "Spa",         emoji: "🛁" },
-  { value: "loisir",      label: "Loisir",      emoji: "🎯" },
-  { value: "outdoor",     label: "Outdoor",     emoji: "🌿" },
-  { value: "plage",       label: "Plage",       emoji: "🏖️" },
-  { value: "camping",     label: "Camping",     emoji: "⛺" },
-];
-
-const CATEGORY_ICONS: Record<string, string> = Object.fromEntries(CATEGORY_CHIPS.map(c => [c.value, c.emoji]));
+const CATEGORY_ICONS: Record<string, string> = Object.fromEntries(
+  CATEGORY_FILTERS.filter(c => c.value).map(c => [c.value as string, c.emoji])
+);
 const catIcon = (c: string) => CATEGORY_ICONS[c] || "📍";
+
+/* ── Derive search filters from activeCategory ─────────── */
+function deriveFilters(activeCategory: string | null, city: string | null): SearchFilters {
+  if (activeCategory === "__strays__") return { category: null, types: ["stray"],    city };
+  if (activeCategory === "__lost__")   return { category: null, types: ["lost_pet"], city };
+  if (activeCategory !== null)         return { category: activeCategory, types: ["place"], city };
+  return { category: null, types: ALL_TYPES, city };
+}
 
 /* ── Sub-components ─────────────────────────────────────── */
 
@@ -49,9 +55,13 @@ function SectionHeader({ label }: { label: string }) {
 
 /* ── Main component ─────────────────────────────────────── */
 
-interface GlobalSearchProps { mapRef: MutableRefObject<any>; }
+interface GlobalSearchProps {
+  mapRef: MutableRefObject<any>;
+  activeCategory: string | null;
+  onCategoryChange: (cat: string | null) => void;
+}
 
-export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
+export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange }: GlobalSearchProps) {
   /* open/close state */
   const [open,    setOpen]    = useState(false);
   const [closing, setClosing] = useState(false);
@@ -59,11 +69,9 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
   /* text query */
   const [query, setQuery] = useState("");
 
-  /* filters */
-  const [filterCategory, setFilterCategory] = useState<string | null>(null);
-  const [filterTypes,    setFilterTypes]    = useState<ResultType[]>(ALL_TYPES);
-  const [filterCity,     setFilterCity]     = useState<string | null>(null);
-  const [cityInput,      setCityInput]      = useState("");
+  /* city filter (local) */
+  const [filterCity,      setFilterCity]      = useState<string | null>(null);
+  const [cityInput,       setCityInput]       = useState("");
   const [citySuggestions, setCitySuggestions] = useState<string[]>([]);
 
   const { results, loading, search, clear } = useGlobalSearch();
@@ -73,18 +81,15 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
   const closeTimer    = useRef<ReturnType<typeof setTimeout>>();
 
   /* ── Active filter count for badge ── */
-  const activeFilterCount =
-    (filterCategory ? 1 : 0) +
-    (filterCity     ? 1 : 0) +
-    (filterTypes.length < ALL_TYPES.length ? 1 : 0);
+  const activeFilterCount = (activeCategory !== null ? 1 : 0) + (filterCity ? 1 : 0);
 
   /* ── Build filters object ── */
-  const filters: SearchFilters = { category: filterCategory, types: filterTypes, city: filterCity };
+  const filters = deriveFilters(activeCategory, filterCity);
 
   /* ── Re-search on query or filter change ── */
   useEffect(() => {
     search(query, filters);
-  }, [query, filterCategory, filterCity, filterTypes]);    // eslint-disable-line
+  }, [query, activeCategory, filterCity]);    // eslint-disable-line
 
   /* ── City autocomplete ── */
   useEffect(() => {
@@ -137,22 +142,11 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
   };
 
   const clearAllFilters = useCallback(() => {
-    setFilterCategory(null);
-    setFilterTypes(ALL_TYPES);
+    onCategoryChange(null);
     setFilterCity(null);
     setCityInput("");
     setCitySuggestions([]);
-  }, []);
-
-  const toggleType = (t: ResultType) => {
-    setFilterTypes(prev => {
-      if (prev.includes(t)) {
-        const next = prev.filter(x => x !== t);
-        return next.length === 0 ? ALL_TYPES : next; // never empty
-      }
-      return [...prev, t];
-    });
-  };
+  }, [onCategoryChange]);
 
   /* ── Result click ── */
   const handleResult = (r: SearchResult) => {
@@ -174,13 +168,15 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
 
   /* ── Derived ── */
   const isExpanded   = open && !closing;
-  const showDropdown = isExpanded; // always visible while open (shows filters even with no query)
+  const showDropdown = isExpanded;
 
   const places   = results.filter(r => r.type === "place")    as Extract<SearchResult, { type: "place" }>[];
   const users    = results.filter(r => r.type === "user")     as Extract<SearchResult, { type: "user" }>[];
   const strays   = results.filter(r => r.type === "stray")    as Extract<SearchResult, { type: "stray" }>[];
   const lostPets = results.filter(r => r.type === "lost_pet") as Extract<SearchResult, { type: "lost_pet" }>[];
   const hasResults = results.length > 0;
+
+  const hasActiveSearch = !!(query || filterCity || activeCategory);
 
   /* ══════════════════════════════════════════════════════ */
   return (
@@ -231,35 +227,16 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
             )}
           </div>
 
-          {/* Type of result chips */}
+          {/* Category chips (Tous + all categories + strays + lost) */}
           <div className="flex gap-1.5 px-3 pb-2 overflow-x-auto scrollbar-hide">
-            {TYPE_CHIPS.map(t => {
-              const active = !filterTypes.includes(t.value) ? false : filterTypes.length < ALL_TYPES.length;
-              const selected = filterTypes.length < ALL_TYPES.length && filterTypes.includes(t.value);
-              return (
-                <button
-                  key={t.value}
-                  onClick={() => toggleType(t.value)}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full border text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                    selected
-                      ? "bg-primary/10 border-primary text-primary"
-                      : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  {t.emoji} {t.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Category chips (horizontal scroll) */}
-          <div className="flex gap-1.5 px-3 pb-2 overflow-x-auto scrollbar-hide">
-            {CATEGORY_CHIPS.map(c => (
+            {CATEGORY_FILTERS.map(c => (
               <button
-                key={c.value}
-                onClick={() => setFilterCategory(prev => prev === c.value ? null : c.value)}
+                key={c.value ?? "__all__"}
+                onClick={() => onCategoryChange(c.value === activeCategory ? null : c.value)}
                 className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full border text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                  filterCategory === c.value
+                  activeCategory === c.value
+                    ? "bg-primary/10 border-primary text-primary"
+                    : c.value === null && activeCategory === null
                     ? "bg-primary/10 border-primary text-primary"
                     : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
                 }`}
@@ -323,27 +300,25 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
           } as React.CSSProperties}
         >
           {/* Loading */}
-          {loading && results.length === 0 && (query || filterCity || filterCategory) && (
+          {loading && results.length === 0 && hasActiveSearch && (
             <div className="flex items-center gap-2 px-4 py-4 text-sm text-muted-foreground">
               <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" /> Recherche en cours…
             </div>
           )}
 
           {/* Empty state */}
-          {!loading && !hasResults && !query && !filterCity && !filterCategory && (
+          {!loading && !hasResults && !hasActiveSearch && (
             <div className="px-4 py-6 text-center">
               <p className="text-sm text-muted-foreground">Tapez un nom, une ville</p>
-              <p className="text-xs text-muted-foreground mt-1">ou sélectionnez un filtre ci-dessus</p>
+              <p className="text-xs text-muted-foreground mt-1">ou sélectionnez une catégorie ci-dessus</p>
             </div>
           )}
 
           {/* No results */}
-          {!loading && hasResults === false && (query.length >= 2 || filterCity || filterCategory) && !loading && (
-            !hasResults && (query || filterCity || filterCategory) && results.length === 0 && !loading && (
-              <p className="px-4 py-6 text-sm text-muted-foreground text-center">
-                Aucun résultat pour cette recherche
-              </p>
-            )
+          {!loading && !hasResults && hasActiveSearch && (
+            <p className="px-4 py-6 text-sm text-muted-foreground text-center">
+              Aucun résultat pour cette recherche
+            </p>
           )}
 
           {/* Places */}
@@ -454,7 +429,7 @@ export default function GlobalSearch({ mapRef }: GlobalSearchProps) {
             pointerEvents: "auto",
           }}
         >
-          {loading && (query || filterCity || filterCategory)
+          {loading && hasActiveSearch
             ? <Loader2 className="w-5 h-5 text-primary animate-spin" />
             : <Search className="w-5 h-5 text-primary" />}
 
