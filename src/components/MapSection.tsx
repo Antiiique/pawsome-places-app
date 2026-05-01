@@ -11,6 +11,7 @@ import StrayReportModal from "./StrayReportModal";
 import StrayDetailPanel, { type StrayReport } from "./StrayDetailPanel";
 import LostPetModal from "./LostPetModal";
 import LostPetDetailPanel, { type LostPet } from "./LostPetDetailPanel";
+import GlobalSearch from "./GlobalSearch";
 import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/AuthContext";
 import type { FavoritePlace } from "@/hooks/useFavorites";
@@ -855,6 +856,30 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     return () => window.removeEventListener("open-lost-pet-modal", handler);
   }, []);
 
+  // ── Global search: open place by id ──
+  useEffect(() => {
+    const handler = async (e: Event) => {
+      const placeId = (e as CustomEvent).detail?.placeId;
+      if (!placeId) return;
+      const { data } = await supabase.from("pet_friendly_places").select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, rating, description, photo_url, verified, google_place_id").eq("id", placeId).maybeSingle();
+      if (data) setSelectedPlace(data as any);
+    };
+    window.addEventListener("global-search-open-place", handler);
+    return () => window.removeEventListener("global-search-open-place", handler);
+  }, []);
+
+  // ── Global search: open stray by id ──
+  useEffect(() => {
+    const handler = async (e: Event) => {
+      const strayId = (e as CustomEvent).detail?.strayId;
+      if (!strayId) return;
+      const { data } = await supabase.from("stray_reports").select("*").eq("id", strayId).maybeSingle();
+      if (data) setSelectedStray(data as any);
+    };
+    window.addEventListener("open-stray", handler);
+    return () => window.removeEventListener("open-stray", handler);
+  }, []);
+
   // ── Render lost pet markers ──
   useEffect(() => {
     const map = mapRef.current;
@@ -1027,6 +1052,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           </button>
         ))}
       </div>
+
+      {/* Global search bar */}
+      <GlobalSearch mapRef={mapRef} />
 
       {/* Lost pet FAB */}
       <button
