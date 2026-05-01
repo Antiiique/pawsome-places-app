@@ -145,6 +145,107 @@ const EMPTY_PET_FORM = {
   is_vaccinated: false, is_sterilized: false, is_microchipped: false,
 };
 
+// ─── Sub-tabs for Mes lieux ──────────────────────────────────────────────────
+
+const STATUS_TABS = [
+  { key: "approved", label: "Approuvés", color: "text-green-600 dark:text-green-400", activeBar: "bg-green-500" },
+  { key: "pending",  label: "En attente", color: "text-yellow-600 dark:text-yellow-400", activeBar: "bg-yellow-500" },
+  { key: "rejected", label: "Refusés",   color: "text-red-500 dark:text-red-400", activeBar: "bg-red-500" },
+] as const;
+
+type StatusKey = typeof STATUS_TABS[number]["key"];
+
+function PlaceCard({ sub }: { sub: UserSubmission }) {
+  const isApproved = sub.status === "approved";
+  const handleClick = () => {
+    if (isApproved && sub.linked_place?.id) {
+      window.dispatchEvent(new CustomEvent("open-community-reviews", { detail: { placeId: sub.linked_place.id } }));
+    }
+  };
+
+  return (
+    <div
+      onClick={isApproved && sub.linked_place?.id ? handleClick : undefined}
+      role={isApproved && sub.linked_place?.id ? "button" : undefined}
+      className={`bg-secondary border border-border rounded-xl overflow-hidden ${isApproved && sub.linked_place?.id ? "cursor-pointer active:scale-[0.99] transition-transform" : ""}`}
+    >
+      <div className="flex gap-3 p-3">
+        {sub.linked_place?.photo_url ? (
+          <img src={sub.linked_place.photo_url} alt={sub.name} className="w-16 h-16 rounded-lg object-cover shrink-0 border border-border" />
+        ) : (
+          <div className="w-16 h-16 rounded-lg bg-muted shrink-0 border border-border flex items-center justify-center text-2xl">🐾</div>
+        )}
+        <div className="flex-1 min-w-0 space-y-0.5">
+          <p className="font-semibold text-foreground text-sm leading-tight truncate">{sub.name}</p>
+          <p className="text-xs text-muted-foreground">{sub.category}{sub.city ? ` · ${sub.city}` : ""}{sub.address ? ` · ${sub.address}` : ""}</p>
+          {sub.linked_place?.rating != null && (
+            <p className="text-xs text-yellow-500">★ {sub.linked_place.rating.toFixed(1)}</p>
+          )}
+          <p className="text-[10px] text-muted-foreground">
+            Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+          </p>
+          {isApproved && sub.linked_place?.id && (
+            <p className="text-[9px] text-primary font-medium">Appuyer pour voir sur la carte →</p>
+          )}
+        </div>
+      </div>
+      {sub.status === "rejected" && sub.admin_note && (
+        <div className="px-3 pb-3">
+          <p className="text-xs text-muted-foreground bg-muted rounded-lg px-2.5 py-2 italic">💬 {sub.admin_note}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
+  const [activeStatus, setActiveStatus] = useState<StatusKey>("approved");
+
+  const counts: Record<StatusKey, number> = {
+    approved: submissions.filter(s => s.status === "approved").length,
+    pending:  submissions.filter(s => s.status === "pending").length,
+    rejected: submissions.filter(s => s.status === "rejected").length,
+  };
+
+  const filtered = submissions.filter(s => s.status === activeStatus);
+
+  return (
+    <div className="space-y-3">
+      {/* Sub-tab bar */}
+      <div className="flex rounded-xl overflow-hidden border border-border">
+        {STATUS_TABS.map((tab, i) => {
+          const isActive = activeStatus === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveStatus(tab.key)}
+              className={`flex-1 py-2 text-center transition-colors ${i > 0 ? "border-l border-border" : ""} ${isActive ? "bg-muted" : "bg-background hover:bg-muted/50"}`}
+            >
+              <p className={`text-base font-bold leading-none ${tab.color}`}>{counts[tab.key]}</p>
+              <p className="text-[9px] text-muted-foreground mt-0.5 leading-tight">{tab.label}</p>
+              {isActive && <div className={`h-0.5 mt-1.5 mx-auto w-6 rounded-full ${tab.activeBar}`} />}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* List */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-8 space-y-1">
+          <p className="text-3xl">{activeStatus === "approved" ? "✅" : activeStatus === "pending" ? "⏳" : "❌"}</p>
+          <p className="text-sm text-muted-foreground">
+            {activeStatus === "approved" ? "Aucun lieu approuvé" : activeStatus === "pending" ? "Aucun lieu en attente" : "Aucun lieu refusé"}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map(sub => <PlaceCard key={sub.id} sub={sub} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function UserProfileModal({ open, onClose, dragProgress }: UserProfileModalProps) {
   const { user } = useAuthContext();
 
@@ -1041,7 +1142,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
           </TabsContent>
 
           {/* ── MES LIEUX ── */}
-          <TabsContent value="places" className="p-4 space-y-4">
+          <TabsContent value="places" className="p-4 space-y-3">
             {loadingSubmissions ? (
               <p className="text-sm text-muted-foreground text-center py-8">Chargement…</p>
             ) : submissions.length === 0 ? (
@@ -1051,64 +1152,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                 <p className="text-xs text-muted-foreground">Contribue à la communauté en ajoutant un lieu pet-friendly !</p>
               </div>
             ) : (
-              <>
-                {/* Stats bar */}
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { label: "Approuvés", count: submissions.filter(s => s.status === "approved").length, color: "text-green-600 dark:text-green-400" },
-                    { label: "En attente", count: submissions.filter(s => s.status === "pending").length, color: "text-yellow-600 dark:text-yellow-400" },
-                    { label: "Refusés", count: submissions.filter(s => s.status === "rejected").length, color: "text-red-500" },
-                  ].map(stat => (
-                    <div key={stat.label} className="bg-secondary border border-border rounded-xl p-2.5 text-center">
-                      <p className={`text-xl font-bold ${stat.color}`}>{stat.count}</p>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{stat.label}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* List */}
-                <div className="space-y-2">
-                  {submissions.map(sub => {
-                    const statusConfig = {
-                      approved: { label: "Approuvé", bg: "bg-green-100 dark:bg-green-900/30", text: "text-green-700 dark:text-green-300", dot: "bg-green-500" },
-                      pending: { label: "En attente", bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-400", dot: "bg-yellow-500" },
-                      rejected: { label: "Refusé", bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400", dot: "bg-red-500" },
-                    }[sub.status];
-                    return (
-                      <div key={sub.id} className="bg-secondary border border-border rounded-xl overflow-hidden">
-                        <div className="flex gap-3 p-3">
-                          {sub.linked_place?.photo_url ? (
-                            <img src={sub.linked_place.photo_url} alt={sub.name} className="w-16 h-16 rounded-lg object-cover shrink-0 border border-border" />
-                          ) : (
-                            <div className="w-16 h-16 rounded-lg bg-muted shrink-0 border border-border flex items-center justify-center text-2xl">🐾</div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="font-semibold text-foreground text-sm leading-tight truncate">{sub.name}</p>
-                              <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${statusConfig.bg} ${statusConfig.text}`}>
-                                <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
-                                {statusConfig.label}
-                              </span>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-0.5">{sub.category}{sub.city ? ` · ${sub.city}` : ""}</p>
-                            {sub.linked_place?.rating != null && (
-                              <p className="text-xs text-yellow-500 mt-0.5">★ {sub.linked_place.rating.toFixed(1)}</p>
-                            )}
-                            <p className="text-[10px] text-muted-foreground mt-1">
-                              Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
-                            </p>
-                          </div>
-                        </div>
-                        {sub.status === "rejected" && sub.admin_note && (
-                          <div className="px-3 pb-3">
-                            <p className="text-xs text-muted-foreground bg-muted rounded-lg px-2.5 py-2 italic">💬 {sub.admin_note}</p>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
+              <PlacesSubTabs submissions={submissions} />
             )}
           </TabsContent>
         </Tabs>
