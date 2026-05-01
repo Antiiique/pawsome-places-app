@@ -260,7 +260,6 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
       bio: profile.bio || null,
       age: profile.age,
       city: profile.city || null,
-      alert_radius_km: profile.alert_radius_km,
     } as any).eq("id", user.id);
     setSaving(false);
     if (error) { toast.error("Erreur : " + error.message); return; }
