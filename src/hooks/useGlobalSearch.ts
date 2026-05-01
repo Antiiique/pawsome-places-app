@@ -7,9 +7,29 @@ export type SearchResult =
   | { type: "stray"; id: string; city: string | null; lat: number; lng: number; photo_url: string | null }
   | { type: "lost_pet"; id: string; pet_name: string; breed: string | null; city: string | null; last_seen_lat: number | null; last_seen_lng: number | null; status: string };
 
+// Maps user-typed words to DB category values
+const CATEGORY_MAP: Record<string, string> = {
+  "vétérinaire": "veterinaire", "veterinaire": "veterinaire", "véto": "veterinaire", "veto": "veterinaire", "clinique": "veterinaire",
+  "animalerie": "shop", "boutique": "shop", "shop": "shop",
+  "parc": "parc_chiens", "parcs": "parc_chiens", "dog": "parc_chiens",
+  "restaurant": "restaurant", "resto": "restaurant", "brasserie": "restaurant",
+  "hôtel": "hotel", "hotel": "hotel", "hébergement": "hotel",
+  "café": "cafe", "cafe": "cafe", "coffee": "cafe", "bar": "cafe",
+  "refuge": "refuge", "association": "refuge", "spa": "spa",
+  "camping": "camping", "plage": "plage", "outdoor": "outdoor", "loisir": "loisir",
+};
+
+function detectCategory(words: string[]): { category: string | null; remaining: string[] } {
+  for (const word of words) {
+    const cat = CATEGORY_MAP[word.toLowerCase()];
+    if (cat) return { category: cat, remaining: words.filter(w => w.toLowerCase() !== word.toLowerCase()) };
+  }
+  return { category: null, remaining: words };
+}
+
 export function useGlobalSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]   = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const search = useCallback((query: string) => {
@@ -18,30 +38,49 @@ export function useGlobalSearch() {
 
     setLoading(true);
     timerRef.current = setTimeout(async () => {
-      const ilike = `%${query.trim()}%`;
+      const q     = query.trim();
+      const words = q.split(/\s+/).filter(Boolean);
+      const { category, remaining } = detectCategory(words);
+      const rest  = remaining.join(" ") || q;
+      const ilike = `%${q}%`;
+      const rIlike = `%${rest}%`;
+
+      // ── Places query — smart: category + city, or free text ──
+      let placesQ = supabase
+        .from("pet_friendly_places")
+        .select("id, name, city, category, latitude, longitude, photo_url");
+
+      if (category && remaining.length > 0) {
+        // e.g. "vétérinaire Paris" → category match + name/city filter
+        placesQ = placesQ
+          .eq("category", category)
+          .or(`name.ilike.${rIlike},city.ilike.${rIlike}`);
+      } else if (category) {
+        // Only a category keyword typed
+        placesQ = placesQ.eq("category", category);
+      } else {
+        // Free text across name and city
+        placesQ = placesQ.or(`name.ilike.${ilike},city.ilike.${ilike}`);
+      }
 
       const [places, users, strays, lostPets] = await Promise.all([
-        supabase
-          .from("pet_friendly_places")
-          .select("id, name, city, category, latitude, longitude, photo_url")
-          .or(`name.ilike.${ilike},city.ilike.${ilike}`)
-          .limit(5),
+        placesQ.order("name").limit(20),
         supabase
           .from("profiles")
           .select("id, display_name, avatar_url, city")
           .ilike("display_name", ilike)
-          .limit(4),
+          .limit(10),
         supabase
           .from("stray_reports")
           .select("id, city, lat, lng, photo_url")
           .or(`city.ilike.${ilike},description.ilike.${ilike}`)
           .eq("status", "active")
-          .limit(3),
+          .limit(8),
         supabase
           .from("lost_pets" as any)
           .select("id, pet_name, breed, city, last_seen_lat, last_seen_lng, status, last_seen_address")
           .or(`pet_name.ilike.${ilike},breed.ilike.${ilike},last_seen_address.ilike.${ilike}`)
-          .limit(3),
+          .limit(8),
       ]);
 
       const merged: SearchResult[] = [
