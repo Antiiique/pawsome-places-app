@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X, Upload, Trash2, Star, Plus, ChevronLeft, ChevronRight, Camera, Bell, Trophy } from "lucide-react";
+import { X, Upload, Trash2, Star, Plus, ChevronLeft, Camera, Bell, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useHandedness } from "@/contexts/HandednessContext";
@@ -297,7 +297,6 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
   const { user } = useAuthContext();
   const { isLeftHanded, setIsLeftHanded } = useHandedness();
 
-  const [compact, setCompact] = useState(false);
   const [activeMainTab, setActiveMainTab] = useState("profile");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -628,15 +627,12 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
         overflowX: "hidden",
         ...(dragProgress !== undefined
           ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" }
-          : { transform: open ? (compact ? "translateX(60%)" : "translateX(0%)") : "translateX(100%)" }),
+          : { transform: open ? "translateX(0%)" : "translateX(100%)" }),
       }}
     >
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-border">
         <span className="text-sm font-bold text-foreground">👤 Mon profil</span>
         <div className="flex items-center gap-1">
-          <button onClick={() => setCompact(c => !c)} className="p-1.5 rounded-full hover:bg-muted transition-colors" title={compact ? "Agrandir" : "Réduire"}>
-            {compact ? <ChevronLeft className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
-          </button>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
             <X className="w-5 h-5 text-muted-foreground" />
           </button>

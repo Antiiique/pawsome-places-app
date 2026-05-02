@@ -1,4 +1,4 @@
-import { X, MapPin, Heart, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, MapPin, Heart, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect } from "react";
@@ -75,12 +75,6 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
   const [catFilter, setCatFilter] = useState<string | null>(null);
   const [myPlaces, setMyPlaces] = useState<MyPlace[]>([]);
   const [loadingMyPlaces, setLoadingMyPlaces] = useState(false);
-  const [compact, setCompact] = useState(false);
-
-  useEffect(() => {
-    if (!open) setCompact(false);
-  }, [open]);
-
   useEffect(() => {
     if (!open || !user) return;
     setLoadingMyPlaces(true);
@@ -148,7 +142,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
           top: 56,
           ...(dragProgress !== undefined
             ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" }
-            : { transform: open ? (compact ? "translateX(60%)" : "translateX(0%)") : "translateX(100%)" }),
+            : { transform: open ? "translateX(0%)" : "translateX(100%)" }),
         }}
       >
         {/* Header */}
@@ -158,9 +152,6 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
             <h2 className="font-bold text-foreground text-sm">Mes lieux</h2>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={() => setCompact(c => !c)} className="p-1.5 rounded-full hover:bg-muted transition-colors" title={compact ? "Agrandir" : "Réduire"}>
-              {compact ? <ChevronLeft className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
-            </button>
             <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
