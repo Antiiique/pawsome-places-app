@@ -208,9 +208,8 @@ function PlaceCard({ sub }: { sub: UserSubmission }) {
 function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
   const [activeStatus, setActiveStatus] = useState<StatusKey>("approved");
 
-  // Approved: only those whose linked place still exists in the DB
   const visibleByStatus: Record<StatusKey, UserSubmission[]> = {
-    approved: submissions.filter(s => s.status === "approved" && s.linked_place?.id),
+    approved: submissions.filter(s => s.status === "approved"),
     pending:  submissions.filter(s => s.status === "pending"),
     rejected: submissions.filter(s => s.status === "rejected"),
   };
@@ -337,20 +336,40 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
     if (petData) setPets(petData as any);
 
     if (subData && (subData as any[]).length > 0) {
-      const approvedIds = (subData as any[]).filter(s => s.status === "approved").map(s => s.id);
+      const approvedSubs = (subData as any[]).filter(s => s.status === "approved");
+      const approvedIds = approvedSubs.map(s => s.id);
       let linkedMap: Record<string, { id: string; photo_url: string | null; rating: number | null }> = {};
+
       if (approvedIds.length > 0) {
-        const { data: places } = await supabase
+        // Pass 1: match via source_id (set when admin uses the approval workflow)
+        const { data: bySourceId } = await supabase
           .from("pet_friendly_places")
-          .select("id, photo_url, rating, source_id")
+          .select("id, name, city, photo_url, rating, source_id")
           .eq("source", "user_submission")
           .in("source_id", approvedIds);
-        if (places) {
-          for (const p of places as any[]) {
-            linkedMap[p.source_id] = { id: p.id, photo_url: p.photo_url, rating: p.rating };
+        for (const p of (bySourceId as any[]) || []) {
+          linkedMap[p.source_id] = { id: p.id, photo_url: p.photo_url, rating: p.rating };
+        }
+
+        // Pass 2: fallback — match by name + city for submissions not yet linked
+        const unmatched = approvedSubs.filter(s => !linkedMap[s.id]);
+        if (unmatched.length > 0) {
+          const names = [...new Set(unmatched.map((s: any) => s.name))];
+          const { data: byName } = await supabase
+            .from("pet_friendly_places")
+            .select("id, name, city, photo_url, rating")
+            .in("name", names);
+          for (const p of (byName as any[]) || []) {
+            const sub = unmatched.find((s: any) =>
+              s.name === p.name && (!s.city || !p.city || s.city === p.city)
+            );
+            if (sub && !linkedMap[sub.id]) {
+              linkedMap[sub.id] = { id: p.id, photo_url: p.photo_url, rating: p.rating };
+            }
           }
         }
       }
+
       const merged: UserSubmission[] = (subData as any[]).map(s => ({
         ...s,
         linked_place: linkedMap[s.id] || null,
