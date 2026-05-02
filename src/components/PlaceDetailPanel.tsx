@@ -277,6 +277,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
       {/* Drag handle — seule zone déclenchant le swipe */}
       <div
         className="flex flex-col items-center pt-2.5 pb-1 shrink-0 cursor-grab active:cursor-grabbing select-none"
+        style={{ touchAction: "none" }}
         onTouchStart={handleDragStart}
         onTouchMove={handleDragMove}
         onTouchEnd={handleDragEnd}
@@ -320,7 +321,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
       <div className="w-full h-px bg-border shrink-0" />
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" style={{ touchAction: "pan-y" }}>
         {place.photo_url && (
           <img src={place.photo_url} alt={place.name} className="w-full h-40 object-cover" />
         )}
