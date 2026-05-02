@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X, Upload, Trash2, Star, Plus, ChevronLeft, Camera, Bell, Trophy } from "lucide-react";
+import { X, Upload, Trash2, Star, Plus, ChevronLeft, Camera, Bell, Trophy, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useHandedness } from "@/contexts/HandednessContext";
@@ -284,10 +284,20 @@ function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
   );
 }
 
+const glassStyle: React.CSSProperties = {
+  background: "color-mix(in srgb, var(--card) 55%, transparent)",
+  border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
+  boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
+  backdropFilter: "blur(24px)",
+  WebkitBackdropFilter: "blur(24px)",
+  touchAction: "manipulation",
+};
+
 export default function UserProfileModal({ open, onClose, dragProgress }: UserProfileModalProps) {
   const { user } = useAuthContext();
   const { isLeftHanded, setIsLeftHanded } = useHandedness();
 
+  const [compact, setCompact] = useState(false);
   const [activeMainTab, setActiveMainTab] = useState("profile");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -420,6 +430,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
     } else {
       skipAutoSave.current = true;
       clearTimeout(saveTimerRef.current);
+      setCompact(false);
     }
   }, [open, fetchAll]);
 
@@ -609,20 +620,40 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
 
   return (
     <>
+      {/* Floating buttons */}
+      {open && (
+        <div className="fixed bottom-8 right-4 z-[601] flex items-center gap-2">
+          <button
+            onClick={() => setCompact(c => !c)}
+            className="w-12 h-12 flex items-center justify-center rounded-full"
+            style={glassStyle}
+            title={compact ? "Agrandir" : "Réduire"}
+          >
+            <ChevronUp className={`w-5 h-5 text-foreground transition-transform duration-300 ${compact ? "rotate-180" : ""}`} />
+          </button>
+          <button
+            onClick={onClose}
+            className="w-12 h-12 flex items-center justify-center rounded-full"
+            style={glassStyle}
+            title="Fermer"
+          >
+            <X className="w-5 h-5 text-foreground" />
+          </button>
+        </div>
+      )}
     <div
       data-panel
-      className={`fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-l-2xl ${open ? "translate-x-0" : "translate-x-full"}`}
+      className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-l-2xl"
       style={{
         top: 56,
         overflowX: "hidden",
-        ...(dragProgress !== undefined ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" } : {}),
+        ...(dragProgress !== undefined
+          ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" }
+          : { transform: open ? (compact ? "translateX(0%) translateY(55%)" : "translateX(0%) translateY(0%)") : "translateX(100%)" }),
       }}
     >
-      <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-border">
+      <div className="flex-shrink-0 flex items-center px-4 py-3 border-b border-border">
         <span className="text-sm font-bold text-foreground">👤 Mon profil</span>
-        <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
-          <X className="w-5 h-5 text-muted-foreground" />
-        </button>
       </div>
 
       <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="flex-1 min-h-0 flex flex-col">

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, ArrowUpDown, Loader2, MapPin, ExternalLink, Share2, Save, Navigation, Check, Trash2, Play, GripVertical, Plus, Heart } from "lucide-react";
+import { X, ArrowUpDown, Loader2, MapPin, ExternalLink, Share2, Save, Navigation, Check, Trash2, Play, GripVertical, Plus, Heart, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -239,7 +239,17 @@ function WaypointSearchInput({ onSelect, onCancel }: { onSelect: (wp: Omit<Waypo
   );
 }
 
+const glassStyle: React.CSSProperties = {
+  background: "color-mix(in srgb, var(--card) 55%, transparent)",
+  border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
+  boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
+  backdropFilter: "blur(24px)",
+  WebkitBackdropFilter: "blur(24px)",
+  touchAction: "manipulation",
+};
+
 export default function ItineraryPanel({ open, onClose, onRouteCalculated, onViewStep, pickMode, onPickModeChange, dragProgress }: ItineraryPanelProps) {
+  const [compact, setCompact] = useState(false);
   const [origin, setOrigin] = useState<PlaceSelection | null>(null);
   const [destination, setDestination] = useState<PlaceSelection | null>(null);
   const [originText, setOriginText] = useState("");
@@ -256,6 +266,10 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
   const [stepFilter, setStepFilter] = useState<string | null>(null);
 
   const { itineraries, save, remove, count: savedCount } = useSavedItineraries();
+
+  useEffect(() => {
+    if (!open) setCompact(false);
+  }, [open]);
 
   // Listen for waypoint add events from map popup
   useEffect(() => {
@@ -584,23 +598,34 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
 
   return (
     <>
-      {/* Floating close button — bottom right */}
+      {/* Floating buttons — bottom right */}
       {open && (
-        <button
-          onClick={onClose}
-          className="fixed bottom-8 right-4 z-[601] p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors"
-          title="Fermer"
-        >
-          <X className="w-5 h-5 text-foreground" />
-        </button>
+        <div className="fixed bottom-8 right-4 z-[601] flex items-center gap-2">
+          <button
+            onClick={() => setCompact(c => !c)}
+            className="w-12 h-12 flex items-center justify-center rounded-full"
+            style={glassStyle}
+            title={compact ? "Agrandir" : "Réduire"}
+          >
+            <ChevronUp className={`w-5 h-5 text-foreground transition-transform duration-300 ${compact ? "rotate-180" : ""}`} />
+          </button>
+          <button
+            onClick={onClose}
+            className="w-12 h-12 flex items-center justify-center rounded-full"
+            style={glassStyle}
+            title="Fermer"
+          >
+            <X className="w-5 h-5 text-foreground" />
+          </button>
+        </div>
       )}
 
       {/* Mobile backdrop */}
-      <div data-panel className={`fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-r-2xl ${
-        open ? "translate-x-0" : "-translate-x-full"
-      }`} style={{
+      <div data-panel className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-r-2xl" style={{
         top: 56,
-        ...(dragProgress !== undefined ? { transform: `translateX(${-(1 - dragProgress) * 100}%)`, transition: "none" } : {}),
+        ...(dragProgress !== undefined
+          ? { transform: `translateX(${-(1 - dragProgress) * 100}%)`, transition: "none" }
+          : { transform: open ? (compact ? "translateX(0%) translateY(55%)" : "translateX(0%) translateY(0%)") : "translateX(-100%)" }),
       }}>
 
         <div className="flex items-center p-4 border-b border-border shrink-0">
