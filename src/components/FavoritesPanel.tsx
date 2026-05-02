@@ -1,9 +1,11 @@
 import { X, MapPin, Heart, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { FavoritePlace } from "@/hooks/useFavorites";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 const CATEGORY_FILTERS = [
   { key: null,              label: "Tous",           emoji: "🐾" },
@@ -33,6 +35,19 @@ const CATEGORY_FILTERS = [
   { key: "other",          label: "Autres",         emoji: "📍" },
 ];
 
+interface MyPlace {
+  id: string;
+  name: string;
+  city: string | null;
+  category: string;
+  address: string | null;
+  photo_url: string | null;
+  rating: number | null;
+  latitude: number;
+  longitude: number;
+  submitted_at: string | null;
+}
+
 interface FavoritesPanelProps {
   open: boolean;
   favorites: FavoritePlace[];
@@ -45,29 +60,90 @@ interface FavoritesPanelProps {
 }
 
 export default function FavoritesPanel({ open, favorites, onClose, onRemove, onViewOnMap, onSetOrigin, onSetDestination, dragProgress }: FavoritesPanelProps) {
+  const { user } = useAuthContext();
+  const [activeTab, setActiveTab] = useState<"favorites" | "myplaces">("favorites");
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"date" | "name" | "category">("date");
+  const [myPlaces, setMyPlaces] = useState<MyPlace[]>([]);
+  const [loadingMyPlaces, setLoadingMyPlaces] = useState(false);
 
-  let filtered = favorites.filter((f) => {
+  useEffect(() => {
+    if (!open || !user) return;
+    setLoadingMyPlaces(true);
+    supabase
+      .from("place_submissions" as any)
+      .select("id, name, city, category, created_at")
+      .eq("submitted_by", user.id)
+      .eq("status", "approved")
+      .order("created_at", { ascending: false })
+      .then(async ({ data: subs }) => {
+        const rawSubs = (subs as any[]) || [];
+        if (rawSubs.length === 0) { setMyPlaces([]); setLoadingMyPlaces(false); return; }
+
+        const ids = rawSubs.map((s: any) => s.id);
+        const { data: places } = await supabase
+          .from("pet_friendly_places")
+          .select("id, name, city, category, address, photo_url, rating, latitude, longitude, source_id")
+          .eq("source", "user_submission")
+          .in("source_id", ids);
+
+        const placeMap: Record<string, any> = {};
+        for (const p of (places as any[]) || []) placeMap[p.source_id] = p;
+
+        const enriched: MyPlace[] = rawSubs
+          .map((s: any) => {
+            const p = placeMap[s.id];
+            if (!p) return null;
+            return {
+              id: p.id,
+              name: p.name,
+              city: p.city,
+              category: p.category,
+              address: p.address,
+              photo_url: p.photo_url,
+              rating: p.rating,
+              latitude: p.latitude,
+              longitude: p.longitude,
+              submitted_at: s.created_at,
+            } as MyPlace;
+          })
+          .filter(Boolean) as MyPlace[];
+
+        setMyPlaces(enriched);
+        setLoadingMyPlaces(false);
+      });
+  }, [open, user]);
+
+  // ── Favorites filtering ──
+  let filteredFavs = favorites.filter((f) => {
     if (catFilter && f.category !== catFilter) return false;
     if (search.trim() && !f.name.toLowerCase().includes(search.toLowerCase()) && !f.city?.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
-
-  filtered = [...filtered].sort((a, b) => {
+  filteredFavs = [...filteredFavs].sort((a, b) => {
     if (sortBy === "name") return a.name.localeCompare(b.name);
     if (sortBy === "category") return a.category.localeCompare(b.category);
     return new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime();
   });
 
+  const openPlace = (id: string) =>
+    window.dispatchEvent(new CustomEvent("open-community-reviews", { detail: { placeId: id } }));
+
   return (
     <>
-      {/* Floating close button — bottom right */}
+      {/* Floating close button */}
       {open && (
         <button
           onClick={onClose}
-          className="fixed bottom-8 right-4 z-[601] p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors"
+          className="fixed bottom-8 right-4 z-[601] w-12 h-12 flex items-center justify-center rounded-full"
+          style={{
+            background: "color-mix(in srgb, var(--card) 55%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
+          }}
           title="Fermer"
         >
           <X className="w-5 h-5 text-foreground" />
@@ -84,97 +160,180 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
           ...(dragProgress !== undefined ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" } : {}),
         }}
       >
-        <div className="flex items-center p-4 border-b border-border shrink-0">
+        {/* Header */}
+        <div className="flex items-center px-4 py-3 border-b border-border shrink-0">
           <Heart className="w-5 h-5 text-destructive fill-destructive mr-2" />
-          <h2 className="font-heading font-bold text-foreground">Mes lieux favoris ({favorites.length})</h2>
+          <h2 className="font-bold text-foreground text-sm">Mes lieux</h2>
         </div>
 
-        <div className="p-3 space-y-3 border-b border-border shrink-0">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher dans mes favoris…"
-              className="w-full pl-9 pr-4 py-2 rounded-lg border border-border bg-background text-foreground text-sm outline-none"
-            />
-          </div>
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-            {CATEGORY_FILTERS.map((cf) => (
-              <button
-                key={cf.label}
-                onClick={() => setCatFilter(cf.key)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                  catFilter === cf.key ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-                }`}
-              >
-                {cf.emoji} {cf.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            {(["date", "name", "category"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setSortBy(s)}
-                className={`text-xs px-2 py-1 rounded ${sortBy === s ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground"}`}
-              >
-                {s === "date" ? "📅 Date" : s === "name" ? "🔤 Nom" : "📂 Catégorie"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <ScrollArea className="flex-1">
-          <div className="p-3 space-y-3">
-            {filtered.length === 0 && (
-              <div className="text-center py-12 space-y-2">
-                <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto" />
-                <p className="text-sm text-muted-foreground">
-                  {favorites.length === 0
-                    ? "Aucun lieu sauvegardé\nAppuyez sur ❤️ sur une fiche lieu pour le retrouver ici"
-                    : "Aucun résultat pour cette recherche"}
-                </p>
-              </div>
+        {/* Top tabs */}
+        <div className="flex border-b border-border shrink-0">
+          <button
+            onClick={() => setActiveTab("favorites")}
+            className={`flex-1 py-2.5 text-xs font-semibold transition-colors relative ${
+              activeTab === "favorites" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            ❤️ Favoris ({favorites.length})
+            {activeTab === "favorites" && (
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-primary rounded-full" />
             )}
-            {filtered.map((fav) => (
-              <div key={fav.id} className="bg-card border border-border rounded-xl p-3 shadow-sm space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-foreground text-sm truncate">🐾 {fav.name}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{fav.category} • {fav.city || "—"}</p>
-                  </div>
-                  <Heart className="w-4 h-4 text-destructive fill-destructive shrink-0 mt-0.5" />
-                </div>
-                {fav.address && <p className="text-xs text-muted-foreground">📍 {fav.address}</p>}
-                {fav.phone && <p className="text-xs text-muted-foreground">📞 {fav.phone}</p>}
-                <div className="grid grid-cols-2 gap-1.5 pt-1">
-                  <Button variant="outline" size="sm" className="text-xs" onClick={() => { onViewOnMap(fav.lat, fav.lng); onClose(); }}>
-                    📍 Voir sur carte
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs" onClick={() => { onSetOrigin(fav); onClose(); }}>
-                    🟢 Départ
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs" onClick={() => { onSetDestination(fav); onClose(); }}>
-                    🔴 Arrivée
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs text-destructive hover:bg-destructive/10"
-                    onClick={() => {
-                      onRemove(fav.id);
-                      toast("💔 Retiré des favoris");
-                    }}
-                  >
-                    ❌ Retirer
-                  </Button>
-                </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("myplaces")}
+            className={`flex-1 py-2.5 text-xs font-semibold transition-colors relative ${
+              activeTab === "myplaces" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            📍 Publiés ({myPlaces.length})
+            {activeTab === "myplaces" && (
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-primary rounded-full" />
+            )}
+          </button>
+        </div>
+
+        {/* ── FAVORIS tab ── */}
+        {activeTab === "favorites" && (
+          <>
+            <div className="p-3 space-y-3 border-b border-border shrink-0">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Rechercher dans mes favoris…"
+                  className="w-full pl-9 pr-4 py-2 rounded-lg border border-border bg-background text-foreground text-sm outline-none"
+                />
               </div>
-            ))}
-          </div>
-        </ScrollArea>
+              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+                {CATEGORY_FILTERS.map((cf) => (
+                  <button
+                    key={cf.label}
+                    onClick={() => setCatFilter(cf.key)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                      catFilter === cf.key ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                    }`}
+                  >
+                    {cf.emoji} {cf.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                {(["date", "name", "category"] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSortBy(s)}
+                    className={`text-xs px-2 py-1 rounded ${sortBy === s ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground"}`}
+                  >
+                    {s === "date" ? "📅 Date" : s === "name" ? "🔤 Nom" : "📂 Catégorie"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <ScrollArea className="flex-1">
+              <div className="p-3 space-y-3">
+                {filteredFavs.length === 0 && (
+                  <div className="text-center py-12 space-y-2">
+                    <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto" />
+                    <p className="text-sm text-muted-foreground">
+                      {favorites.length === 0
+                        ? "Aucun lieu sauvegardé\nAppuyez sur ❤️ sur une fiche lieu pour le retrouver ici"
+                        : "Aucun résultat pour cette recherche"}
+                    </p>
+                  </div>
+                )}
+                {filteredFavs.map((fav) => (
+                  <div key={fav.id} className="bg-card border border-border rounded-xl p-3 shadow-sm space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-foreground text-sm truncate">🐾 {fav.name}</p>
+                        <p className="text-xs text-muted-foreground capitalize">{fav.category} • {fav.city || "—"}</p>
+                      </div>
+                      <Heart className="w-4 h-4 text-destructive fill-destructive shrink-0 mt-0.5" />
+                    </div>
+                    {fav.address && <p className="text-xs text-muted-foreground">📍 {fav.address}</p>}
+                    {fav.phone && <p className="text-xs text-muted-foreground">📞 {fav.phone}</p>}
+                    <div className="grid grid-cols-2 gap-1.5 pt-1">
+                      <Button variant="outline" size="sm" className="text-xs" onClick={() => { onViewOnMap(fav.lat, fav.lng); onClose(); }}>
+                        📍 Voir sur carte
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-xs" onClick={() => { onSetOrigin(fav); onClose(); }}>
+                        🟢 Départ
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-xs" onClick={() => { onSetDestination(fav); onClose(); }}>
+                        🔴 Arrivée
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs text-destructive hover:bg-destructive/10"
+                        onClick={() => { onRemove(fav.id); toast("💔 Retiré des favoris"); }}
+                      >
+                        ❌ Retirer
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </>
+        )}
+
+        {/* ── MES LIEUX PUBLIÉS tab ── */}
+        {activeTab === "myplaces" && (
+          <ScrollArea className="flex-1">
+            <div className="p-3 space-y-3">
+              {loadingMyPlaces ? (
+                <p className="text-sm text-muted-foreground text-center py-12">Chargement…</p>
+              ) : !user ? (
+                <div className="text-center py-12 space-y-2">
+                  <p className="text-3xl">🔒</p>
+                  <p className="text-sm text-muted-foreground">Connectez-vous pour voir vos lieux publiés</p>
+                </div>
+              ) : myPlaces.length === 0 ? (
+                <div className="text-center py-12 space-y-2">
+                  <p className="text-3xl">📍</p>
+                  <p className="text-sm text-muted-foreground">Aucun lieu publié pour l'instant</p>
+                  <p className="text-xs text-muted-foreground">Vos lieux approuvés par l'équipe apparaîtront ici</p>
+                </div>
+              ) : (
+                myPlaces.map((place) => (
+                  <div
+                    key={place.id}
+                    onClick={() => { openPlace(place.id); onClose(); }}
+                    className="bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:bg-muted active:scale-[0.985] transition-all shadow-sm hover:shadow-md"
+                  >
+                    <div className="flex gap-3 p-3">
+                      {place.photo_url ? (
+                        <img src={place.photo_url} alt={place.name} className="w-16 h-16 rounded-lg object-cover shrink-0 border border-border" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-lg bg-muted shrink-0 border border-border flex items-center justify-center text-2xl">🐾</div>
+                      )}
+                      <div className="flex-1 min-w-0 space-y-0.5">
+                        <p className="font-semibold text-foreground text-sm leading-tight truncate">{place.name}</p>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {place.category}{place.city ? ` · ${place.city}` : ""}
+                        </p>
+                        {place.address && <p className="text-xs text-muted-foreground truncate">📍 {place.address}</p>}
+                        {place.rating != null && (
+                          <p className="text-xs text-yellow-500 font-medium">★ {place.rating.toFixed(1)}</p>
+                        )}
+                        {place.submitted_at && (
+                          <p className="text-[10px] text-muted-foreground">
+                            Publié le {new Date(place.submitted_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        )}
+                        <p className="text-[10px] text-primary font-semibold">Voir sur la carte →</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        )}
       </div>
     </>
   );

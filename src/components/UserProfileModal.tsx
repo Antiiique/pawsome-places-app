@@ -156,18 +156,23 @@ const STATUS_TABS = [
 type StatusKey = typeof STATUS_TABS[number]["key"];
 
 function PlaceCard({ sub }: { sub: UserSubmission }) {
-  const isApproved = sub.status === "approved";
+  const isClickable = sub.status === "approved" && !!sub.linked_place?.id;
+
   const handleClick = () => {
-    if (isApproved && sub.linked_place?.id) {
-      window.dispatchEvent(new CustomEvent("open-community-reviews", { detail: { placeId: sub.linked_place.id } }));
+    if (isClickable) {
+      window.dispatchEvent(new CustomEvent("open-community-reviews", { detail: { placeId: sub.linked_place!.id } }));
     }
   };
 
   return (
     <div
-      onClick={isApproved && sub.linked_place?.id ? handleClick : undefined}
-      role={isApproved && sub.linked_place?.id ? "button" : undefined}
-      className={`bg-secondary border border-border rounded-xl overflow-hidden ${isApproved && sub.linked_place?.id ? "cursor-pointer active:scale-[0.99] transition-transform" : ""}`}
+      onClick={isClickable ? handleClick : undefined}
+      role={isClickable ? "button" : undefined}
+      className={`border border-border rounded-xl overflow-hidden transition-all duration-150
+        ${isClickable
+          ? "bg-secondary hover:bg-muted active:scale-[0.985] cursor-pointer shadow-sm hover:shadow-md"
+          : "bg-secondary"
+        }`}
     >
       <div className="flex gap-3 p-3">
         {sub.linked_place?.photo_url ? (
@@ -177,15 +182,17 @@ function PlaceCard({ sub }: { sub: UserSubmission }) {
         )}
         <div className="flex-1 min-w-0 space-y-0.5">
           <p className="font-semibold text-foreground text-sm leading-tight truncate">{sub.name}</p>
-          <p className="text-xs text-muted-foreground">{sub.category}{sub.city ? ` · ${sub.city}` : ""}{sub.address ? ` · ${sub.address}` : ""}</p>
+          <p className="text-xs text-muted-foreground">
+            {sub.category}{sub.city ? ` · ${sub.city}` : ""}{sub.address ? ` · ${sub.address}` : ""}
+          </p>
           {sub.linked_place?.rating != null && (
-            <p className="text-xs text-yellow-500">★ {sub.linked_place.rating.toFixed(1)}</p>
+            <p className="text-xs text-yellow-500 font-medium">★ {sub.linked_place.rating.toFixed(1)}</p>
           )}
           <p className="text-[10px] text-muted-foreground">
             Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
           </p>
-          {isApproved && sub.linked_place?.id && (
-            <p className="text-[9px] text-primary font-medium">Appuyer pour voir sur la carte →</p>
+          {isClickable && (
+            <p className="text-[10px] text-primary font-semibold">Voir sur la carte →</p>
           )}
         </div>
       </div>
