@@ -491,6 +491,7 @@ export type Database = {
           is_hidden: boolean | null
           is_reported: boolean | null
           photo_url: string | null
+          photos: string[] | null
           place_id: string
           rating: number
           updated_at: string | null
@@ -506,6 +507,7 @@ export type Database = {
           is_hidden?: boolean | null
           is_reported?: boolean | null
           photo_url?: string | null
+          photos?: string[] | null
           place_id: string
           rating: number
           updated_at?: string | null
@@ -521,6 +523,7 @@ export type Database = {
           is_hidden?: boolean | null
           is_reported?: boolean | null
           photo_url?: string | null
+          photos?: string[] | null
           place_id?: string
           rating?: number
           updated_at?: string | null
