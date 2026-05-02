@@ -117,13 +117,16 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
 
   /* Visibility / animation */
   const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
     if (open) {
+      setMounted(true);
       setSnap("half");
       requestAnimationFrame(() => setVisible(true));
     } else {
       setVisible(false);
-      // keep component mounted during slide-out animation
+      const t = setTimeout(() => setMounted(false), 350);
+      return () => clearTimeout(t);
     }
   }, [open]);
 
@@ -360,7 +363,7 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
     return Math.max(0, Math.min(100, base + delta * 100));
   })();
 
-  if (!open && !visible) return null;
+  if (!mounted) return null;
 
   /* ── Render ── */
   return createPortal(
