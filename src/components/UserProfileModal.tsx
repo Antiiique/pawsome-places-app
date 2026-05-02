@@ -288,6 +288,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
   const { user } = useAuthContext();
   const { isLeftHanded, setIsLeftHanded } = useHandedness();
 
+  const [activeMainTab, setActiveMainTab] = useState("profile");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -414,6 +415,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
   useEffect(() => {
     if (open) {
       skipAutoSave.current = true;
+      setActiveMainTab("profile");
       fetchAll(); setPetView("list"); setEditingPet(null); setAlbumPet(null); setAlbum([]); setSubmissions([]); setNewPetAvatar(null); setNewPetAvatarPreview(null); setShowLeaderboard(false); setLeaderboard([]);
     } else {
       skipAutoSave.current = true;
@@ -607,18 +609,6 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
 
   return (
     <>
-      {/* Floating close button — liquid glass */}
-      {open && (
-        <button
-          onClick={onClose}
-          className="fixed bottom-8 right-4 z-[601] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
-          style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
-          title="Fermer"
-        >
-          <X className="w-5 h-5 text-foreground" />
-        </button>
-      )}
-
     <div
       data-panel
       className={`fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-l-2xl ${open ? "translate-x-0" : "translate-x-full"}`}
@@ -628,11 +618,14 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
         ...(dragProgress !== undefined ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" } : {}),
       }}
     >
-      <div className="flex-shrink-0 flex items-center px-4 py-3 border-b border-border">
+      <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-border">
         <span className="text-sm font-bold text-foreground">👤 Mon profil</span>
+        <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+          <X className="w-5 h-5 text-muted-foreground" />
+        </button>
       </div>
 
-      <Tabs defaultValue="profile" className="flex-1 min-h-0 flex flex-col">
+      <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="flex-1 min-h-0 flex flex-col">
         <div className="flex-1 min-h-0 overflow-y-auto">
 
           {/* ── PROFIL ── */}
@@ -849,10 +842,6 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
             {/* VUE LISTE */}
             {petView === "list" && (
               <div className="space-y-3">
-                <Button onClick={openCreatePet} className="w-full gap-2 bg-primary text-primary-foreground">
-                  <Plus className="w-4 h-4" /> Ajouter un animal
-                </Button>
-
                 {loading && <p className="text-sm text-muted-foreground text-center py-8">Chargement…</p>}
 
                 {!loading && pets.length === 0 && (
@@ -1294,6 +1283,15 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
             )}
           </TabsContent>
         </div>
+
+        {/* ── Bouton Ajouter un animal — visible uniquement en vue liste de l'onglet Mes Animaux ── */}
+        {activeMainTab === "pets" && petView === "list" && (
+          <div className="shrink-0 px-4 pt-2 pb-1 border-t border-border">
+            <Button onClick={openCreatePet} className="w-full gap-2 bg-primary text-primary-foreground">
+              <Plus className="w-4 h-4" /> Ajouter un animal
+            </Button>
+          </div>
+        )}
 
         {/* ── Onglets fixes en bas ── */}
         <div className="shrink-0 border-t border-border px-4 py-3">
