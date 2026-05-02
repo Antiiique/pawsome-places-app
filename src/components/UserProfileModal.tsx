@@ -457,8 +457,9 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
 
   // ── Pets ──
   const openCreatePet = () => { setEditingPet(null); setPetForm(EMPTY_PET_FORM); setNewPetAvatar(null); setNewPetAvatarPreview(null); setPetView("form"); };
-  const openEditPet = (pet: Pet) => {
+  const openEditPet = async (pet: Pet) => {
     setEditingPet(pet);
+    setAlbumPet(pet);
     setPetForm({
       name: pet.name, species: pet.species, breed: pet.breed || "",
       birth_date: pet.birth_date || "", sex: pet.sex || "", bio: pet.bio || "",
@@ -470,6 +471,10 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
     });
     setNewPetAvatar(null); setNewPetAvatarPreview(null);
     setPetView("form");
+    setLoadingAlbum(true);
+    const { data } = await supabase.from("pet_photos" as any).select("*").eq("pet_id", pet.id).order("created_at", { ascending: false });
+    setAlbum((data as any) || []);
+    setLoadingAlbum(false);
   };
 
   const openVisited = async (pet: Pet) => {
@@ -543,6 +548,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
     }
     setSavingPet(false);
     setNewPetAvatar(null); setNewPetAvatarPreview(null);
+    setAlbumPet(null); setAlbum([]);
     setPetView("list");
   };
 
@@ -626,13 +632,8 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
         <span className="text-sm font-bold text-foreground">👤 Mon profil</span>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid grid-cols-3 mx-4 mt-4">
-            <TabsTrigger value="profile" className="text-xs">Mon profil</TabsTrigger>
-            <TabsTrigger value="pets" className="text-xs">Animaux{pets.length > 0 ? ` (${pets.length})` : ""}</TabsTrigger>
-            <TabsTrigger value="places" className="text-xs">Mes lieux{submissions.filter(s => s.status === "approved" && !!s.linked_place?.id).length > 0 ? ` (${submissions.filter(s => s.status === "approved" && !!s.linked_place?.id).length})` : ""}</TabsTrigger>
-          </TabsList>
+      <Tabs defaultValue="profile" className="flex-1 min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto">
 
           {/* ── PROFIL ── */}
           <TabsContent value="profile" className="p-4 space-y-4">
@@ -924,7 +925,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
 
             {/* VUE FORMULAIRE */}
             {petView === "form" && (
-              <div className="space-y-4">
+              <div className="space-y-4" style={{ touchAction: "pan-y" }}>
                 <div className="flex items-center gap-2">
                   <button onClick={() => setPetView("list")} className="text-muted-foreground hover:text-foreground transition-colors">
                     <ChevronLeft className="w-5 h-5" />
@@ -1123,8 +1124,46 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                   />
                 </div>
 
+                {/* Album photos — uniquement en mode édition */}
+                {editingPet && (
+                  <div className="space-y-3 pt-3 border-t border-border">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-foreground">📷 Album photos</label>
+                      <button
+                        disabled={uploadingPhoto}
+                        onClick={() => albumInputRef.current?.click()}
+                        className="flex items-center gap-1 text-xs text-primary font-semibold px-3 py-1.5 rounded-full border border-primary/40 hover:bg-primary/10 transition-colors disabled:opacity-50"
+                      >
+                        <Plus className="w-3 h-3" />
+                        {uploadingPhoto ? "Envoi…" : "Ajouter"}
+                      </button>
+                      <input ref={albumInputRef} type="file" accept="image/*" className="hidden" onChange={handleAddAlbumPhoto} />
+                    </div>
+
+                    {loadingAlbum ? (
+                      <p className="text-xs text-muted-foreground text-center py-3">Chargement…</p>
+                    ) : album.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-3">Aucune photo dans l'album — appuyez sur Ajouter ↗</p>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {album.map(photo => (
+                          <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+                            <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                            <button
+                              onClick={() => handleDeleteAlbumPhoto(photo)}
+                              className="absolute top-1 right-1 w-6 h-6 rounded-full bg-destructive/90 text-white flex items-center justify-center"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" className="flex-1" onClick={() => setPetView("list")}>Annuler</Button>
+                  <Button variant="outline" className="flex-1" onClick={() => { setPetView("list"); setAlbumPet(null); setAlbum([]); }}>Annuler</Button>
                   <Button className="flex-1 bg-primary text-primary-foreground" disabled={savingPet} onClick={handleSavePet}>
                     {savingPet ? "Enregistrement…" : editingPet ? "✅ Mettre à jour" : "✅ Ajouter"}
                   </Button>
@@ -1254,8 +1293,17 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
               <PlacesSubTabs submissions={submissions} />
             )}
           </TabsContent>
-        </Tabs>
-      </div>
+        </div>
+
+        {/* ── Onglets fixes en bas ── */}
+        <div className="shrink-0 border-t border-border px-4 py-3">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="profile" className="text-xs">Mon profil</TabsTrigger>
+            <TabsTrigger value="pets" className="text-xs">Mes Animaux{pets.length > 0 ? ` (${pets.length})` : ""}</TabsTrigger>
+            <TabsTrigger value="places" className="text-xs">Mes lieux{submissions.filter(s => s.status === "approved" && !!s.linked_place?.id).length > 0 ? ` (${submissions.filter(s => s.status === "approved" && !!s.linked_place?.id).length})` : ""}</TabsTrigger>
+          </TabsList>
+        </div>
+      </Tabs>
     </div>
     </>
   );
