@@ -91,6 +91,10 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   // ── Bottom sheet snap state ──
   const [snap, setSnap] = useState<"half" | "full">("half");
   const [dragDelta, setDragDelta] = useState(0); // percentage offset during drag
+  // Refs mirror state so handleDragEnd always reads the latest value,
+  // avoiding stale-closure bugs with React 18 batched updates.
+  const snapRef = useRef<"half" | "full">("half");
+  const dragDeltaRef = useRef(0);
   const isDragging = useRef(false);
   const touchStartY = useRef<number | null>(null);
   const velPrevY = useRef<number | null>(null);
@@ -98,8 +102,13 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   const velCurrY = useRef<number | null>(null);
   const velCurrT = useRef<number | null>(null);
 
+  const setSnapState = (s: "half" | "full") => { snapRef.current = s; setSnap(s); };
+
   // Reset to half-snap whenever a new place opens
-  useEffect(() => { setSnap("half"); setDragDelta(0); }, [place?.id]);
+  useEffect(() => {
+    snapRef.current = "half"; setSnap("half");
+    dragDeltaRef.current = 0; setDragDelta(0);
+  }, [place?.id]);
 
   const baseOffset = snap === "half" ? 52 : 0; // % translateY
   const currentOffset = Math.max(0, baseOffset + dragDelta);
@@ -108,6 +117,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     isDragging.current = true;
     const y = e.touches[0].clientY;
     touchStartY.current = y;
+    dragDeltaRef.current = 0;
     velPrevY.current = null; velPrevT.current = null;
     velCurrY.current = y; velCurrT.current = Date.now();
   };
@@ -120,6 +130,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     velCurrT.current = Date.now();
     const dy = e.touches[0].clientY - touchStartY.current;
     const deltaPercent = (dy / window.innerHeight) * 100;
+    dragDeltaRef.current = deltaPercent;
     setDragDelta(deltaPercent);
   };
 
@@ -134,22 +145,26 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
         ? (velCurrY.current - velPrevY.current) / (velCurrT.current - velPrevT.current)
         : 0;
 
-    const finalOffset = baseOffset + dragDelta;
+    // Read from refs to guarantee latest values regardless of React batch timing
+    const currentSnap = snapRef.current;
+    const base = currentSnap === "half" ? 52 : 0;
+    const finalOffset = base + dragDeltaRef.current;
+    dragDeltaRef.current = 0;
     setDragDelta(0);
     touchStartY.current = null;
 
     if (vel > VELOCITY_THRESHOLD) {
       // Flick down
-      if (snap === "full") setSnap("half");
+      if (currentSnap === "full") setSnapState("half");
       else onClose();
     } else if (vel < -VELOCITY_THRESHOLD) {
       // Flick up
-      setSnap("full");
+      setSnapState("full");
     } else {
       // Snap by position
       if (finalOffset > 70) onClose();
-      else if (finalOffset > 26) setSnap("half");
-      else setSnap("full");
+      else if (finalOffset > 26) setSnapState("half");
+      else setSnapState("full");
     }
   };
 
@@ -329,7 +344,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
             )}
             {/* Tap handle icon to toggle snap point */}
             <button
-              onClick={() => setSnap(s => s === "half" ? "full" : "half")}
+              onClick={() => setSnapState(snap === "half" ? "full" : "half")}
               className="p-1.5 rounded-full hover:bg-muted transition-colors"
               title={snap === "half" ? "Agrandir" : "Réduire"}
             >

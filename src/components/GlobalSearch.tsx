@@ -77,6 +77,9 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
   const panelRef   = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout>>();
   const nearbyTimer= useRef<ReturnType<typeof setTimeout>>();
+  // Prevents a synthetic click from firing on a result row after a horizontal chip scroll
+  const chipScrolling = useRef(false);
+  const chipTouchStartX = useRef(0);
 
   const isExpanded = open && !closing;
   const { isLeftHanded } = useHandedness();
@@ -299,7 +302,17 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
       >
         {/* ── Category chips ── */}
         <div style={{ flexShrink: 0, borderBottom: "1px solid var(--border)", paddingBottom: 10, paddingTop: 10 }}>
-          <div className="flex gap-1.5 px-3 overflow-x-auto scrollbar-hide">
+          <div
+            className="flex gap-1.5 px-3 overflow-x-auto scrollbar-hide"
+            onTouchStart={e => { chipTouchStartX.current = e.touches[0].clientX; }}
+            onTouchEnd={e => {
+              const dx = Math.abs(e.changedTouches[0].clientX - chipTouchStartX.current);
+              if (dx > 8) {
+                chipScrolling.current = true;
+                setTimeout(() => { chipScrolling.current = false; }, 400);
+              }
+            }}
+          >
             {CATEGORY_FILTERS.map(c => {
               const active = activeCategory === c.value || (c.value === null && activeCategory === null);
               return (
@@ -364,7 +377,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
             <section>
               <SectionHeader label={`📍 Lieux (${places.length})`} />
               {places.map(r => (
-                <button key={r.id} onClick={() => handleSearchResult(r)}
+                <button key={r.id} onClick={() => { if (chipScrolling.current) return; handleSearchResult(r); }}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/60 active:bg-muted/80 transition-colors text-left">
                   <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden border border-border">
                     {r.photo_url
@@ -385,7 +398,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
             <section>
               <SectionHeader label={`👤 Membres (${users.length})`} />
               {users.map(r => (
-                <button key={r.id} onClick={() => handleSearchResult(r)}
+                <button key={r.id} onClick={() => { if (chipScrolling.current) return; handleSearchResult(r); }}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/60 active:bg-muted/80 transition-colors text-left">
                   <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden border border-border">
                     {r.avatar_url
@@ -406,7 +419,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
             <section>
               <SectionHeader label={`🚨 Animaux errants (${strays.length})`} />
               {strays.map(r => (
-                <button key={r.id} onClick={() => handleSearchResult(r)}
+                <button key={r.id} onClick={() => { if (chipScrolling.current) return; handleSearchResult(r); }}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/60 active:bg-muted/80 transition-colors text-left">
                   <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0 text-xl">🚨</div>
                   <div className="min-w-0">
@@ -423,7 +436,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
             <section>
               <SectionHeader label={`🆘 Animaux perdus (${lostPets.length})`} />
               {lostPets.map(r => (
-                <button key={r.id} onClick={() => handleSearchResult(r)}
+                <button key={r.id} onClick={() => { if (chipScrolling.current) return; handleSearchResult(r); }}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/60 active:bg-muted/80 transition-colors text-left">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-xl ${
                     r.status === "active" ? "bg-amber-100 dark:bg-amber-900/30" : "bg-green-100 dark:bg-green-900/30"
@@ -465,7 +478,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
                   {nearbyPlaces.map(p => (
                     <button
                       key={p.id}
-                      onClick={() => handleResult(p.id, "place", p.latitude, p.longitude)}
+                      onClick={() => { if (chipScrolling.current) return; handleResult(p.id, "place", p.latitude, p.longitude); }}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/60 active:bg-muted/80 transition-colors text-left"
                     >
                       <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden border border-border">
