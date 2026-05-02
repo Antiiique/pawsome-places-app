@@ -1,4 +1,4 @@
-import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft, ThumbsUp, Flag, Trash2, Pencil, ChevronDown, ChevronUp, Save, CheckCircle } from "lucide-react";
+import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft, ThumbsUp, Flag, Trash2, Pencil, ChevronDown, ChevronUp, Save, CheckCircle, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,7 @@ export interface PlaceReview {
   is_hidden: boolean;
   is_reported: boolean;
   created_at: string;
+  photos: string[] | null;
   profiles?: { display_name: string | null; avatar_url: string | null };
 }
 
@@ -161,6 +162,8 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   const [newBody, setNewBody] = useState("");
   const [visitedWithPet, setVisitedWithPet] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [adminEditOpen, setAdminEditOpen] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
   const [editForm, setEditForm] = useState<{
@@ -183,6 +186,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   useEffect(() => {
     setActiveTab("google"); setReviews([]); setNewRating(0);
     setNewBody(""); setVisitedWithPet(false); setAdminEditOpen(false);
+    setPhotoFiles([]); setPhotoPreviews([]);
   }, [place?.id]);
 
   useEffect(() => {
@@ -230,20 +234,43 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
 
   useEffect(() => { if (activeTab === "community") loadReviews(); }, [activeTab, place?.id]);
   useEffect(() => {
-    if (userReview) { setNewRating(userReview.rating); setNewBody(userReview.body ?? ""); setVisitedWithPet(userReview.visited_with_pet); }
+    if (userReview) {
+      setNewRating(userReview.rating);
+      setNewBody(userReview.body ?? "");
+      setVisitedWithPet(userReview.visited_with_pet);
+      setPhotoPreviews(userReview.photos ?? []);
+      setPhotoFiles([]);
+    }
   }, [userReview?.id]);
+
+  async function uploadPhotos(files: File[]): Promise<string[]> {
+    const urls: string[] = [];
+    for (const file of files) {
+      const ext = file.name.split('.').pop() ?? 'jpg';
+      const path = `${user!.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from('review-photos').upload(path, file);
+      if (!error) {
+        const { data } = supabase.storage.from('review-photos').getPublicUrl(path);
+        urls.push(data.publicUrl);
+      }
+    }
+    return urls;
+  }
 
   async function submitReview() {
     if (!user) { toast.error("Connecte-toi pour laisser un avis"); return; }
     if (newRating === 0) { toast.error("Choisis une note"); return; }
     if (!place) return;
     setSubmitting(true);
-    const payload = { place_id: place.id, user_id: user.id, rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet };
+    const existingUrls = photoPreviews.filter(p => p.startsWith('http'));
+    const uploadedUrls = photoFiles.length > 0 ? await uploadPhotos(photoFiles) : [];
+    const allPhotos = [...existingUrls, ...uploadedUrls];
+    const payload = { place_id: place.id, user_id: user.id, rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photos: allPhotos };
     const { error } = userReview
-      ? await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet }).eq("id", userReview.id)
+      ? await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photos: allPhotos }).eq("id", userReview.id)
       : await supabase.from("place_reviews").insert(payload);
     if (error) toast.error("Erreur lors de la publication");
-    else { toast.success(userReview ? "Avis mis à jour !" : "Avis publié !"); await loadReviews(); }
+    else { toast.success(userReview ? "Avis mis à jour !" : "Avis publié !"); setPhotoFiles([]); await loadReviews(); }
     setSubmitting(false);
   }
 
@@ -390,6 +417,15 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
                       </div>
                       {r.visited_with_pet && <span className="text-xs bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full">🐾 Visité avec mon animal</span>}
                       {r.body && <p className="text-xs text-foreground leading-relaxed">{r.body}</p>}
+                      {r.photos && r.photos.length > 0 && (
+                        <div className="flex gap-1.5 flex-wrap pt-0.5">
+                          {r.photos.map((url, i) => (
+                            <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                              <img src={url} alt="" className="w-16 h-16 rounded-lg object-cover border border-border hover:opacity-80 transition-opacity" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                       <div className="flex items-center justify-between pt-1">
                         <span className="text-xs text-muted-foreground">{timeAgo(r.created_at)}</span>
                         <div className="flex items-center gap-2">
@@ -420,6 +456,43 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
                   </div>
                   <textarea value={newBody} onChange={e => setNewBody(e.target.value)} placeholder="Décris ton expérience (optionnel)…" rows={3}
                     className="w-full text-xs rounded-lg border border-border bg-muted/40 p-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary" />
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Photos ({photoPreviews.length}/3)</span>
+                      {photoPreviews.length < 3 && (
+                        <label className="flex items-center gap-1 text-xs text-primary cursor-pointer hover:text-primary/80 transition-colors">
+                          <Camera className="w-3.5 h-3.5" /> Ajouter une photo
+                          <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+                            const files = Array.from(e.target.files ?? []);
+                            const remaining = 3 - photoPreviews.length;
+                            const toAdd = files.slice(0, remaining);
+                            setPhotoFiles(prev => [...prev, ...toAdd]);
+                            setPhotoPreviews(prev => [...prev, ...toAdd.map(f => URL.createObjectURL(f))]);
+                            e.target.value = "";
+                          }} />
+                        </label>
+                      )}
+                    </div>
+                    {photoPreviews.length > 0 && (
+                      <div className="flex gap-2 flex-wrap">
+                        {photoPreviews.map((src, i) => (
+                          <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-border">
+                            <img src={src} alt="" className="w-full h-full object-cover" />
+                            <button type="button" onClick={() => {
+                              const isExisting = src.startsWith('http');
+                              setPhotoPreviews(prev => prev.filter((_, j) => j !== i));
+                              if (!isExisting) {
+                                const blobIdx = photoPreviews.filter(p => !p.startsWith('http')).indexOf(src);
+                                if (blobIdx >= 0) setPhotoFiles(prev => prev.filter((_, j) => j !== blobIdx));
+                              }
+                            }} className="absolute top-0.5 right-0.5 w-4 h-4 bg-black/60 rounded-full flex items-center justify-center">
+                              <X className="w-2.5 h-2.5 text-white" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <label className="flex items-center gap-2 text-xs cursor-pointer">
                     <input type="checkbox" checked={visitedWithPet} onChange={e => setVisitedWithPet(e.target.checked)} className="rounded" />
                     🐾 J'y suis allé(e) avec mon animal
