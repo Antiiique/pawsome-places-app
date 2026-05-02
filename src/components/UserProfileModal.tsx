@@ -208,9 +208,11 @@ function PlaceCard({ sub }: { sub: UserSubmission }) {
 
 function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
   const [activeStatus, setActiveStatus] = useState<StatusKey>("approved");
+  const [approvedCollapsed, setApprovedCollapsed] = useState(false);
 
   const visibleByStatus: Record<StatusKey, UserSubmission[]> = {
-    approved: submissions.filter(s => s.status === "approved"),
+    // Only approved places that exist on the map (linked_place present)
+    approved: submissions.filter(s => s.status === "approved" && !!s.linked_place?.id),
     pending:  submissions.filter(s => s.status === "pending"),
     rejected: submissions.filter(s => s.status === "rejected"),
   };
@@ -218,7 +220,7 @@ function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
   const filtered = visibleByStatus[activeStatus];
 
   const emptyLabel: Record<StatusKey, string> = {
-    approved: "Aucun lieu approuvé actif",
+    approved: "Aucun lieu approuvé visible sur la carte",
     pending:  "Aucun lieu en attente",
     rejected: "Aucun lieu refusé",
   };
@@ -254,6 +256,17 @@ function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
         })}
       </div>
 
+      {/* Collapse toggle for approved tab */}
+      {activeStatus === "approved" && filtered.length > 0 && (
+        <button
+          onClick={() => setApprovedCollapsed(c => !c)}
+          className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-xs font-semibold text-foreground"
+        >
+          <span>✅ {filtered.length} lieu{filtered.length > 1 ? "x" : ""} sur la carte</span>
+          <span className={`transition-transform duration-200 ${approvedCollapsed ? "rotate-0" : "rotate-180"}`}>▲</span>
+        </button>
+      )}
+
       {/* Isolated content per tab */}
       {filtered.length === 0 ? (
         <div className="text-center py-10 space-y-1.5">
@@ -261,9 +274,11 @@ function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
           <p className="text-sm text-muted-foreground">{emptyLabel[activeStatus]}</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {filtered.map(sub => <PlaceCard key={sub.id} sub={sub} />)}
-        </div>
+        !(activeStatus === "approved" && approvedCollapsed) && (
+          <div className="space-y-2">
+            {filtered.map(sub => <PlaceCard key={sub.id} sub={sub} />)}
+          </div>
+        )
       )}
     </div>
   );
@@ -276,6 +291,8 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const skipAutoSave = useRef(true);
   const [profile, setProfile] = useState<ProfileData>({
     display_name: "", avatar_url: null, bio: "", age: null, city: "", points: 0, alert_radius_km: null,
   });
@@ -323,6 +340,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
       supabase.from("stray_reports").select("id", { count: "exact" }).eq("user_id", user.id),
     ]);
     if (prof) {
+      skipAutoSave.current = true;
       setProfile({
         display_name: prof.display_name || "",
         avatar_url: prof.avatar_url,
@@ -332,6 +350,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
         points: (prof as any).points ?? 0,
         alert_radius_km: (prof as any).alert_radius_km ?? null,
       });
+      setTimeout(() => { skipAutoSave.current = false; }, 100);
     }
     setReviewCount(revCount || 0);
     setStrayCount(strayC || 0);
@@ -393,23 +412,32 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
   }, []);
 
   useEffect(() => {
-    if (open) { fetchAll(); setPetView("list"); setEditingPet(null); setAlbumPet(null); setAlbum([]); setSubmissions([]); setNewPetAvatar(null); setNewPetAvatarPreview(null); setShowLeaderboard(false); setLeaderboard([]); }
+    if (open) {
+      skipAutoSave.current = true;
+      fetchAll(); setPetView("list"); setEditingPet(null); setAlbumPet(null); setAlbum([]); setSubmissions([]); setNewPetAvatar(null); setNewPetAvatarPreview(null); setShowLeaderboard(false); setLeaderboard([]);
+    } else {
+      skipAutoSave.current = true;
+      clearTimeout(saveTimerRef.current);
+    }
   }, [open, fetchAll]);
 
-  // ── Profile ──
-  const handleSave = async () => {
-    if (!user) return;
+  // ── Auto-save profile on field change (debounced 800ms) ──
+  useEffect(() => {
+    if (skipAutoSave.current || !user) return;
+    clearTimeout(saveTimerRef.current);
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({
-      display_name: profile.display_name || null,
-      bio: profile.bio || null,
-      age: profile.age,
-      city: profile.city || null,
-    } as any).eq("id", user.id);
-    setSaving(false);
-    if (error) { toast.error("Erreur : " + error.message); return; }
-    toast.success("Profil mis à jour ✨");
-  };
+    saveTimerRef.current = setTimeout(async () => {
+      const { error } = await supabase.from("profiles").update({
+        display_name: profile.display_name || null,
+        bio: profile.bio || null,
+        age: profile.age,
+        city: profile.city || null,
+      } as any).eq("id", user.id);
+      setSaving(false);
+      if (error) toast.error("Erreur de sauvegarde : " + error.message);
+    }, 800);
+    return () => clearTimeout(saveTimerRef.current);
+  }, [profile.display_name, profile.bio, profile.age, profile.city, user]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -807,9 +835,9 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                   )}
                 </div>
 
-                <Button className="w-full bg-primary text-primary-foreground hover:opacity-90" disabled={saving} onClick={handleSave}>
-                  {saving ? "Enregistrement…" : "💾 Enregistrer"}
-                </Button>
+                {saving && (
+                  <p className="text-center text-[11px] text-muted-foreground animate-pulse">💾 Sauvegarde…</p>
+                )}
               </>
             )}
           </TabsContent>
