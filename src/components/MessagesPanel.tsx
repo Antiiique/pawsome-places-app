@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { X, MessageCircle, User, Search, ArrowLeft, Send, Loader2, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useHandedness } from "@/contexts/HandednessContext";
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
 
@@ -99,6 +100,7 @@ const SNAP_VELOCITY = 0.4;
 
 export default function MessagesPanel({ open, onClose, initialConvId, initialOtherUser }: MessagesPanelProps) {
   const { user } = useAuthContext();
+  const { isLeftHanded } = useHandedness();
 
   /* Snap / drag state */
   const [snap, setSnap] = useState<"half" | "full">("half");
@@ -391,7 +393,7 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
         >
           <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mb-2" />
           {/* Header */}
-          <div className="w-full flex items-center justify-between px-4 pb-2">
+          <div className={`w-full flex items-center justify-between px-4 pb-2 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
             <div className="flex items-center gap-2">
               {activeConv ? (
                 <button
@@ -407,7 +409,7 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
                 {activeConv ? (activeConv.other.display_name || "Conversation") : "Messages"}
               </h2>
             </div>
-            <div className="flex items-center gap-1">
+            <div className={`flex items-center gap-1 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
               <button
                 onClick={() => setSnap(s => s === "half" ? "full" : "half")}
                 className="p-1.5 rounded-full hover:bg-muted transition-colors"
