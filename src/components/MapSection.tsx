@@ -14,6 +14,7 @@ import LostPetDetailPanel, { type LostPet } from "./LostPetDetailPanel";
 import GlobalSearch from "./GlobalSearch";
 import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useHandedness } from "@/contexts/HandednessContext";
 import type { FavoritePlace } from "@/hooks/useFavorites";
 import { detectCategoryFromTypes } from "@/hooks/useFavorites";
 import type { ItineraryMapData } from "./itinerary/types";
@@ -208,6 +209,8 @@ interface MapSectionProps {
 
 const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavorite, onToggleFavorite, onOpenItinerary, frozen }: MapSectionProps) => {
   const { user } = useAuthContext();
+  const { isLeftHanded } = useHandedness();
+  const fabSide = isLeftHanded ? "left-4" : "right-4";
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
@@ -1046,7 +1049,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             detail: { lat: center?.lat ?? 48.8566, lng: center?.lng ?? 2.3522 },
           }));
         }}
-        className="absolute bottom-56 right-4 z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+        className={`absolute bottom-56 ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
         style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Ajouter un lieu"
       >
@@ -1059,7 +1062,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           if (!user) { toast.error("Connectez-vous pour publier une annonce"); window.dispatchEvent(new CustomEvent("open-auth-modal")); return; }
           setLostPetModal(true);
         }}
-        className="absolute bottom-40 right-4 z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+        className={`absolute bottom-40 ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
         style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal perdu"
       >
@@ -1069,7 +1072,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       {/* Stray report FAB */}
       <button
         onClick={() => setStrayModal(true)}
-        className="absolute bottom-24 right-4 z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+        className={`absolute bottom-24 ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
         style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal errant"
       >
@@ -1079,7 +1082,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       {/* Locate me */}
       <button
         onClick={handleLocateMe}
-        className="absolute bottom-8 right-4 z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+        className={`absolute bottom-8 ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
         style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Ma position"
       >

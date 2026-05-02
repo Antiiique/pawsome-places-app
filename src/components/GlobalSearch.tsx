@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, MutableRefObject } from "reac
 import { Search, X, Loader2, User, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useGlobalSearch, type SearchResult, type SearchFilters } from "@/hooks/useGlobalSearch";
+import { useHandedness } from "@/contexts/HandednessContext";
 
 /* ── Constants ─────────────────────────────────────────── */
 
@@ -78,6 +79,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
   const nearbyTimer= useRef<ReturnType<typeof setTimeout>>();
 
   const isExpanded = open && !closing;
+  const { isLeftHanded } = useHandedness();
   const showPanel  = open;
   const hasFilter  = activeCategory !== null;
   const hasSearch  = !!(query || activeCategory);
@@ -200,7 +202,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
         style={{
           position: "absolute",
           bottom: "18rem",   /* bottom-72: above add(bottom-56)→lostpet(bottom-40)→stray(bottom-24)→locate(bottom-8) */
-          right: "1rem",
+          ...(isLeftHanded ? { left: "1rem" } : { right: "1rem" }),
           zIndex: 30,
           /* ── The bar uses position:relative so the icon button can be
              absolutely anchored to the right edge — guaranteeing a full
@@ -218,7 +220,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
           WebkitBackdropFilter: "blur(24px)",
         } as React.CSSProperties}
       >
-        {/* Input — fills space left of icon */}
+        {/* Input — fills space opposite to icon */}
         <input
           ref={inputRef}
           value={query}
@@ -227,9 +229,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
           style={{
             position: "absolute",
             top: 0, bottom: 0,
-            left: 0,
-            right: FAB,
-            paddingLeft: 16,
+            ...(isLeftHanded ? { left: FAB, right: 0, paddingLeft: 12, paddingRight: 16 } : { left: 0, right: FAB, paddingLeft: 16 }),
             fontSize: 16,
             background: "transparent",
             outline: "none",
@@ -240,12 +240,12 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
           }}
         />
 
-        {/* Icon — absolutely pinned to the RIGHT, always full 48×48 */}
+        {/* Icon — absolutely pinned to the edge matching handedness */}
         <button
           onClick={toggleSearch}
           style={{
             position: "absolute",
-            top: 0, right: 0,
+            top: 0, ...(isLeftHanded ? { left: 0 } : { right: 0 }),
             width: FAB, height: FAB,
             display: "flex", alignItems: "center", justifyContent: "center",
             background: "transparent", border: "none",
@@ -262,7 +262,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
           {/* Filter badge (closed state) */}
           {hasFilter && !open && (
             <span style={{
-              position: "absolute", top: 10, right: 10,
+              position: "absolute", top: 10, ...(isLeftHanded ? { left: 10 } : { right: 10 }),
               width: 8, height: 8, borderRadius: "50%",
               background: "var(--primary)",
               border: "1.5px solid var(--card)",

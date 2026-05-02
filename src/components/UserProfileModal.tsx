@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { X, Upload, Trash2, Star, Plus, ChevronLeft, Camera, Bell, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useHandedness } from "@/contexts/HandednessContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -270,6 +271,7 @@ function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
 
 export default function UserProfileModal({ open, onClose, dragProgress }: UserProfileModalProps) {
   const { user } = useAuthContext();
+  const { isLeftHanded, setIsLeftHanded } = useHandedness();
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -748,6 +750,33 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                   <div>
                     <label className="text-xs font-medium text-foreground">Bio</label>
                     <Textarea value={profile.bio} onChange={(e) => setProfile(p => ({ ...p, bio: e.target.value }))} rows={3} placeholder="Parle un peu de toi et de tes compagnons…" />
+                  </div>
+                </div>
+
+                {/* Préférence de main */}
+                <div className="p-4 rounded-xl bg-secondary border border-border space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🖐️</span>
+                    <p className="text-xs font-semibold text-foreground">Main dominante</p>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">Si tu es gaucher, les boutons d'action (recherche, ajout de lieu, signalement…) se déplacent sur le côté gauche de l'écran.</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setIsLeftHanded(false)}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border text-xs font-semibold transition-colors ${
+                        !isLeftHanded ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      🤚 Droitier
+                    </button>
+                    <button
+                      onClick={() => setIsLeftHanded(true)}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border text-xs font-semibold transition-colors ${
+                        isLeftHanded ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      🤚 Gaucher
+                    </button>
                   </div>
                 </div>
 
