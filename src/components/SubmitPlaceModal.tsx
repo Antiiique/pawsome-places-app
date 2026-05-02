@@ -316,57 +316,57 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
     toast.success("📍 Lieu soumis avec succès !");
   };
 
-  if (!open) return null;
+  if (!open && !visible) return null;
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-[700]"
-      style={{
-        backgroundColor: `rgba(0,0,0,${visible ? 0.45 : 0})`,
-        transition: dragging ? "none" : "background-color 0.3s ease",
-        pointerEvents: open ? "auto" : "none",
-      }}
-    >
-      {/* Floating close button — bottom-right, same liquid glass style as map FABs */}
+    <>
+      {/* Scrim */}
+      <div
+        className="fixed inset-0 z-[700] bg-black/50"
+        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease" }}
+        onClick={handleClose}
+      />
+
+      {/* Floating close button */}
       {visible && (
         <button
           onClick={handleClose}
-          className="fixed bottom-8 right-4 z-[701] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+          className="fixed bottom-8 right-4 z-[702] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
           style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
-          title="Fermer"
         >
           <X className="w-5 h-5 text-foreground" />
         </button>
       )}
 
-      {/* Bottom sheet */}
+      {/* Bottom sheet — fixed, same as StrayReportModal / LostPetModal */}
       <div
-        className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl shadow-2xl flex flex-col"
+        className="fixed left-0 right-0 bottom-0 z-[701] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
-          height: "calc(100vh - 56px)",
-          transform: `translateY(${!visible ? 100 : currentPct}%)`,
-          transition: dragging ? "none" : "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
-          willChange: "transform",
+          top: 56,
+          transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
+          transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
         }}
       >
-        {/* Drag handle + header — both support swipe-to-close */}
+        {/* Drag handle */}
         <div
-          className="flex-shrink-0 pt-2.5 pb-1 flex flex-col items-center cursor-grab active:cursor-grabbing"
+          className="shrink-0 flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
           onTouchStart={handleDragStart}
           onTouchMove={handleDragMove}
           onTouchEnd={handleDragEnd}
+          style={{ touchAction: "none" }}
         >
-          <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+          <div className="w-10 h-1 rounded-full bg-border" />
         </div>
 
-        {/* Header — swipeable too */}
+        {/* Header — swipeable */}
         <div
-          className="flex-shrink-0 flex items-center px-4 py-3 border-b border-border gap-3"
+          className="shrink-0 flex items-center px-4 py-3 border-b border-border"
           onTouchStart={handleDragStart}
           onTouchMove={handleDragMove}
           onTouchEnd={handleDragEnd}
+          style={{ touchAction: "none" }}
         >
-          <h2 className="text-base font-bold text-foreground flex-1">Ajouter un lieu</h2>
+          <h2 className="text-base font-bold text-foreground flex-1">📍 Ajouter un lieu</h2>
         </div>
 
         {/* Scrollable content — only scrolls in full mode */}
@@ -599,7 +599,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
           )}
         </div>
       </div>
-    </div>,
+    </>,
     document.body
   );
 }
