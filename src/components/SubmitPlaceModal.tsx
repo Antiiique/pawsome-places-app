@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, ChevronUp, X, ArrowLeft, Camera, LocateFixed, Loader2 } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useHandedness } from "@/contexts/HandednessContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -91,6 +92,7 @@ function Checkbox({ checked, onChange, label }: { checked: boolean; onChange: (v
 
 export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initialCoords }: SubmitPlaceModalProps) {
   const { user } = useAuthContext();
+  const { isLeftHanded } = useHandedness();
 
   // Bottom sheet state
   const [visible, setVisible] = useState(false);
@@ -349,7 +351,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
 
         {/* Header — swipeable */}
         <div
-          className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-border"
+          className={`shrink-0 flex items-center justify-between px-4 py-3 border-b border-border ${isLeftHanded ? "flex-row-reverse" : ""}`}
           onTouchStart={handleDragStart}
           onTouchMove={handleDragMove}
           onTouchEnd={handleDragEnd}

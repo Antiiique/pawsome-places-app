@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useHandedness } from "@/contexts/HandednessContext";
 import type { ItineraryMapData, ItineraryStep, PlaceSelection, Waypoint } from "./types";
 import { useSavedItineraries, type SavedItinerary } from "@/hooks/useSavedItineraries";
 
@@ -249,6 +250,7 @@ const glassStyle: React.CSSProperties = {
 };
 
 export default function ItineraryPanel({ open, onClose, onRouteCalculated, onViewStep, pickMode, onPickModeChange, dragProgress }: ItineraryPanelProps) {
+  const { isLeftHanded } = useHandedness();
   const [origin, setOrigin] = useState<PlaceSelection | null>(null);
   const [destination, setDestination] = useState<PlaceSelection | null>(null);
   const [originText, setOriginText] = useState("");
@@ -602,7 +604,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
           : { transform: open ? "translateX(0%)" : "translateX(-100%)" }),
       }}>
 
-        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+        <div className={`flex items-center justify-between p-4 border-b border-border shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
           <div className="flex items-center gap-2">
             <Navigation className="w-5 h-5 text-primary" />
             <h2 className="font-heading font-bold text-foreground">Itinéraire Pet-Friendly</h2>

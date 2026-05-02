@@ -629,7 +629,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
           : { transform: open ? "translateX(0%)" : "translateX(100%)" }),
       }}
     >
-      <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-border">
+      <div className={`flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-border ${isLeftHanded ? "flex-row-reverse" : ""}`}>
         <span className="text-sm font-bold text-foreground">👤 Mon profil</span>
         <div className="flex items-center gap-1">
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">

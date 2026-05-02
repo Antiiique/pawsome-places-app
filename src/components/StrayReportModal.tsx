@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useHandedness } from "@/contexts/HandednessContext";
 
 const MAPBOX_TOKEN = "pk.eyJ1IjoiZWx2aW5hZ2QiLCJhIjoiY21vNzlzaTZ5MDUxMTJxc2V1Ym5sZzVxNyJ9.QVzHhHQIH-DsrHzfi-STRA";
 
@@ -20,6 +21,7 @@ type Step = "source" | "form";
 
 export default function StrayReportModal({ open, onClose, onReported }: StrayReportModalProps) {
   const { user } = useAuthContext();
+  const { isLeftHanded } = useHandedness();
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
 
@@ -227,7 +229,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
 
         {/* Header (swipeable) */}
         <div
-          className="flex items-center justify-between px-5 pt-3 pb-3 border-b border-border shrink-0"
+          className={`flex items-center justify-between px-5 pt-3 pb-3 border-b border-border shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}
           onTouchStart={handleDragStart}
           onTouchMove={handleDragMove}
           onTouchEnd={handleDragEnd}

@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { X, ChevronUp, Image, Loader2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useHandedness } from "@/contexts/HandednessContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -28,6 +29,7 @@ const emptyForm = {
 
 export default function LostPetModal({ open, onClose, onPublished }: LostPetModalProps) {
   const { user } = useAuthContext();
+  const { isLeftHanded } = useHandedness();
   const [visible, setVisible] = useState(false);
   const [snapState, setSnapState] = useState<"half" | "full">("half");
   const [photos, setPhotos] = useState<File[]>([]);
@@ -227,7 +229,7 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
 
         {/* Header (swipeable) */}
         <div
-          className="flex items-center justify-between px-5 pt-3 pb-3 border-b border-border shrink-0"
+          className={`flex items-center justify-between px-5 pt-3 pb-3 border-b border-border shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}
           onTouchStart={handleDragStart}
           onTouchMove={handleDragMove}
           onTouchEnd={handleDragEnd}
