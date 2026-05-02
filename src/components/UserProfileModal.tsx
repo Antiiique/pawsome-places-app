@@ -429,7 +429,6 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
     } else {
       skipAutoSave.current = true;
       clearTimeout(saveTimerRef.current);
-      setCompact(false);
     }
   }, [open, fetchAll]);
 

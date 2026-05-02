@@ -266,9 +266,6 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
 
   const { itineraries, save, remove, count: savedCount } = useSavedItineraries();
 
-  useEffect(() => {
-    if (!open) setCompact(false);
-  }, [open]);
 
   // Listen for waypoint add events from map popup
   useEffect(() => {
