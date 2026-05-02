@@ -140,27 +140,6 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
 
   return (
     <>
-      {/* Floating buttons */}
-      {open && (
-        <div className="fixed bottom-8 right-4 z-[601] flex items-center gap-2">
-          <button
-            onClick={() => setCompact(c => !c)}
-            className="w-12 h-12 flex items-center justify-center rounded-full"
-            style={glassStyle}
-            title={compact ? "Agrandir" : "Réduire"}
-          >
-            <ChevronUp className={`w-5 h-5 text-foreground transition-transform duration-300 ${compact ? "rotate-180" : ""}`} />
-          </button>
-          <button
-            onClick={onClose}
-            className="w-12 h-12 flex items-center justify-center rounded-full"
-            style={glassStyle}
-            title="Fermer"
-          >
-            <X className="w-5 h-5 text-foreground" />
-          </button>
-        </div>
-      )}
 
       <div
         data-panel
@@ -173,9 +152,19 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
         }}
       >
         {/* Header */}
-        <div className="flex items-center px-4 py-3 border-b border-border shrink-0">
-          <Heart className="w-5 h-5 text-destructive fill-destructive mr-2" />
-          <h2 className="font-bold text-foreground text-sm">Mes lieux</h2>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+          <div className="flex items-center gap-2">
+            <Heart className="w-5 h-5 text-destructive fill-destructive" />
+            <h2 className="font-bold text-foreground text-sm">Mes lieux</h2>
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setCompact(c => !c)} className="p-1.5 rounded-full hover:bg-muted transition-colors" title={compact ? "Agrandir" : "Réduire"}>
+              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${compact ? "rotate-180" : ""}`} />
+            </button>
+            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
         </div>
 
         {/* ── Scrollable content ── */}

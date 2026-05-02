@@ -620,27 +620,6 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
 
   return (
     <>
-      {/* Floating buttons */}
-      {open && (
-        <div className="fixed bottom-8 right-4 z-[601] flex items-center gap-2">
-          <button
-            onClick={() => setCompact(c => !c)}
-            className="w-12 h-12 flex items-center justify-center rounded-full"
-            style={glassStyle}
-            title={compact ? "Agrandir" : "Réduire"}
-          >
-            <ChevronUp className={`w-5 h-5 text-foreground transition-transform duration-300 ${compact ? "rotate-180" : ""}`} />
-          </button>
-          <button
-            onClick={onClose}
-            className="w-12 h-12 flex items-center justify-center rounded-full"
-            style={glassStyle}
-            title="Fermer"
-          >
-            <X className="w-5 h-5 text-foreground" />
-          </button>
-        </div>
-      )}
     <div
       data-panel
       className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-l-2xl"
@@ -652,8 +631,16 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
           : { transform: open ? (compact ? "translateX(0%) translateY(55%)" : "translateX(0%) translateY(0%)") : "translateX(100%)" }),
       }}
     >
-      <div className="flex-shrink-0 flex items-center px-4 py-3 border-b border-border">
+      <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-border">
         <span className="text-sm font-bold text-foreground">👤 Mon profil</span>
+        <div className="flex items-center gap-1">
+          <button onClick={() => setCompact(c => !c)} className="p-1.5 rounded-full hover:bg-muted transition-colors" title={compact ? "Agrandir" : "Réduire"}>
+            <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${compact ? "rotate-180" : ""}`} />
+          </button>
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
       </div>
 
       <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="flex-1 min-h-0 flex flex-col">

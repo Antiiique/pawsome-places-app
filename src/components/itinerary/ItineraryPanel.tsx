@@ -598,28 +598,6 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
 
   return (
     <>
-      {/* Floating buttons — bottom right */}
-      {open && (
-        <div className="fixed bottom-8 right-4 z-[601] flex items-center gap-2">
-          <button
-            onClick={() => setCompact(c => !c)}
-            className="w-12 h-12 flex items-center justify-center rounded-full"
-            style={glassStyle}
-            title={compact ? "Agrandir" : "Réduire"}
-          >
-            <ChevronUp className={`w-5 h-5 text-foreground transition-transform duration-300 ${compact ? "rotate-180" : ""}`} />
-          </button>
-          <button
-            onClick={onClose}
-            className="w-12 h-12 flex items-center justify-center rounded-full"
-            style={glassStyle}
-            title="Fermer"
-          >
-            <X className="w-5 h-5 text-foreground" />
-          </button>
-        </div>
-      )}
-
       {/* Mobile backdrop */}
       <div data-panel className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-r-2xl" style={{
         top: 56,
@@ -628,9 +606,19 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
           : { transform: open ? (compact ? "translateX(0%) translateY(55%)" : "translateX(0%) translateY(0%)") : "translateX(-100%)" }),
       }}>
 
-        <div className="flex items-center p-4 border-b border-border shrink-0">
-          <Navigation className="w-5 h-5 text-primary mr-2" />
-          <h2 className="font-heading font-bold text-foreground">Itinéraire Pet-Friendly</h2>
+        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+          <div className="flex items-center gap-2">
+            <Navigation className="w-5 h-5 text-primary" />
+            <h2 className="font-heading font-bold text-foreground">Itinéraire Pet-Friendly</h2>
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setCompact(c => !c)} className="p-1.5 rounded-full hover:bg-muted transition-colors" title={compact ? "Agrandir" : "Réduire"}>
+              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${compact ? "rotate-180" : ""}`} />
+            </button>
+            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">

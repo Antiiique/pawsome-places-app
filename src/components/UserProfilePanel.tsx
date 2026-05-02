@@ -277,26 +277,6 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
 
   return (
     <>
-      {/* Floating buttons */}
-      <div className="fixed bottom-8 right-4 z-[701] flex items-center gap-2">
-        <button
-          onClick={() => setCompact(c => !c)}
-          className="w-12 h-12 flex items-center justify-center rounded-full"
-          style={glassStyle}
-          title={compact ? "Agrandir" : "Réduire"}
-        >
-          <ChevronUp className={`w-5 h-5 text-foreground transition-transform duration-300 ${compact ? "rotate-180" : ""}`} />
-        </button>
-        <button
-          onClick={onClose}
-          className="w-12 h-12 flex items-center justify-center rounded-full"
-          style={glassStyle}
-          title="Fermer"
-        >
-          <X className="w-5 h-5 text-foreground" />
-        </button>
-      </div>
-
       <div
         className="fixed bottom-0 left-0 right-0 z-[700] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
@@ -305,8 +285,18 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
           transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
         }}
       >
+        {/* Control bar */}
+        <div className="flex items-center justify-end px-3 py-2 border-b border-border shrink-0 gap-1">
+          <button onClick={() => setCompact(c => !c)} className="p-1.5 rounded-full hover:bg-muted transition-colors" title={compact ? "Agrandir" : "Réduire"}>
+            <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${compact ? "rotate-180" : ""}`} />
+          </button>
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
+
         {/* Header */}
-        <div className="px-5 pt-6 pb-4 border-b border-border shrink-0">
+        <div className="px-5 pt-4 pb-4 border-b border-border shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0 border-2 border-border">
               {profile?.avatar_url
