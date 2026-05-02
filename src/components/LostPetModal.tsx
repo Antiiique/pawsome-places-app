@@ -239,7 +239,7 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
             <h2 className="font-bold text-lg text-foreground">🆘 Signaler un animal perdu</h2>
             <p className="text-xs text-muted-foreground mt-0.5">Les utilisateurs à moins de 50 km seront notifiés</p>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
+          <div className={`flex items-center gap-1 shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
             <button onClick={() => setSnapState(s => s === "half" ? "full" : "half")} className="p-1.5 rounded-full hover:bg-muted transition-colors">
               <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snapState === "full" ? "rotate-180" : ""}`} />
             </button>

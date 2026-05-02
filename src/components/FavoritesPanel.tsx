@@ -5,6 +5,7 @@ import type { FavoritePlace } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useHandedness } from "@/contexts/HandednessContext";
 
 const CATEGORY_FILTERS = [
   { key: null,              label: "Tous",           emoji: "🐾" },
@@ -60,6 +61,7 @@ interface FavoritesPanelProps {
 
 export default function FavoritesPanel({ open, favorites, onClose, onRemove, onViewOnMap, onSetOrigin, onSetDestination }: FavoritesPanelProps) {
   const { user } = useAuthContext();
+  const { isLeftHanded } = useHandedness();
   const [activeTab, setActiveTab] = useState<"favorites" | "myplaces">("favorites");
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState<string | null>(null);
@@ -200,7 +202,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
 
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 pb-3 border-b border-border shrink-0"
+        className={`flex items-center justify-between px-4 pb-3 border-b border-border shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}
         onTouchStart={handleDragStart}
         onTouchMove={handleDragMove}
         onTouchEnd={handleDragEnd}
@@ -210,7 +212,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
           <Heart className="w-5 h-5 text-destructive fill-destructive" />
           <h2 className="font-bold text-foreground text-sm">Mes lieux</h2>
         </div>
-        <div className="flex items-center gap-1">
+        <div className={`flex items-center gap-1 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
           <button
             onClick={() => setSnapState(s => s === "half" ? "full" : "half")}
             className="p-1.5 rounded-full hover:bg-muted transition-colors"

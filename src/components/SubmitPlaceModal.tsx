@@ -358,7 +358,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
           style={{ touchAction: "none" }}
         >
           <h2 className="text-base font-bold text-foreground">📍 Ajouter un lieu</h2>
-          <div className="flex items-center gap-1">
+          <div className={`flex items-center gap-1 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
             <button onClick={() => setSnapState(s => s === "half" ? "full" : "half")} className="p-1.5 rounded-full hover:bg-muted transition-colors">
               <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snapState === "full" ? "rotate-180" : ""}`} />
             </button>

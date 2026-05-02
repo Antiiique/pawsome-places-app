@@ -247,7 +247,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
               )}
             </div>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
+          <div className={`flex items-center gap-1 shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
             <button onClick={() => setSnapState(s => s === "half" ? "full" : "half")} className="p-1.5 rounded-full hover:bg-muted transition-colors">
               <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snapState === "full" ? "rotate-180" : ""}`} />
             </button>
