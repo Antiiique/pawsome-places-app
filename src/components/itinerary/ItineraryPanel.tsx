@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, ArrowUpDown, Loader2, MapPin, ExternalLink, Share2, Save, Navigation, Check, Trash2, Play, GripVertical, Plus, Heart, ChevronUp } from "lucide-react";
+import { X, ArrowUpDown, Loader2, MapPin, ExternalLink, Share2, Save, Navigation, Check, Trash2, Play, GripVertical, Plus, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -603,7 +603,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
         top: 56,
         ...(dragProgress !== undefined
           ? { transform: `translateX(${-(1 - dragProgress) * 100}%)`, transition: "none" }
-          : { transform: open ? (compact ? "translateX(0%) translateY(55%)" : "translateX(0%) translateY(0%)") : "translateX(-100%)" }),
+          : { transform: open ? (compact ? "translateX(-60%)" : "translateX(0%)") : "translateX(-100%)" }),
       }}>
 
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
@@ -613,7 +613,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
           </div>
           <div className="flex items-center gap-1">
             <button onClick={() => setCompact(c => !c)} className="p-1.5 rounded-full hover:bg-muted transition-colors" title={compact ? "Agrandir" : "Réduire"}>
-              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${compact ? "rotate-180" : ""}`} />
+              {compact ? <ChevronRight className="w-5 h-5 text-muted-foreground" /> : <ChevronLeft className="w-5 h-5 text-muted-foreground" />}
             </button>
             <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
               <X className="w-5 h-5 text-muted-foreground" />
