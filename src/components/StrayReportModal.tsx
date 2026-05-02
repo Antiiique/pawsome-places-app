@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useHandedness } from "@/contexts/HandednessContext";
 
-const MAPBOX_TOKEN = "pk.eyJ1IjoiZWx2aW5hZ2QiLCJhIjoiY21vNzlzaTZ5MDUxMTJxc2V1Ym5sZzVxNyJ9.QVzHhHQIH-DsrHzfi-STRA";
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 
 const CONDITIONS = ["Normal", "Apeuré", "Blessé", "Agressif", "Épuisé"];
 

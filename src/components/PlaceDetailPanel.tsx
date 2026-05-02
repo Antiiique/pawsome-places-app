@@ -282,7 +282,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     const allPhotos = [...existingUrls, ...uploadedUrls];
     const payload = { place_id: place.id, user_id: user.id, rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photos: allPhotos };
     const { error } = userReview
-      ? await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photos: allPhotos }).eq("id", userReview.id)
+      ? await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photos: allPhotos }).eq("id", userReview.id).eq("user_id", user.id)
       : await supabase.from("place_reviews").insert(payload);
     if (error) toast.error("Erreur lors de la publication");
     else { toast.success(userReview ? "Avis mis à jour !" : "Avis publié !"); setPhotoFiles([]); await loadReviews(); }
@@ -290,8 +290,14 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   }
 
   async function deleteReview(reviewId: string) {
-    await supabase.from("place_reviews").delete().eq("id", reviewId);
-    toast.success("Avis supprimé"); await loadReviews();
+    if (!user) return;
+    const query = isAdmin
+      ? supabase.from("place_reviews").delete().eq("id", reviewId)
+      : supabase.from("place_reviews").delete().eq("id", reviewId).eq("user_id", user.id);
+    const { error } = await query;
+    if (error) { toast.error("Erreur lors de la suppression"); return; }
+    toast.success("Avis supprimé");
+    await loadReviews();
   }
   async function markHelpful(reviewId: string, current: number) {
     await supabase.from("place_reviews").update({ helpful_count: current + 1 }).eq("id", reviewId);

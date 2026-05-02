@@ -50,9 +50,10 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
   }, [lostPet?.id]);
 
   const handleMarkFound = async () => {
-    if (!lostPet) return;
+    if (!lostPet || user?.id !== lostPet.user_id) return;
     setMarking(true);
-    await supabase.from("lost_pets" as any).update({ status: "found" }).eq("id", lostPet.id);
+    const { error } = await supabase.from("lost_pets" as any).update({ status: "found" }).eq("id", lostPet.id).eq("user_id", user!.id);
+    if (error) { toast.error("Erreur lors de la mise à jour"); setMarking(false); return; }
     toast.success("🎉 Super nouvelle ! Annonce marquée comme retrouvé !");
     onStatusChanged();
     onClose();
@@ -60,13 +61,14 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
   };
 
   const handleDelete = async () => {
-    if (!lostPet) return;
+    if (!lostPet || user?.id !== lostPet.user_id) return;
     if (!window.confirm("Supprimer cette annonce définitivement ?")) return;
     for (const url of photos) {
       const path = url.split("/stray-photos/")[1];
       if (path) await supabase.storage.from("stray-photos").remove([path]);
     }
-    await supabase.from("lost_pets" as any).delete().eq("id", lostPet.id);
+    const { error } = await supabase.from("lost_pets" as any).delete().eq("id", lostPet.id).eq("user_id", user!.id);
+    if (error) { toast.error("Erreur lors de la suppression"); return; }
     toast.success("Annonce supprimée");
     onStatusChanged();
     onClose();

@@ -70,7 +70,7 @@ export default function StrayDetailPanel({ report, onClose, onDeleted }: StrayDe
         const path = report.photo_url.split("/stray-photos/")[1];
         if (path) await supabase.storage.from("stray-photos").remove([path]);
       }
-      const { error } = await supabase.from("stray_reports").delete().eq("id", report.id);
+      const { error } = await supabase.from("stray_reports").delete().eq("id", report.id).eq("user_id", user!.id);
       if (error) throw error;
       toast.success("Signalement supprimé");
       onDeleted();
