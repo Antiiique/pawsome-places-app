@@ -118,8 +118,13 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
   /* Visibility / animation */
   const [visible, setVisible] = useState(false);
   useEffect(() => {
-    if (open) { setVisible(true); setSnap("half"); }
-    else { setVisible(false); }
+    if (open) {
+      setSnap("half");
+      requestAnimationFrame(() => setVisible(true));
+    } else {
+      setVisible(false);
+      // keep component mounted during slide-out animation
+    }
   }, [open]);
 
   /* Data */
@@ -366,9 +371,9 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
         style={{
           top: 56,
           background: "rgba(0,0,0,0.4)",
-          opacity: visible ? 1 : 0,
+          opacity: open ? 1 : 0,
           transition: "opacity 0.3s ease",
-          pointerEvents: visible ? "auto" : "none",
+          pointerEvents: open ? "auto" : "none",
         }}
         onClick={onClose}
       />
@@ -378,7 +383,7 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
         className="fixed left-0 right-0 bottom-0 z-[691] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
           top: 56,
-          transform: `translateY(${currentOffset}%)`,
+          transform: `translateY(${visible ? currentOffset : 100}%)`,
           transition: isDragging.current ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
           willChange: "transform",
         }}
