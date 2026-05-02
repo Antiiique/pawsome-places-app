@@ -154,3 +154,11 @@
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.15); }
 }
+
+/* Mapbox attribution — keep legally visible but reduce visual weight */
+.mapboxgl-ctrl-logo {
+  opacity: 0.25 !important;
+}
+.mapboxgl-ctrl-attrib {
+  opacity: 0.25 !important;
+}
