@@ -1,5 +1,6 @@
-import { X, MapPin, Heart, Search, ChevronUp } from "lucide-react";
+import { X, MapPin, Heart, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useState, useEffect, useRef } from "react";
 import type { FavoritePlace } from "@/hooks/useFavorites";
 import { toast } from "sonner";
@@ -63,7 +64,6 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
   const { user } = useAuthContext();
   const { isLeftHanded } = useHandedness();
   const [activeTab, setActiveTab] = useState<"favorites" | "myplaces">("favorites");
-  const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState<string | null>(null);
   const [myPlaces, setMyPlaces] = useState<MyPlace[]>([]);
   const [loadingMyPlaces, setLoadingMyPlaces] = useState(false);
@@ -172,7 +172,6 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
 
   const filteredFavs = favorites.filter((f) => {
     if (catFilter && f.category !== catFilter) return false;
-    if (search.trim() && !f.name.toLowerCase().includes(search.toLowerCase()) && !f.city?.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
@@ -225,12 +224,12 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
         </div>
       </div>
 
-      {/* ── Scrollable content ── */}
-      <div className="flex-1 min-h-0 overflow-y-auto" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
+      {/* ── Tabs + contenu ── */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "favorites" | "myplaces")} className="flex flex-col flex-1 min-h-0">
 
-        {/* FAVORIS tab content */}
-        {activeTab === "favorites" && (
-          <div className="p-3 space-y-3">
+      <TabsContent value="favorites" className="flex-1 min-h-0 m-0 overflow-y-auto" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
+
+        <div className="p-3 space-y-3">
             {filteredFavs.length === 0 && (
               <div className="text-center py-12 space-y-2">
                 <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto" />
@@ -273,11 +272,10 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
                 </div>
               </div>
             ))}
-          </div>
-        )}
+        </div>
+      </TabsContent>
 
-        {/* MES LIEUX PUBLIÉS tab content */}
-        {activeTab === "myplaces" && (
+      <TabsContent value="myplaces" className="flex-1 min-h-0 m-0 overflow-y-auto" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
           <div className="p-3 space-y-3">
             {loadingMyPlaces ? (
               <p className="text-sm text-muted-foreground text-center py-12">Chargement…</p>
@@ -326,8 +324,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
               ))
             )}
           </div>
-        )}
-      </div>
+      </TabsContent>
 
       {/* ── Bottom fixed section ── */}
       <div className="shrink-0 border-t border-border">
@@ -349,48 +346,15 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
           </div>
         )}
 
-        {/* Search bar (only in favorites tab) */}
-        {activeTab === "favorites" && (
-          <div className="px-3 py-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher dans mes favoris…"
-                className="w-full pl-9 pr-4 py-2 rounded-lg border border-border bg-background text-foreground text-sm outline-none"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Tabs bar */}
-        <div className="flex border-t border-border">
-          <button
-            onClick={() => setActiveTab("favorites")}
-            className={`flex-1 py-3 text-xs font-semibold transition-colors relative ${
-              activeTab === "favorites" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            ❤️ Favoris ({favorites.length})
-            {activeTab === "favorites" && (
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-primary rounded-full" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("myplaces")}
-            className={`flex-1 py-3 text-xs font-semibold transition-colors relative ${
-              activeTab === "myplaces" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            📍 Publiés ({myPlaces.length})
-            {activeTab === "myplaces" && (
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-primary rounded-full" />
-            )}
-          </button>
+        {/* Onglets fixes en bas */}
+        <div className="px-4 py-3">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="favorites" className="text-xs">❤️ Favoris ({favorites.length})</TabsTrigger>
+            <TabsTrigger value="myplaces" className="text-xs">📍 Publiés ({myPlaces.length})</TabsTrigger>
+          </TabsList>
         </div>
       </div>
+      </Tabs>
     </div>
   );
 }
