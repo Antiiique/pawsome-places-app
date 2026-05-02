@@ -65,6 +65,101 @@ export type Database = {
         }
         Relationships: []
       }
+      lost_pet_photos: {
+        Row: {
+          created_at: string
+          id: string
+          lost_pet_id: string
+          storage_path: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lost_pet_id: string
+          storage_path?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lost_pet_id?: string
+          storage_path?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lost_pet_photos_lost_pet_id_fkey"
+            columns: ["lost_pet_id"]
+            isOneToOne: false
+            referencedRelation: "lost_pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lost_pets: {
+        Row: {
+          breed: string | null
+          color: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          id: string
+          last_seen_address: string | null
+          last_seen_at: string
+          last_seen_city: string | null
+          last_seen_lat: number
+          last_seen_lng: number
+          pet_name: string
+          reward: number | null
+          size_class: string | null
+          species: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          breed?: string | null
+          color?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_seen_address?: string | null
+          last_seen_at?: string
+          last_seen_city?: string | null
+          last_seen_lat: number
+          last_seen_lng: number
+          pet_name: string
+          reward?: number | null
+          size_class?: string | null
+          species?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          breed?: string | null
+          color?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_seen_address?: string | null
+          last_seen_at?: string
+          last_seen_city?: string | null
+          last_seen_lat?: number
+          last_seen_lng?: number
+          pet_name?: string
+          reward?: number | null
+          size_class?: string | null
+          species?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           body: string
@@ -891,6 +986,7 @@ export type Database = {
           total: number
         }[]
       }
+      flag_review: { Args: { review_id: string }; Returns: undefined }
       get_nearby_pet_places: {
         Args: {
           cat_filter?: string
@@ -930,6 +1026,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_review_helpful: { Args: { review_id: string }; Returns: undefined }
       notify_nearby_users_new_place: {
         Args: { p_place_id: string }
         Returns: undefined
