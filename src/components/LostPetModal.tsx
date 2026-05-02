@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, Image, Loader2, MapPin } from "lucide-react";
+import { X, ChevronUp, Image, Loader2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -227,14 +227,24 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
 
         {/* Header (swipeable) */}
         <div
-          className="px-5 pt-3 pb-3 border-b border-border shrink-0"
+          className="flex items-center justify-between px-5 pt-3 pb-3 border-b border-border shrink-0"
           onTouchStart={handleDragStart}
           onTouchMove={handleDragMove}
           onTouchEnd={handleDragEnd}
           style={{ touchAction: "none" }}
         >
-          <h2 className="font-bold text-lg text-foreground">🆘 Signaler un animal perdu</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Les utilisateurs à moins de 50 km seront notifiés</p>
+          <div>
+            <h2 className="font-bold text-lg text-foreground">🆘 Signaler un animal perdu</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Les utilisateurs à moins de 50 km seront notifiés</p>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <button onClick={() => setSnapState(s => s === "half" ? "full" : "half")} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snapState === "full" ? "rotate-180" : ""}`} />
+            </button>
+            <button onClick={handleClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable content — only scrolls in full mode */}
@@ -343,23 +353,6 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
         </div>
       </div>
 
-      {/* Floating close button */}
-      {visible && (
-        <button
-          onClick={handleClose}
-          className="fixed bottom-8 right-4 z-[701] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
-          style={{
-            background: "color-mix(in srgb, var(--card) 55%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-            touchAction: "manipulation",
-          } as React.CSSProperties}
-        >
-          <X className="w-5 h-5 text-foreground" />
-        </button>
-      )}
     </>,
     document.body
   );

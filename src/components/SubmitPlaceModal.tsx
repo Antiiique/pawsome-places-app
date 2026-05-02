@@ -1,7 +1,7 @@
 /// <reference types="google.maps" />
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, X, ArrowLeft, Camera, LocateFixed, Loader2 } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, X, ArrowLeft, Camera, LocateFixed, Loader2 } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -327,17 +327,6 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
         onClick={handleClose}
       />
 
-      {/* Floating close button */}
-      {visible && (
-        <button
-          onClick={handleClose}
-          className="fixed bottom-8 right-4 z-[702] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
-          style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
-        >
-          <X className="w-5 h-5 text-foreground" />
-        </button>
-      )}
-
       {/* Bottom sheet — fixed, same as StrayReportModal / LostPetModal */}
       <div
         className="fixed left-0 right-0 bottom-0 z-[701] bg-card rounded-t-2xl shadow-2xl flex flex-col"
@@ -360,13 +349,21 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
 
         {/* Header — swipeable */}
         <div
-          className="shrink-0 flex items-center px-4 py-3 border-b border-border"
+          className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-border"
           onTouchStart={handleDragStart}
           onTouchMove={handleDragMove}
           onTouchEnd={handleDragEnd}
           style={{ touchAction: "none" }}
         >
-          <h2 className="text-base font-bold text-foreground flex-1">📍 Ajouter un lieu</h2>
+          <h2 className="text-base font-bold text-foreground">📍 Ajouter un lieu</h2>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setSnapState(s => s === "half" ? "full" : "half")} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snapState === "full" ? "rotate-180" : ""}`} />
+            </button>
+            <button onClick={handleClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable content — only scrolls in full mode */}
