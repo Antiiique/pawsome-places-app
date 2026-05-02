@@ -849,22 +849,6 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
               </div>
             </ScrollArea>
 
-            {/* Bottom action bar — always visible above tabs, never under close button */}
-            <div className="shrink-0 px-4 pt-3 pb-2 border-t border-border space-y-2">
-              <Button onClick={calculate} disabled={!canCalculate} className="w-full font-semibold">
-                {loading ? (<><Loader2 className="w-4 h-4 animate-spin" />Calcul en cours…</>) : (<><Navigation className="w-4 h-4" />Calculer l'itinéraire</>)}
-              </Button>
-              {result && !loading && (
-                <Button variant="outline" className="w-full text-sm" onClick={handleOpenGoogleMaps}>
-                  <ExternalLink className="w-4 h-4" />Ouvrir dans Google Maps
-                </Button>
-              )}
-              {(origin || destination || waypoints.length > 0 || result) && (
-                <Button variant="outline" className="w-full text-sm text-muted-foreground hover:text-destructive" onClick={clearAll}>
-                  <Trash2 className="w-4 h-4" />🗑️ Effacer tout
-                </Button>
-              )}
-            </div>
           </TabsContent>
 
           <TabsContent value="saved" className="flex-1 min-h-0 m-0">
@@ -897,11 +881,32 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
             </ScrollArea>
           </TabsContent>
 
-          {/* Bottom tab navigation — accessible au pouce */}
-          <TabsList className="shrink-0 mx-4 mb-24 mt-2">
-            <TabsTrigger value="new" className="flex-1">🗺️ Itinéraire</TabsTrigger>
-            <TabsTrigger value="saved" className="flex-1">📋 Mes itinéraires ({savedCount})</TabsTrigger>
-          </TabsList>
+          {/* Calculer button — visible uniquement sur l'onglet Itinéraire */}
+          {activeTab === "new" && (
+            <div className="shrink-0 px-4 pt-3 pb-2 border-t border-border space-y-2">
+              <Button onClick={calculate} disabled={!canCalculate} className="w-full font-semibold">
+                {loading ? (<><Loader2 className="w-4 h-4 animate-spin" />Calcul en cours…</>) : (<><Navigation className="w-4 h-4" />Calculer l'itinéraire</>)}
+              </Button>
+              {result && !loading && (
+                <Button variant="outline" className="w-full text-sm" onClick={handleOpenGoogleMaps}>
+                  <ExternalLink className="w-4 h-4" />Ouvrir dans Google Maps
+                </Button>
+              )}
+              {(origin || destination || waypoints.length > 0 || result) && (
+                <Button variant="outline" className="w-full text-sm text-muted-foreground hover:text-destructive" onClick={clearAll}>
+                  <Trash2 className="w-4 h-4" />🗑️ Effacer tout
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Onglets fixes en bas */}
+          <div className="shrink-0 border-t border-border px-4 py-3">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="new" className="text-xs">🗺️ Itinéraire</TabsTrigger>
+              <TabsTrigger value="saved" className="text-xs">📋 Mes itinéraires ({savedCount})</TabsTrigger>
+            </TabsList>
+          </div>
         </Tabs>
       </div>
 
