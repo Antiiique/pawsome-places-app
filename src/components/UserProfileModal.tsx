@@ -631,7 +631,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
           <TabsList className="grid grid-cols-3 mx-4 mt-4">
             <TabsTrigger value="profile" className="text-xs">Mon profil</TabsTrigger>
             <TabsTrigger value="pets" className="text-xs">Animaux{pets.length > 0 ? ` (${pets.length})` : ""}</TabsTrigger>
-            <TabsTrigger value="places" className="text-xs">Mes lieux{submissions.length > 0 ? ` (${submissions.length})` : ""}</TabsTrigger>
+            <TabsTrigger value="places" className="text-xs">Mes lieux{submissions.filter(s => s.status === "approved" && !!s.linked_place?.id).length > 0 ? ` (${submissions.filter(s => s.status === "approved" && !!s.linked_place?.id).length})` : ""}</TabsTrigger>
           </TabsList>
 
           {/* ── PROFIL ── */}
