@@ -1121,7 +1121,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           title="Ma position"
         >
           {locating
-            ? <Locate className="w-5 h-5 text-primary animate-pulse" />
+            ? <Loader2 className="w-5 h-5 text-primary animate-spin" />
             : <Locate className="w-5 h-5 text-primary" />}
         </button>
       </div>}
