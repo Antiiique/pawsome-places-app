@@ -247,6 +247,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [selectedLostPet, setSelectedLostPet] = useState<LostPet | null>(null);
   const [locating, setLocating] = useState(false);
   const [closingPanel, setClosingPanel] = useState(false);
+  const [panelVisible, setPanelVisible] = useState(false);
   const [localSearch, setLocalSearch] = useState("");
   const [searchPredictions, setSearchPredictions] = useState<{ place_id: string; structured_formatting: { main_text: string; secondary_text: string } }[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -956,6 +957,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
   // ── Helpers ──
   const closePanel = useCallback(() => {
+    setPanelVisible(false);
     setClosingPanel(true);
     setTimeout(() => {
       setSelectedPlace(null);
@@ -966,6 +968,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
   useEffect(() => { selectedPlaceRef.current = selectedPlace; }, [selectedPlace]);
   useEffect(() => { closePanelRef.current = closePanel; }, [closePanel]);
+  useEffect(() => {
+    if (selectedPlace) setTimeout(() => setPanelVisible(true), 10);
+    else setPanelVisible(false);
+  }, [selectedPlace?.id]);
 
   const handleLocateMe = () => {
     if (locating) return;
@@ -1159,8 +1165,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       {selectedPlace && (
         <>
           <div
-            className="fixed inset-0 z-[49]"
-            onClick={() => { setSelectedPlace(null); prevPopupDataRef.current = null; }}
+            className="fixed inset-0 z-[49] bg-black/50"
+            style={{ opacity: panelVisible ? 1 : 0, transition: "opacity 0.3s ease" }}
+            onClick={closePanel}
           />
           <PlaceDetailPanel
             place={selectedPlace}
