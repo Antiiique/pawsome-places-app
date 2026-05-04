@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { X, User, MapPin, Phone, Mail, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, User, MapPin, Phone, Mail, Calendar, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 
 function getSafePhone(phone: string | null): string | null {
@@ -36,8 +35,6 @@ interface LostPetDetailPanelProps {
   onStatusChanged: () => void;
 }
 
-const VELOCITY_THRESHOLD = 0.3;
-
 export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }: LostPetDetailPanelProps) {
   const { user } = useAuthContext();
   const [photos, setPhotos] = useState<string[]>([]);
@@ -45,77 +42,64 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
   const [poster, setPoster] = useState<{ display_name: string | null; avatar_url: string | null } | null>(null);
   const [marking, setMarking] = useState(false);
 
-  // ── Bottom sheet snap state ──
-  const [snap, setSnap] = useState<"half" | "full">("half");
+  // ── Bottom sheet state (same pattern as LostPetModal) ──
+  const [visible, setVisible] = useState(false);
+  const [snapState, setSnapState] = useState<"half" | "full">("half");
+  const [dragging, setDragging] = useState(false);
   const [dragDelta, setDragDelta] = useState(0);
-  const snapRef = useRef<"half" | "full">("half");
-  const dragDeltaRef = useRef(0);
-  const isDragging = useRef(false);
-  const touchStartY = useRef<number | null>(null);
-  const velPrevY = useRef<number | null>(null);
-  const velPrevT = useRef<number | null>(null);
-  const velCurrY = useRef<number | null>(null);
-  const velCurrT = useRef<number | null>(null);
+  const isDragging    = useRef(false);
+  const dragStartY    = useRef(0);
+  const lastTouchY    = useRef(0);
+  const lastTouchTime = useRef(0);
+  const lastVelocity  = useRef(0);
 
-  const setSnapState = (s: "half" | "full") => { snapRef.current = s; setSnap(s); };
-
+  // Entry animation
   useEffect(() => {
-    snapRef.current = "half"; setSnap("half");
-    dragDeltaRef.current = 0; setDragDelta(0);
+    setSnapState("half");
+    setDragDelta(0);
+    setTimeout(() => setVisible(true), 10);
   }, [lostPet?.id]);
 
-  const baseOffset = snap === "half" ? 52 : 0;
-  const currentOffset = Math.max(0, baseOffset + dragDelta);
+  const handleClose = () => {
+    setVisible(false);
+    setTimeout(onClose, 300);
+  };
 
   const handleDragStart = (e: React.TouchEvent) => {
     isDragging.current = true;
-    const y = e.touches[0].clientY;
-    touchStartY.current = y;
-    dragDeltaRef.current = 0;
-    velPrevY.current = null; velPrevT.current = null;
-    velCurrY.current = y; velCurrT.current = Date.now();
+    dragStartY.current = e.touches[0].clientY;
+    lastTouchY.current = e.touches[0].clientY;
+    lastTouchTime.current = Date.now();
+    lastVelocity.current = 0;
+    setDragging(true);
+    setDragDelta(0);
   };
 
   const handleDragMove = (e: React.TouchEvent) => {
-    if (!isDragging.current || touchStartY.current === null) return;
-    velPrevY.current = velCurrY.current;
-    velPrevT.current = velCurrT.current;
-    velCurrY.current = e.touches[0].clientY;
-    velCurrT.current = Date.now();
-    const dy = e.touches[0].clientY - touchStartY.current;
-    const deltaPercent = (dy / window.innerHeight) * 100;
-    dragDeltaRef.current = deltaPercent;
-    setDragDelta(deltaPercent);
+    if (!isDragging.current) return;
+    const y = e.touches[0].clientY;
+    const now = Date.now();
+    const dt = now - lastTouchTime.current;
+    if (dt > 0) lastVelocity.current = (y - lastTouchY.current) / dt;
+    lastTouchY.current = y;
+    lastTouchTime.current = now;
+    setDragDelta(y - dragStartY.current);
   };
 
   const handleDragEnd = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
-
-    const vel =
-      velPrevY.current !== null && velCurrY.current !== null &&
-      velPrevT.current !== null && velCurrT.current !== null &&
-      velCurrT.current > velPrevT.current
-        ? (velCurrY.current - velPrevY.current) / (velCurrT.current - velPrevT.current)
-        : 0;
-
-    const currentSnap = snapRef.current;
-    const base = currentSnap === "half" ? 52 : 0;
-    const finalOffset = base + dragDeltaRef.current;
-    dragDeltaRef.current = 0;
-    setDragDelta(0);
-    touchStartY.current = null;
-
-    if (vel > VELOCITY_THRESHOLD) {
-      if (currentSnap === "full") setSnapState("half");
-      else onClose();
-    } else if (vel < -VELOCITY_THRESHOLD) {
-      setSnapState("full");
+    setDragging(false);
+    const h = window.innerHeight - 56;
+    const deltaPct = h > 0 ? (dragDelta / h) * 100 : 0;
+    const vel = lastVelocity.current;
+    if (snapState === "half") {
+      if (vel < -0.3 || deltaPct < -15) setSnapState("full");
+      else if (vel > 0.3 || deltaPct > 15) handleClose();
     } else {
-      if (finalOffset > 70) onClose();
-      else if (finalOffset > 26) setSnapState("half");
-      else setSnapState("full");
+      if (vel > 0.5 || deltaPct > 25) setSnapState("half");
     }
+    setDragDelta(0);
   };
 
   useEffect(() => {
@@ -136,7 +120,7 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
     if (error) { toast.error("Erreur lors de la mise à jour"); setMarking(false); return; }
     toast.success("🎉 Super nouvelle ! Annonce marquée comme retrouvé !");
     onStatusChanged();
-    onClose();
+    handleClose();
     setMarking(false);
   };
 
@@ -151,7 +135,7 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
     if (error) { toast.error("Erreur lors de la suppression"); return; }
     toast.success("Annonce supprimée");
     onStatusChanged();
-    onClose();
+    handleClose();
   };
 
   if (!lostPet) return null;
@@ -162,73 +146,93 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
     ? `https://maps.google.com/maps?q=${lostPet.last_seen_lat},${lostPet.last_seen_lng}`
     : null;
 
+  const snapBase = snapState === "full" ? 0 : 55;
+  const h = window.innerHeight - 56;
+  const dragPct = dragging && h > 0 ? (dragDelta / h) * 100 : 0;
+  const currentPct = Math.max(0, Math.min(100, snapBase + dragPct));
+
   return (
     <>
-      {/* FAB close */}
-      <button
-        onClick={onClose}
-        className="fixed bottom-8 right-4 z-[651] p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors"
-      >
-        <X className="w-5 h-5 text-foreground" />
-      </button>
-
+      {/* Scrim */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-[650] bg-card rounded-t-2xl shadow-2xl flex flex-col"
+        className="fixed inset-0 z-[649] bg-black/50"
+        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease" }}
+        onClick={handleClose}
+      />
+
+      {/* Panel */}
+      <div
+        className="fixed left-0 right-0 bottom-0 z-[650] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
-          height: "calc(100vh - 56px)",
-          transform: `translateY(${currentOffset}%)`,
-          transition: isDragging.current ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
-          willChange: "transform",
+          top: 56,
+          transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
+          transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
         }}
-        onTouchStart={handleDragStart}
-        onTouchMove={handleDragMove}
-        onTouchEnd={handleDragEnd}
       >
         {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1 shrink-0">
-          <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+        <div
+          className="shrink-0 flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+          style={{ touchAction: "none" }}
+        >
+          <div className="w-10 h-1 rounded-full bg-border" />
         </div>
 
         {/* Header */}
-        <div className="px-5 pt-3 pb-4 border-b border-border shrink-0">
-          <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full ${
-            isFound
-              ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
-              : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
-          }`}>
-            {isFound ? "✅ RETROUVÉ" : "🆘 PERDU"}
-          </span>
-          <h2 className="font-bold text-2xl text-foreground mt-2 truncate">{lostPet.pet_name}</h2>
-          <div className="flex flex-wrap gap-1.5 mt-1.5">
-            {lostPet.breed && <span className="text-xs bg-muted text-foreground px-2.5 py-0.5 rounded-full">🐾 {lostPet.breed}</span>}
-            {lostPet.color && <span className="text-xs bg-muted text-foreground px-2.5 py-0.5 rounded-full">🎨 {lostPet.color}</span>}
-            {lostPet.age_description && <span className="text-xs bg-muted text-foreground px-2.5 py-0.5 rounded-full">🎂 {lostPet.age_description}</span>}
+        <div
+          className="flex items-center justify-between px-5 pt-3 pb-3 border-b border-border shrink-0"
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+          style={{ touchAction: "none" }}
+        >
+          <div className="min-w-0 flex-1 pr-2">
+            <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full ${
+              isFound
+                ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+            }`}>
+              {isFound ? "✅ RETROUVÉ" : "🆘 PERDU"}
+            </span>
+            <h2 className="font-bold text-lg text-foreground mt-1 truncate">{lostPet.pet_name}</h2>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {lostPet.breed && <span className="text-xs bg-muted text-foreground px-2 py-0.5 rounded-full">🐾 {lostPet.breed}</span>}
+              {lostPet.color && <span className="text-xs bg-muted text-foreground px-2 py-0.5 rounded-full">🎨 {lostPet.color}</span>}
+              {lostPet.age_description && <span className="text-xs bg-muted text-foreground px-2 py-0.5 rounded-full">🎂 {lostPet.age_description}</span>}
+            </div>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <button onClick={() => setSnapState(s => s === "half" ? "full" : "half")} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snapState === "full" ? "rotate-180" : ""}`} />
+            </button>
+            <button onClick={handleClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
           </div>
         </div>
 
-        <ScrollArea className="flex-1 min-h-0">
+        {/* Content */}
+        <div className="flex-1 pb-24" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
           {/* Photo gallery */}
           {photos.length > 0 && (
             <div className="relative w-full h-52 bg-muted shrink-0">
               <img src={photos[photoIndex]} alt={lostPet.pet_name} className="w-full h-full object-cover" />
               {photos.length > 1 && (
                 <>
-                  <button
-                    onClick={() => setPhotoIndex(i => (i - 1 + photos.length) % photos.length)}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
-                  >
+                  <button onClick={() => setPhotoIndex(i => (i - 1 + photos.length) % photos.length)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full text-white">
                     <ChevronLeft className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={() => setPhotoIndex(i => (i + 1) % photos.length)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
-                  >
+                  <button onClick={() => setPhotoIndex(i => (i + 1) % photos.length)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full text-white">
                     <ChevronRight className="w-4 h-4" />
                   </button>
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
                     {photos.map((_, i) => (
                       <button key={i} onClick={() => setPhotoIndex(i)}
-                        className={`w-1.5 h-1.5 rounded-full transition-colors ${i === photoIndex ? "bg-white" : "bg-white/40"}`} />
+                        className={`w-1.5 h-1.5 rounded-full ${i === photoIndex ? "bg-white" : "bg-white/40"}`} />
                     ))}
                   </div>
                 </>
@@ -236,7 +240,7 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
             </div>
           )}
 
-          <div className="p-5 space-y-4 pb-24">
+          <div className="p-5 space-y-4">
             {/* Poster */}
             {poster && (
               <button
@@ -297,18 +301,15 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
                 {lostPet.contact_phone && (
                   getSafePhone(lostPet.contact_phone)
                     ? <a href={`tel:${getSafePhone(lostPet.contact_phone)}`} className="flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors">
-                        <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
-                        <span>{lostPet.contact_phone}</span>
+                        <Phone className="w-4 h-4 text-muted-foreground shrink-0" /><span>{lostPet.contact_phone}</span>
                       </a>
                     : <div className="flex items-center gap-2 text-sm text-foreground">
-                        <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
-                        <span>{lostPet.contact_phone}</span>
+                        <Phone className="w-4 h-4 text-muted-foreground shrink-0" /><span>{lostPet.contact_phone}</span>
                       </div>
                 )}
                 {lostPet.contact_email && (
                   <a href={`mailto:${lostPet.contact_email}`} className="flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors">
-                    <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <span>{lostPet.contact_email}</span>
+                    <Mail className="w-4 h-4 text-muted-foreground shrink-0" /><span>{lostPet.contact_email}</span>
                   </a>
                 )}
               </div>
@@ -318,19 +319,11 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
             {isOwner && (
               <div className="space-y-2 pt-1">
                 {!isFound && (
-                  <Button
-                    onClick={handleMarkFound}
-                    disabled={marking}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white gap-2"
-                  >
+                  <Button onClick={handleMarkFound} disabled={marking} className="w-full bg-green-600 hover:bg-green-700 text-white gap-2">
                     🎉 Mon animal a été retrouvé !
                   </Button>
                 )}
-                <Button
-                  onClick={handleDelete}
-                  variant="outline"
-                  className="w-full text-destructive border-destructive hover:bg-destructive/10 gap-2"
-                >
+                <Button onClick={handleDelete} variant="outline" className="w-full text-destructive border-destructive hover:bg-destructive/10 gap-2">
                   🗑️ Supprimer l'annonce
                 </Button>
               </div>
@@ -340,7 +333,7 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
               Publié le {new Date(lostPet.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
             </p>
           </div>
-        </ScrollArea>
+        </div>
       </div>
     </>
   );
