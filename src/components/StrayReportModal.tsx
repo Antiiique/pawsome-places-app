@@ -135,6 +135,12 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      toast.error("Format non supporté (JPEG, PNG, WebP uniquement)"); return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Fichier trop volumineux (max 5 Mo)"); return;
+    }
     setPhoto(file);
     setPreview(URL.createObjectURL(file));
     setStep("form");

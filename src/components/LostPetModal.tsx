@@ -121,9 +121,17 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
 
   const addPhotos = (files: FileList | null) => {
     if (!files) return;
-    const newFiles = Array.from(files).slice(0, 5 - photos.length);
-    setPhotos(prev => [...prev, ...newFiles].slice(0, 5));
-    setPreviews(prev => [...prev, ...newFiles.map(f => URL.createObjectURL(f))].slice(0, 5));
+    const valid = Array.from(files).filter(f => {
+      if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(f.type)) {
+        toast.error(`${f.name} : format non supporté (JPEG, PNG, WebP)`); return false;
+      }
+      if (f.size > 5 * 1024 * 1024) {
+        toast.error(`${f.name} : trop volumineux (max 5 Mo)`); return false;
+      }
+      return true;
+    }).slice(0, 5 - photos.length);
+    setPhotos(prev => [...prev, ...valid].slice(0, 5));
+    setPreviews(prev => [...prev, ...valid.map(f => URL.createObjectURL(f))].slice(0, 5));
   };
 
   const removePhoto = (i: number) => {

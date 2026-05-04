@@ -415,7 +415,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Routes API error:", errorData);
+        console.error("Routes API error:", response.status);
         throw new Error(errorData.error?.message || `Erreur API Routes: ${response.status}`);
       }
 
@@ -508,7 +508,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
       setResult(itineraryResult);
       onRouteCalculated(itineraryResult);
     } catch (err: any) {
-      console.error("Route calculation error:", err);
+      console.error("Route calculation error:", err?.message ?? "unknown");
       toast.error(err.message || "Erreur lors du calcul.");
     } finally {
       setLoading(false);

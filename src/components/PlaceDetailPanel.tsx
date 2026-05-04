@@ -47,6 +47,19 @@ export interface PlaceReview {
   profiles?: { display_name: string | null; avatar_url: string | null };
 }
 
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5 Mo
+
+function getSafeUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const { protocol } = new URL(url);
+    return protocol === "http:" || protocol === "https:" ? url : null;
+  } catch {
+    return null;
+  }
+}
+
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const m = Math.floor(diff / 60000);
@@ -486,9 +499,13 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
                           <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
                             const files = Array.from(e.target.files ?? []);
                             const remaining = 3 - photoPreviews.length;
-                            const toAdd = files.slice(0, remaining);
-                            setPhotoFiles(prev => [...prev, ...toAdd]);
-                            setPhotoPreviews(prev => [...prev, ...toAdd.map(f => URL.createObjectURL(f))]);
+                            const valid = files.filter(f => {
+                              if (!ALLOWED_IMAGE_TYPES.includes(f.type)) { toast.error(`${f.name} : format non supporté (JPEG, PNG, WebP)`); return false; }
+                              if (f.size > MAX_PHOTO_SIZE) { toast.error(`${f.name} : trop volumineux (max 5 Mo)`); return false; }
+                              return true;
+                            }).slice(0, remaining);
+                            setPhotoFiles(prev => [...prev, ...valid]);
+                            setPhotoPreviews(prev => [...prev, ...valid.map(f => URL.createObjectURL(f))]);
                             e.target.value = "";
                           }} />
                         </label>
@@ -501,6 +518,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
                             <img src={src} alt="" className="w-full h-full object-cover" />
                             <button type="button" onClick={() => {
                               const isExisting = src.startsWith('http');
+                              if (!isExisting) URL.revokeObjectURL(src);
                               setPhotoPreviews(prev => prev.filter((_, j) => j !== i));
                               if (!isExisting) {
                                 const blobIdx = photoPreviews.filter(p => !p.startsWith('http')).indexOf(src);
@@ -530,7 +548,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
           {place.opening_hours && <div><p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Horaires</p><p className="text-sm">{place.opening_hours}</p></div>}
           {place.address && <div className="flex items-start gap-2"><MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" /><p className="text-sm">{place.address}</p></div>}
           {place.phone && <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-muted-foreground shrink-0" /><a href={`tel:${place.phone}`} className="text-sm text-primary hover:underline">{place.phone}</a></div>}
-          {place.website && <div className="flex items-center gap-2"><Globe className="w-4 h-4 text-muted-foreground shrink-0" /><a href={place.website} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate">{place.website}</a></div>}
+          {getSafeUrl(place.website) && <div className="flex items-center gap-2"><Globe className="w-4 h-4 text-muted-foreground shrink-0" /><a href={getSafeUrl(place.website)!} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate">{place.website}</a></div>}
           {place.description && <div><p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Description</p><p className="text-sm leading-relaxed">{place.description}</p></div>}
 
           {isAdmin && (
