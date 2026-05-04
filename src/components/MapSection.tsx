@@ -1109,7 +1109,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       </button>
 
       {/* Locate me — hidden when place detail panel is open */}
-      {!selectedPlace && <div className={`absolute bottom-8 ${fabSide} z-[700]`}>
+      {!selectedPlace && <div className={`absolute bottom-8 ${fabSide} z-40`}>
         {locating && (
           <span className="absolute inset-0 rounded-full animate-ping bg-primary/30" />
         )}
