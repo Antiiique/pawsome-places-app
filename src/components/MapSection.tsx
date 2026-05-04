@@ -474,6 +474,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       style: "mapbox://styles/mapbox/streets-v12",
       center: [2.3522, 48.8566],
       zoom: 13,
+      failIfMajorPerformanceCaveat: false,
+      preserveDrawingBuffer: false,
+      antialias: false,
     });
 
     map.on("load", () => {
