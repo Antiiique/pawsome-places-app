@@ -91,10 +91,13 @@ export default function ChatPanel({ conversationId, otherUser, onBack }: ChatPan
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const MAX_MSG = 1000;
+
   const handleSend = async () => {
     if (!text.trim() || !user || sending) return;
-    setSending(true);
     const body = text.trim();
+    if (body.length > MAX_MSG) return;
+    setSending(true);
     setText("");
     await supabase.from("messages").insert({ conversation_id: conversationId, sender_id: user.id, body });
     setSending(false);
@@ -162,13 +165,20 @@ export default function ChatPanel({ conversationId, otherUser, onBack }: ChatPan
       </div>
 
       {/* Input */}
-      <div className="shrink-0 px-4 py-3 border-t border-border flex items-center gap-2">
+      <div className="shrink-0 px-4 py-3 border-t border-border">
+        {text.length > 800 && (
+          <p className={`text-[10px] text-right mb-1 ${text.length >= MAX_MSG ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
+            {text.length}/{MAX_MSG}
+          </p>
+        )}
+        <div className="flex items-center gap-2">
         <input
           type="text"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => setText(e.target.value.slice(0, MAX_MSG))}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
           placeholder="Votre message…"
+          maxLength={MAX_MSG}
           className="flex-1 bg-muted rounded-full px-4 py-2.5 text-sm text-foreground outline-none"
         />
         <button
@@ -178,6 +188,7 @@ export default function ChatPanel({ conversationId, otherUser, onBack }: ChatPan
         >
           {sending ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Send className="w-4 h-4 text-white" />}
         </button>
+        </div>
       </div>
     </div>
   );

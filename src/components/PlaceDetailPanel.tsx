@@ -60,6 +60,11 @@ function getSafeUrl(url: string | null): string | null {
   }
 }
 
+function getSafePhone(phone: string | null): string | null {
+  if (!phone) return null;
+  return /^[0-9\s+\-().]+$/.test(phone.trim()) ? phone.trim() : null;
+}
+
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const m = Math.floor(diff / 60000);
@@ -547,7 +552,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
 
           {place.opening_hours && <div><p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Horaires</p><p className="text-sm">{place.opening_hours}</p></div>}
           {place.address && <div className="flex items-start gap-2"><MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" /><p className="text-sm">{place.address}</p></div>}
-          {place.phone && <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-muted-foreground shrink-0" /><a href={`tel:${place.phone}`} className="text-sm text-primary hover:underline">{place.phone}</a></div>}
+          {place.phone && <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-muted-foreground shrink-0" />{getSafePhone(place.phone) ? <a href={`tel:${getSafePhone(place.phone)}`} className="text-sm text-primary hover:underline">{place.phone}</a> : <span className="text-sm text-muted-foreground">{place.phone}</span>}</div>}
           {getSafeUrl(place.website) && <div className="flex items-center gap-2"><Globe className="w-4 h-4 text-muted-foreground shrink-0" /><a href={getSafeUrl(place.website)!} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate">{place.website}</a></div>}
           {place.description && <div><p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Description</p><p className="text-sm leading-relaxed">{place.description}</p></div>}
 

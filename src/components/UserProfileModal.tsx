@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
 interface UserProfileModalProps {
   open: boolean;
   onClose: () => void;
@@ -453,6 +455,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) { toast.error("Format non supporté (JPEG, PNG, WebP)"); return; }
     if (file.size > 5 * 1024 * 1024) { toast.error("Photo trop lourde (max 5 Mo)"); return; }
     setUploadingAvatar(true);
     const path = `${user.id}/avatar-${Date.now()}.${file.name.split(".").pop() || "jpg"}`;
@@ -574,6 +577,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
   const handleUploadPetAvatar = async (e: React.ChangeEvent<HTMLInputElement>, pet: Pet) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) { toast.error("Format non supporté (JPEG, PNG, WebP)"); return; }
     if (file.size > 5 * 1024 * 1024) { toast.error("Photo trop lourde (max 5 Mo)"); return; }
     setUploadingPetAvatar(true);
     const path = `${user.id}/${pet.id}-${Date.now()}.${file.name.split(".").pop() || "jpg"}`;
@@ -591,6 +595,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
   const handleAddAlbumPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user || !albumPet) return;
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) { toast.error("Format non supporté (JPEG, PNG, WebP)"); return; }
     if (file.size > 10 * 1024 * 1024) { toast.error("Photo trop lourde (max 10 Mo)"); return; }
     setUploadingPhoto(true);
     const path = `${user.id}/${albumPet.id}-${Date.now()}.${file.name.split(".").pop() || "jpg"}`;
@@ -966,6 +971,8 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                       <input ref={newPetAvatarInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
+                        if (!ALLOWED_IMAGE_TYPES.includes(file.type)) { toast.error("Format non supporté (JPEG, PNG, WebP)"); return; }
+                        if (file.size > 5 * 1024 * 1024) { toast.error("Photo trop lourde (max 5 Mo)"); return; }
                         setNewPetAvatar(file);
                         setNewPetAvatarPreview(URL.createObjectURL(file));
                       }} />

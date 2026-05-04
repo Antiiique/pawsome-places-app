@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 
+function getSafePhone(phone: string | null): string | null {
+  if (!phone) return null;
+  return /^[0-9\s+\-().]+$/.test(phone.trim()) ? phone.trim() : null;
+}
+
 export interface LostPet {
   id: string;
   user_id: string;
@@ -203,10 +208,15 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
               <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 space-y-2.5">
                 <p className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Contact</p>
                 {lostPet.contact_phone && (
-                  <a href={`tel:${lostPet.contact_phone}`} className="flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors">
-                    <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <span>{lostPet.contact_phone}</span>
-                  </a>
+                  getSafePhone(lostPet.contact_phone)
+                    ? <a href={`tel:${getSafePhone(lostPet.contact_phone)}`} className="flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors">
+                        <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <span>{lostPet.contact_phone}</span>
+                      </a>
+                    : <div className="flex items-center gap-2 text-sm text-foreground">
+                        <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <span>{lostPet.contact_phone}</span>
+                      </div>
                 )}
                 {lostPet.contact_email && (
                   <a href={`mailto:${lostPet.contact_email}`} className="flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors">

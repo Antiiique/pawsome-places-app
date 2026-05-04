@@ -243,6 +243,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [lostPetModal, setLostPetModal] = useState(false);
   const [lostPets, setLostPets] = useState<LostPet[]>([]);
   const [selectedLostPet, setSelectedLostPet] = useState<LostPet | null>(null);
+  const [locating, setLocating] = useState(false);
   const [localSearch, setLocalSearch] = useState("");
   const [searchPredictions, setSearchPredictions] = useState<{ place_id: string; structured_formatting: { main_text: string; secondary_text: string } }[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -945,19 +946,25 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
   // ── Helpers ──
   const handleLocateMe = () => {
-    navigator.geolocation?.getCurrentPosition((pos) => {
-      const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      setCenter(loc);
-      mapRef.current?.flyTo({ center: [loc.lng, loc.lat], zoom: 14 });
-      // Save location to profile for nearby notifications
-      if (user) {
-        supabase.from("profiles").update({
-          location_lat: loc.lat,
-          location_lng: loc.lng,
-          location_updated_at: new Date().toISOString(),
-        } as any).eq("id", user.id).then(() => {});
-      }
-    });
+    if (locating) return;
+    setLocating(true);
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setCenter(loc);
+        mapRef.current?.flyTo({ center: [loc.lng, loc.lat], zoom: 14 });
+        setLocating(false);
+        if (user) {
+          supabase.from("profiles").update({
+            location_lat: loc.lat,
+            location_lng: loc.lng,
+            location_updated_at: new Date().toISOString(),
+          } as any).eq("id", user.id).then(() => {});
+        }
+      },
+      () => setLocating(false),
+      { maximumAge: 30000, timeout: 8000, enableHighAccuracy: false }
+    );
   };
 
   const handleToggleFav = (place: PetPlace) => {
@@ -1071,7 +1078,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
       {/* Stray report FAB */}
       <button
-        onClick={() => setStrayModal(true)}
+        onClick={() => {
+          if (!user) { toast.error("Connectez-vous pour signaler un animal errant"); window.dispatchEvent(new CustomEvent("open-auth-modal")); return; }
+          setStrayModal(true);
+        }}
         className={`absolute bottom-24 ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
         style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal errant"
@@ -1082,11 +1092,14 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       {/* Locate me */}
       <button
         onClick={handleLocateMe}
-        className={`absolute bottom-8 ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
+        disabled={locating}
+        className={`absolute bottom-8 ${fabSide} z-[700] w-12 h-12 rounded-full flex items-center justify-center transition-all duration-150 ${locating ? "opacity-70" : "active:scale-95"}`}
         style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Ma position"
       >
-        <Locate className="w-5 h-5 text-primary" />
+        {locating
+          ? <Loader2 className="w-5 h-5 text-primary animate-spin" />
+          : <Locate className="w-5 h-5 text-primary" />}
       </button>
 
       {popupData && (

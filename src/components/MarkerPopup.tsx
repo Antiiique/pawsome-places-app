@@ -60,6 +60,19 @@ export interface UniversalPlace {
   reviews?: PlaceReview[];
 }
 
+function getSafeUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const { protocol } = new URL(url);
+    return protocol === "http:" || protocol === "https:" ? url : null;
+  } catch { return null; }
+}
+
+function getSafePhone(phone: string | null | undefined): string | null {
+  if (!phone) return null;
+  return /^[0-9\s+\-().]+$/.test(phone.trim()) ? phone.trim() : null;
+}
+
 function getPlaceEmoji(place: UniversalPlace): string {
   if (place.isPetFriendly) return "🐾";
   const types = place.types || [];
@@ -192,7 +205,7 @@ export default function MarkerPopup({
     }
     const isEditing = !!userReview;
     if (isEditing) {
-      const { error } = await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photo_url: uploadedPhotoUrl, has_been_edited: true }).eq("id", userReview.id);
+      const { error } = await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photo_url: uploadedPhotoUrl, has_been_edited: true }).eq("id", userReview.id).eq("user_id", user.id);
       if (error) { toast.error("Erreur lors de la publication"); setSubmitting(false); return; }
       await supabase.from("review_pets" as any).delete().eq("review_id", userReview.id);
       if (selectedPetIds.length > 0) {
@@ -216,16 +229,27 @@ export default function MarkerPopup({
     }
     setSubmitting(false);
   }
-  async function deleteCR(id: string) { await supabase.from("place_reviews").delete().eq("id", id); toast.success("Avis supprimé"); await loadCommunityReviews(); }
-  async function markHelpfulCR(id: string, n: number, ownerId: string) {
-    if (user?.id === ownerId) return;
-    await supabase.from("place_reviews").update({ helpful_count: n + 1 }).eq("id", id);
+  async function deleteCR(id: string) {
+    if (!user) return;
+    await supabase.from("place_reviews").delete().eq("id", id).eq("user_id", user.id);
+    toast.success("Avis supprimé");
     await loadCommunityReviews();
   }
-  async function reportCR(id: string) { await supabase.from("place_reviews").update({ is_reported: true }).eq("id", id); toast.success("Signalement envoyé !"); await loadCommunityReviews(); }
+  async function markHelpfulCR(id: string, _n: number, ownerId: string) {
+    if (user?.id === ownerId) return;
+    await supabase.rpc("mark_review_helpful", { review_id: id });
+    await loadCommunityReviews();
+  }
+  async function reportCR(id: string) {
+    await supabase.rpc("flag_review", { review_id: id });
+    toast.success("Signalement envoyé !");
+    await loadCommunityReviews();
+  }
   function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!ALLOWED.includes(file.type)) { toast.error("Format non supporté (JPEG, PNG, WebP)"); return; }
     if (file.size > 5 * 1024 * 1024) { toast.error("Photo trop lourde (max 5 Mo)"); return; }
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
@@ -559,13 +583,16 @@ export default function MarkerPopup({
               {place.phone && (
                 <div className="flex gap-2 items-center p-2.5 rounded-lg bg-secondary border border-border">
                   <span className="text-base flex-shrink-0">📞</span>
-                  <a href={`tel:${place.phone}`} className="text-xs text-primary hover:underline">{place.phone}</a>
+                  {getSafePhone(place.phone)
+                    ? <a href={`tel:${getSafePhone(place.phone)}`} className="text-xs text-primary hover:underline">{place.phone}</a>
+                    : <span className="text-xs text-muted-foreground">{place.phone}</span>
+                  }
                 </div>
               )}
-              {place.website && (
+              {getSafeUrl(place.website) && (
                 <div className="flex gap-2 items-center p-2.5 rounded-lg bg-secondary border border-border">
                   <span className="text-base flex-shrink-0">🌐</span>
-                  <a href={place.website} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline break-all">
+                  <a href={getSafeUrl(place.website)!} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline break-all">
                     Site web
                   </a>
                 </div>

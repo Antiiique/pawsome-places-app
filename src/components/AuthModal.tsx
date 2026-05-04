@@ -46,10 +46,22 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
     }
   };
 
+  const passwordRules = [
+    { test: (p: string) => p.length >= 8,          label: "8 caractères minimum" },
+    { test: (p: string) => /[A-Z]/.test(p),        label: "1 majuscule" },
+    { test: (p: string) => /[a-z]/.test(p),        label: "1 minuscule" },
+    { test: (p: string) => /[0-9]/.test(p),        label: "1 chiffre" },
+    { test: (p: string) => /[^a-zA-Z0-9]/.test(p), label: "1 caractère spécial (!@#…)" },
+  ];
+
+  const passwordStrength = passwordRules.filter(r => r.test(password)).length;
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    const failed = passwordRules.find(r => !r.test(password));
+    if (failed) { setError(`Mot de passe trop faible — requis : ${failed.label}`); return; }
     setLoading(true);
     const { error } = await signUpWithEmail(email, password, displayName);
     setLoading(false);
@@ -116,7 +128,30 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="signup-password">Mot de passe</Label>
-                <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="6 caractères minimum" />
+                <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Min. 8 car., maj., chiffre, symbole" />
+                {password.length > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="flex gap-1">
+                      {[1,2,3,4,5].map(i => (
+                        <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${
+                          i <= passwordStrength
+                            ? passwordStrength <= 2 ? "bg-destructive"
+                              : passwordStrength <= 3 ? "bg-warning"
+                              : passwordStrength <= 4 ? "bg-blue-400"
+                              : "bg-success"
+                            : "bg-muted"
+                        }`} />
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+                      {passwordRules.map(r => (
+                        <span key={r.label} className={`text-[10px] ${r.test(password) ? "text-success" : "text-muted-foreground"}`}>
+                          {r.test(password) ? "✓" : "○"} {r.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               {success && <p className="text-sm text-green-500 font-medium">{success}</p>}
