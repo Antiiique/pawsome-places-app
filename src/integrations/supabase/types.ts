@@ -1026,6 +1026,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_user_banned: { Args: never; Returns: boolean }
       mark_review_helpful: { Args: { review_id: string }; Returns: undefined }
       notify_nearby_users_new_place: {
         Args: { p_place_id: string }
