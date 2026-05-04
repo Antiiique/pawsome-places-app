@@ -1,4 +1,4 @@
-import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft, ThumbsUp, Flag, Trash2, Pencil, ChevronDown, ChevronUp, Save, CheckCircle, Camera } from "lucide-react";
+import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft, ThumbsUp, Flag, Trash2, Pencil, ChevronUp, Save, CheckCircle, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -124,13 +124,17 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   const setSnapState = (s: "half" | "full") => { snapRef.current = s; setSnap(s); };
 
   // Reset to half-snap whenever a new place opens
+  const [entered, setEntered] = useState(false);
   useEffect(() => {
     snapRef.current = "half"; setSnap("half");
     dragDeltaRef.current = 0; setDragDelta(0);
+    setEntered(false);
+    const t = setTimeout(() => setEntered(true), 10);
+    return () => clearTimeout(t);
   }, [place?.id]);
 
-  const baseOffset = snap === "half" ? 52 : 0; // % translateY
-  const currentOffset = isClosing ? 100 : Math.max(0, baseOffset + dragDelta);
+  const baseOffset = snap === "half" ? 55 : 0; // % translateY
+  const currentOffset = isClosing ? 100 : entered ? Math.max(0, baseOffset + dragDelta) : 100;
 
   const handleDragStart = (e: React.TouchEvent) => {
     isDragging.current = true;
@@ -341,54 +345,50 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
         willChange: "transform",
       }}
     >
-      {/* Drag handle — seule zone déclenchant le swipe */}
+      {/* Drag handle */}
       <div
-        className="flex flex-col items-center pt-2.5 pb-1 shrink-0 cursor-grab active:cursor-grabbing select-none"
-        style={{ touchAction: "none" }}
+        className="shrink-0 flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
         onTouchStart={handleDragStart}
         onTouchMove={handleDragMove}
         onTouchEnd={handleDragEnd}
+        style={{ touchAction: "none" }}
       >
-        <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mb-2" />
+        <div className="w-10 h-1 rounded-full bg-border" />
+      </div>
 
-        {/* Header inside handle zone for compact layout */}
-        <div className="w-full flex items-center justify-between px-4 pb-2">
-          <div className="flex items-center gap-2 min-w-0">
-            {onBack && (
-              <button onClick={onBack} className="p-1.5 rounded-full hover:bg-muted transition-colors shrink-0">
-                <ChevronLeft className="w-5 h-5 text-muted-foreground" />
-              </button>
-            )}
-            <h2 className="text-base font-heading font-bold text-foreground truncate">{place.name}</h2>
-          </div>
-          <div className="flex items-center gap-1 shrink-0">
-            {onToggleFavorite && (
-              <button onClick={onToggleFavorite} className="p-1.5 rounded-full hover:bg-muted transition-all active:scale-125">
-                <Heart className={`w-5 h-5 transition-colors ${isFavorite ? "text-destructive fill-destructive" : "text-muted-foreground"}`} />
-              </button>
-            )}
-            {/* Tap handle icon to toggle snap point */}
-            <button
-              onClick={() => setSnapState(snap === "half" ? "full" : "half")}
-              className="p-1.5 rounded-full hover:bg-muted transition-colors"
-              title={snap === "half" ? "Agrandir" : "Réduire"}
-            >
-              {snap === "half"
-                ? <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                : <ChevronDown className="w-5 h-5 text-muted-foreground" />
-              }
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-5 pt-3 pb-3 border-b border-border shrink-0"
+        onTouchStart={handleDragStart}
+        onTouchMove={handleDragMove}
+        onTouchEnd={handleDragEnd}
+        style={{ touchAction: "none" }}
+      >
+        <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+          {onBack && (
+            <button onClick={onBack} className="p-1.5 rounded-full hover:bg-muted transition-colors shrink-0">
+              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
             </button>
-            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
-              <X className="w-5 h-5 text-muted-foreground" />
+          )}
+          <h2 className="font-bold text-lg text-foreground truncate">{place.name}</h2>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          {onToggleFavorite && (
+            <button onClick={onToggleFavorite} className="p-1.5 rounded-full hover:bg-muted transition-all active:scale-125">
+              <Heart className={`w-5 h-5 transition-colors ${isFavorite ? "text-destructive fill-destructive" : "text-muted-foreground"}`} />
             </button>
-          </div>
+          )}
+          <button onClick={() => setSnapState(snap === "half" ? "full" : "half")} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+            <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snap === "full" ? "rotate-180" : ""}`} />
+          </button>
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
         </div>
       </div>
 
-      <div className="w-full h-px bg-border shrink-0" />
-
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto" style={{ touchAction: "pan-y" }}>
+      {/* Scrollable content — scroll uniquement en mode full comme les autres panels */}
+      <div className="flex-1" style={{ overflowY: snap === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
         {place.photo_url && (
           <img src={place.photo_url} alt={place.name} className="w-full h-40 object-cover" />
         )}
