@@ -299,12 +299,12 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     toast.success("Avis supprimé");
     await loadReviews();
   }
-  async function markHelpful(reviewId: string, current: number) {
-    await supabase.from("place_reviews").update({ helpful_count: current + 1 }).eq("id", reviewId);
+  async function markHelpful(reviewId: string) {
+    await supabase.rpc("mark_review_helpful", { review_id: reviewId });
     await loadReviews();
   }
   async function reportReview(reviewId: string) {
-    await supabase.from("place_reviews").update({ is_reported: true }).eq("id", reviewId);
+    await supabase.rpc("flag_review", { review_id: reviewId });
     toast.success("Signalement envoyé, merci !"); await loadReviews();
   }
 
@@ -450,7 +450,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
                       <div className="flex items-center justify-between pt-1">
                         <span className="text-xs text-muted-foreground">{timeAgo(r.created_at)}</span>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => markHelpful(r.id, r.helpful_count)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
+                          <button onClick={() => markHelpful(r.id)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
                             <ThumbsUp className="w-3 h-3" />{r.helpful_count > 0 && r.helpful_count}
                           </button>
                           {user && user.id !== r.user_id && !r.is_reported && (
