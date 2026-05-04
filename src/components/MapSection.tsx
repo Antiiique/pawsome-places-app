@@ -952,7 +952,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       (pos) => {
         const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setCenter(loc);
-        mapRef.current?.flyTo({ center: [loc.lng, loc.lat], zoom: 14 });
+        mapRef.current?.flyTo({ center: [loc.lng, loc.lat], zoom: 15, speed: 3, curve: 1, essential: true });
         setLocating(false);
         if (user) {
           supabase.from("profiles").update({
@@ -963,7 +963,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         }
       },
       () => setLocating(false),
-      { maximumAge: 30000, timeout: 8000, enableHighAccuracy: false }
+      { maximumAge: 60000, timeout: 6000, enableHighAccuracy: false }
     );
   };
 
@@ -1090,17 +1090,22 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       </button>
 
       {/* Locate me */}
-      <button
-        onClick={handleLocateMe}
-        disabled={locating}
-        className={`absolute bottom-8 ${fabSide} z-[700] w-12 h-12 rounded-full flex items-center justify-center transition-all duration-150 ${locating ? "opacity-70" : "active:scale-95"}`}
-        style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
-        title="Ma position"
-      >
-        {locating
-          ? <Loader2 className="w-5 h-5 text-primary animate-spin" />
-          : <Locate className="w-5 h-5 text-primary" />}
-      </button>
+      <div className={`absolute bottom-8 ${fabSide} z-[700]`}>
+        {locating && (
+          <span className="absolute inset-0 rounded-full animate-ping bg-primary/30" />
+        )}
+        <button
+          onClick={handleLocateMe}
+          disabled={locating}
+          className="relative w-12 h-12 rounded-full flex items-center justify-center active:scale-90 transition-transform duration-100"
+          style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
+          title="Ma position"
+        >
+          {locating
+            ? <Locate className="w-5 h-5 text-primary animate-pulse" />
+            : <Locate className="w-5 h-5 text-primary" />}
+        </button>
+      </div>
 
       {popupData && (
         <MarkerPopup
