@@ -142,6 +142,7 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
   const handleSubmit = async () => {
     if (!user) return;
     if (!form.pet_name.trim()) { toast.error("Le nom de l'animal est requis"); return; }
+    if (!lat || !lng) { toast.error("La localisation est requise — utilise le bouton GPS ou saisis une adresse"); return; }
     setSubmitting(true);
     try {
       const { data: lostPet, error } = await supabase
