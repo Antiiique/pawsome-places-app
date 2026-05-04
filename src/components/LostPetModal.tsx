@@ -7,7 +7,7 @@ import { useHandedness } from "@/contexts/HandednessContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
+const MAPBOX_TOKEN = (import.meta.env.VITE_MAPBOX_TOKEN as string) || "pk.eyJ1IjoiZWx2aW5hZ2QiLCJhIjoiY21vNzlzaTZ5MDUxMTJxc2V1Ym5sZzVxNyJ9.QVzHhHQIH-DsrHzfi-STRA";
 
 interface LostPetModalProps {
   open: boolean;
