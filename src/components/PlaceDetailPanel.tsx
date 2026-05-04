@@ -100,9 +100,10 @@ interface PlaceDetailPanelProps {
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
   onReport?: () => void;
+  isClosing?: boolean;
 }
 
-const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport }: PlaceDetailPanelProps) => {
+const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport, isClosing }: PlaceDetailPanelProps) => {
   const { user, profile } = useAuthContext();
   const isAdmin = profile?.is_admin === true;
 
@@ -129,7 +130,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   }, [place?.id]);
 
   const baseOffset = snap === "half" ? 52 : 0; // % translateY
-  const currentOffset = Math.max(0, baseOffset + dragDelta);
+  const currentOffset = isClosing ? 100 : Math.max(0, baseOffset + dragDelta);
 
   const handleDragStart = (e: React.TouchEvent) => {
     isDragging.current = true;
@@ -336,7 +337,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
       style={{
         height: "calc(100vh - 56px)",
         transform: `translateY(${currentOffset}%)`,
-        transition: isDragging.current ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+        transition: (isDragging.current && !isClosing) ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
         willChange: "transform",
       }}
     >

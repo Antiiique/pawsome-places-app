@@ -224,6 +224,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const scLoadedRef = useRef(false);
   const markerClickedRef = useRef(false);
   const prevPopupDataRef = useRef<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
+  const selectedPlaceRef = useRef<PetPlace | null>(null);
+  const closePanelRef = useRef<() => void>(() => {});
   const pickListenerRef = useRef<((e: mapboxgl.MapMouseEvent) => void) | null>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
@@ -244,6 +246,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [lostPets, setLostPets] = useState<LostPet[]>([]);
   const [selectedLostPet, setSelectedLostPet] = useState<LostPet | null>(null);
   const [locating, setLocating] = useState(false);
+  const [closingPanel, setClosingPanel] = useState(false);
   const [localSearch, setLocalSearch] = useState("");
   const [searchPredictions, setSearchPredictions] = useState<{ place_id: string; structured_formatting: { main_text: string; secondary_text: string } }[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -552,7 +555,11 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       renderClusters(places);
     });
 
-    // Click on empty map area intentionally does nothing
+    map.on("click", () => {
+      if (!markerClickedRef.current && selectedPlaceRef.current) {
+        closePanelRef.current();
+      }
+    });
 
     // Long press (mobile) + right-click (desktop) → add a place
     let lpTimer: ReturnType<typeof setTimeout> | null = null;
@@ -945,6 +952,18 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   }, [strayReports, isLoaded]);
 
   // ── Helpers ──
+  const closePanel = useCallback(() => {
+    setClosingPanel(true);
+    setTimeout(() => {
+      setSelectedPlace(null);
+      setClosingPanel(false);
+      prevPopupDataRef.current = null;
+    }, 320);
+  }, []);
+
+  useEffect(() => { selectedPlaceRef.current = selectedPlace; }, [selectedPlace]);
+  useEffect(() => { closePanelRef.current = closePanel; }, [closePanel]);
+
   const handleLocateMe = () => {
     if (locating) return;
     setLocating(true);
@@ -1089,8 +1108,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         <Camera className="w-5 h-5 text-destructive" />
       </button>
 
-      {/* Locate me */}
-      <div className={`absolute bottom-8 ${fabSide} z-[700]`}>
+      {/* Locate me — hidden when place detail panel is open */}
+      {!selectedPlace && <div className={`absolute bottom-8 ${fabSide} z-[700]`}>
         {locating && (
           <span className="absolute inset-0 rounded-full animate-ping bg-primary/30" />
         )}
@@ -1105,7 +1124,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             ? <Locate className="w-5 h-5 text-primary animate-pulse" />
             : <Locate className="w-5 h-5 text-primary" />}
         </button>
-      </div>
+      </div>}
 
       {popupData && (
         <MarkerPopup
@@ -1137,7 +1156,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       {selectedPlace && (
         <PlaceDetailPanel
           place={selectedPlace}
-          onClose={() => { setSelectedPlace(null); prevPopupDataRef.current = null; }}
+          isClosing={closingPanel}
+          onClose={closePanel}
           onBack={prevPopupDataRef.current ? () => { setSelectedPlace(null); setPopupData(prevPopupDataRef.current); prevPopupDataRef.current = null; } : undefined}
           isFavorite={isFavorite?.(selectedPlace.id)}
           onToggleFavorite={() => handleToggleFav(selectedPlace)}
