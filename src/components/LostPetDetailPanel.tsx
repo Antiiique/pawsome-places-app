@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, User, MapPin, Phone, Mail, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -36,12 +36,87 @@ interface LostPetDetailPanelProps {
   onStatusChanged: () => void;
 }
 
+const VELOCITY_THRESHOLD = 0.3;
+
 export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }: LostPetDetailPanelProps) {
   const { user } = useAuthContext();
   const [photos, setPhotos] = useState<string[]>([]);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [poster, setPoster] = useState<{ display_name: string | null; avatar_url: string | null } | null>(null);
   const [marking, setMarking] = useState(false);
+
+  // ── Bottom sheet snap state ──
+  const [snap, setSnap] = useState<"half" | "full">("half");
+  const [dragDelta, setDragDelta] = useState(0);
+  const snapRef = useRef<"half" | "full">("half");
+  const dragDeltaRef = useRef(0);
+  const isDragging = useRef(false);
+  const touchStartY = useRef<number | null>(null);
+  const velPrevY = useRef<number | null>(null);
+  const velPrevT = useRef<number | null>(null);
+  const velCurrY = useRef<number | null>(null);
+  const velCurrT = useRef<number | null>(null);
+
+  const setSnapState = (s: "half" | "full") => { snapRef.current = s; setSnap(s); };
+
+  useEffect(() => {
+    snapRef.current = "half"; setSnap("half");
+    dragDeltaRef.current = 0; setDragDelta(0);
+  }, [lostPet?.id]);
+
+  const baseOffset = snap === "half" ? 52 : 0;
+  const currentOffset = Math.max(0, baseOffset + dragDelta);
+
+  const handleDragStart = (e: React.TouchEvent) => {
+    isDragging.current = true;
+    const y = e.touches[0].clientY;
+    touchStartY.current = y;
+    dragDeltaRef.current = 0;
+    velPrevY.current = null; velPrevT.current = null;
+    velCurrY.current = y; velCurrT.current = Date.now();
+  };
+
+  const handleDragMove = (e: React.TouchEvent) => {
+    if (!isDragging.current || touchStartY.current === null) return;
+    velPrevY.current = velCurrY.current;
+    velPrevT.current = velCurrT.current;
+    velCurrY.current = e.touches[0].clientY;
+    velCurrT.current = Date.now();
+    const dy = e.touches[0].clientY - touchStartY.current;
+    const deltaPercent = (dy / window.innerHeight) * 100;
+    dragDeltaRef.current = deltaPercent;
+    setDragDelta(deltaPercent);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+
+    const vel =
+      velPrevY.current !== null && velCurrY.current !== null &&
+      velPrevT.current !== null && velCurrT.current !== null &&
+      velCurrT.current > velPrevT.current
+        ? (velCurrY.current - velPrevY.current) / (velCurrT.current - velPrevT.current)
+        : 0;
+
+    const currentSnap = snapRef.current;
+    const base = currentSnap === "half" ? 52 : 0;
+    const finalOffset = base + dragDeltaRef.current;
+    dragDeltaRef.current = 0;
+    setDragDelta(0);
+    touchStartY.current = null;
+
+    if (vel > VELOCITY_THRESHOLD) {
+      if (currentSnap === "full") setSnapState("half");
+      else onClose();
+    } else if (vel < -VELOCITY_THRESHOLD) {
+      setSnapState("full");
+    } else {
+      if (finalOffset > 70) onClose();
+      else if (finalOffset > 26) setSnapState("half");
+      else setSnapState("full");
+    }
+  };
 
   useEffect(() => {
     if (!lostPet) { setPhotos([]); setPoster(null); return; }
@@ -97,25 +172,37 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
         <X className="w-5 h-5 text-foreground" />
       </button>
 
-      <div className="fixed bottom-0 left-0 right-0 z-[650] bg-card rounded-t-2xl shadow-2xl flex flex-col" style={{ top: 56 }}>
-        {/* Header with status badge */}
-        <div className="px-5 pt-5 pb-4 border-b border-border shrink-0">
-          <div className="flex items-start gap-3">
-            <div className="flex-1 min-w-0">
-              <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full ${
-                isFound
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
-                  : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
-              }`}>
-                {isFound ? "✅ RETROUVÉ" : "🆘 PERDU"}
-              </span>
-              <h2 className="font-bold text-2xl text-foreground mt-2 truncate">{lostPet.pet_name}</h2>
-              <div className="flex flex-wrap gap-1.5 mt-1.5">
-                {lostPet.breed && <span className="text-xs bg-muted text-foreground px-2.5 py-0.5 rounded-full">🐾 {lostPet.breed}</span>}
-                {lostPet.color && <span className="text-xs bg-muted text-foreground px-2.5 py-0.5 rounded-full">🎨 {lostPet.color}</span>}
-                {lostPet.age_description && <span className="text-xs bg-muted text-foreground px-2.5 py-0.5 rounded-full">🎂 {lostPet.age_description}</span>}
-              </div>
-            </div>
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[650] bg-card rounded-t-2xl shadow-2xl flex flex-col"
+        style={{
+          height: "calc(100vh - 56px)",
+          transform: `translateY(${currentOffset}%)`,
+          transition: isDragging.current ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+          willChange: "transform",
+        }}
+        onTouchStart={handleDragStart}
+        onTouchMove={handleDragMove}
+        onTouchEnd={handleDragEnd}
+      >
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-1 shrink-0">
+          <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+        </div>
+
+        {/* Header */}
+        <div className="px-5 pt-3 pb-4 border-b border-border shrink-0">
+          <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full ${
+            isFound
+              ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+              : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+          }`}>
+            {isFound ? "✅ RETROUVÉ" : "🆘 PERDU"}
+          </span>
+          <h2 className="font-bold text-2xl text-foreground mt-2 truncate">{lostPet.pet_name}</h2>
+          <div className="flex flex-wrap gap-1.5 mt-1.5">
+            {lostPet.breed && <span className="text-xs bg-muted text-foreground px-2.5 py-0.5 rounded-full">🐾 {lostPet.breed}</span>}
+            {lostPet.color && <span className="text-xs bg-muted text-foreground px-2.5 py-0.5 rounded-full">🎨 {lostPet.color}</span>}
+            {lostPet.age_description && <span className="text-xs bg-muted text-foreground px-2.5 py-0.5 rounded-full">🎂 {lostPet.age_description}</span>}
           </div>
         </div>
 
@@ -149,7 +236,7 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
             </div>
           )}
 
-          <div className="p-5 space-y-4">
+          <div className="p-5 space-y-4 pb-24">
             {/* Poster */}
             {poster && (
               <button
