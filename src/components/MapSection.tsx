@@ -320,6 +320,16 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     };
   }, [isLoaded]);
 
+  // Freeze map while MarkerPopup is open so the camera never drifts during panel animation or drag
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (popupData) {
+      window.dispatchEvent(new Event("map-freeze"));
+    } else {
+      window.dispatchEvent(new Event("map-unfreeze"));
+    }
+  }, [popupData, isLoaded]);
+
   // ── Render clusters ──
   const renderClusters = useCallback((currentPlaces: PetPlace[]) => {
     const map = mapRef.current;
@@ -380,7 +390,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             photos: place.photo_url ? [place.photo_url] : [], reviews: [],
           };
 
-          map.panTo([place.longitude, place.latitude]);
           setPopupData({ place: fallback, position, petPlace: place });
 
           const googlePlaceId = (place as any).google_place_id;
@@ -555,9 +564,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     });
 
     map.on("click", () => {
-      if (!markerClickedRef.current && selectedPlaceRef.current) {
-        closePanelRef.current();
-      }
+      if (markerClickedRef.current) return;
+      if (selectedPlaceRef.current) closePanelRef.current();
+      setPopupData(null);
     });
 
     // Long press (mobile) + right-click (desktop) → add a place
