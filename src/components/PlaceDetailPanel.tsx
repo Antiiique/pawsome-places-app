@@ -576,6 +576,22 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
               </button>
               {adminEditOpen && (
                 <div className="px-4 pb-4 space-y-4 border-t border-violet-200 dark:border-violet-700 pt-4">
+                  {publisher ? (
+                    <button
+                      onClick={() => window.dispatchEvent(new CustomEvent("open-user-profile", { detail: { userId: publisher.id } }))}
+                      className="flex items-center gap-3 w-full text-left p-3 rounded-xl bg-violet-100 dark:bg-violet-900/30 hover:bg-violet-200 dark:hover:bg-violet-800/40 transition-colors"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-muted overflow-hidden shrink-0">
+                        {publisher.avatar_url ? <img src={publisher.avatar_url} className="w-full h-full object-cover" /> : <span className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">{publisher.display_name?.[0]?.toUpperCase() ?? "?"}</span>}
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase">Publié par</p>
+                        <p className="text-sm font-semibold text-foreground">{publisher.display_name ?? "Utilisateur"}</p>
+                      </div>
+                    </button>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">Publiant inconnu (import OSM ou non tracé)</p>
+                  )}
                   <div className="space-y-2">
                     <label className="text-xs text-muted-foreground block">Nom</label>
                     <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="h-8 text-sm" />
