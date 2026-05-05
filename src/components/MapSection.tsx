@@ -232,7 +232,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [center, setCenter] = useState({ lat: 48.8566, lng: 2.3522 });
   const [searching, setSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PetPlace | null>(null);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [radiusKm, setRadiusKm] = useState(20);
   const [popupData, setPopupData] = useState<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
   const [originPoint, setOriginPoint] = useState<{ lat: number; lng: number } | null>(null);
@@ -432,12 +432,15 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   }, []);
 
   // ── Load places ──
-  const loadPlaces = useCallback(async (lat: number, lng: number, radius: number, category: string | null) => {
+  const loadPlaces = useCallback(async (lat: number, lng: number, radius: number, categories: string[]) => {
     setSearching(true);
-    const { data, error } = await supabase.rpc("get_nearby_pet_places", { user_lat: lat, user_lon: lng, radius_km: radius, cat_filter: category, dogs_only: false });
+    // Single category → pass to RPC; multiple → fetch all then filter client-side
+    const rpcCat = categories.length === 1 ? categories[0] : null;
+    const { data, error } = await supabase.rpc("get_nearby_pet_places", { user_lat: lat, user_lon: lng, radius_km: radius, cat_filter: rpcCat, dogs_only: false });
     if (error) { setSearching(false); return; }
 
-    const results: PetPlace[] = (data || []).map((d: any) => ({ ...d, id: d.id as string }));
+    let results: PetPlace[] = (data || []).map((d: any) => ({ ...d, id: d.id as string }));
+    if (categories.length > 1) results = results.filter(p => categories.includes(p.category));
     setPlaces(results);
     clearPlaceMarkers();
 
@@ -664,12 +667,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   // ── Reload when center/radius/category changes ──
   useEffect(() => {
     if (!isLoaded) return;
-    // Special filters show only stray/lost markers, no place data needed
-    if (activeCategory === "__strays__" || activeCategory === "__lost__") {
+    const hasSpecial = activeCategories.some(c => c === "__strays__" || c === "__lost__");
+    if (hasSpecial) {
       setPlaces([]); clearPlaceMarkers(); scLoadedRef.current = false; setSearching(false); return;
     }
-    loadPlaces(center.lat, center.lng, radiusKm, activeCategory);
-  }, [center, radiusKm, activeCategory, isLoaded, loadPlaces]);
+    loadPlaces(center.lat, center.lng, radiusKm, activeCategories);
+  }, [center, radiusKm, activeCategories, isLoaded, loadPlaces]);
 
   // ── Search query geocoding ──
   useEffect(() => {
@@ -868,8 +871,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     lostPetMarkersRef.current.forEach(m => m.remove());
     lostPetMarkersRef.current = [];
 
-    // Only show lost pet markers when "all" or "__lost__" filter is active
-    const show = activeCategory === null || activeCategory === "__lost__";
+    const show = activeCategories.length === 0 || activeCategories.includes("__lost__");
     if (!show) return;
 
     lostPets.forEach(pet => {
@@ -882,7 +884,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       el.addEventListener("click", () => setSelectedLostPet(pet));
       lostPetMarkersRef.current.push(marker);
     });
-  }, [lostPets, isLoaded, activeCategory]);
+  }, [lostPets, isLoaded, activeCategories]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -905,6 +907,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     strayMarkersRef.current.forEach((m) => m.remove());
     strayMarkersRef.current = [];
 
+    if (activeCategories.length > 0 && !activeCategories.includes("__strays__")) return;
+
     strayReports.forEach((report) => {
       const el = document.createElement("div");
       el.innerHTML = `<div class="stray-marker" style="background:#DC2626;color:white;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:3px solid white;box-shadow:0 2px 8px rgba(220,38,38,.5);cursor:pointer">🐾</div>`;
@@ -916,7 +920,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       });
       strayMarkersRef.current.push(marker);
     });
-  }, [strayReports, isLoaded]);
+  }, [strayReports, isLoaded, activeCategories]);
 
   // ── Helpers ──
   const closePanel = useCallback(() => {
@@ -997,21 +1001,46 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         </div>
       )}
 
-      {/* Category chips — bottom center, leaves room for FABs on the active side */}
-      <div className="absolute bottom-4 left-0 right-0 z-20 pointer-events-none">
+      {/* Category chips — bottom center */}
+      <div
+        className="absolute bottom-8 left-0 right-0 z-20 pointer-events-none"
+        style={{
+          maskImage: "linear-gradient(to right, transparent 0, black 3rem, black calc(100% - 3rem), transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to right, transparent 0, black 3rem, black calc(100% - 3rem), transparent 100%)",
+        }}
+      >
         <div
-          className="flex gap-1.5 overflow-x-auto scrollbar-hide pointer-events-auto"
+          className="flex gap-1.5 pointer-events-auto"
           style={{
+            overflowX: "scroll",
+            WebkitOverflowScrolling: "touch",
+            touchAction: "pan-x",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
             paddingLeft:  isLeftHanded ? "4.5rem" : "1rem",
             paddingRight: isLeftHanded ? "1rem"   : "4.5rem",
-          }}
+          } as React.CSSProperties}
         >
           {CATEGORY_FILTERS.map((cf) => {
-            const active = activeCategory === cf.key;
+            const active = cf.key === null
+              ? activeCategories.length === 0
+              : activeCategories.includes(cf.key);
             return (
               <button
                 key={cf.key ?? "__all__"}
-                onClick={() => setActiveCategory(cf.key === activeCategory ? null : cf.key)}
+                onClick={() => {
+                  if (cf.key === null) { setActiveCategories([]); return; }
+                  // Special filters are exclusive
+                  if (cf.key === "__strays__" || cf.key === "__lost__") {
+                    setActiveCategories(prev => prev.includes(cf.key!) ? [] : [cf.key!]);
+                    return;
+                  }
+                  // Normal: toggle, removing any special filter
+                  setActiveCategories(prev => {
+                    const base = prev.filter(c => c !== "__strays__" && c !== "__lost__");
+                    return base.includes(cf.key!) ? base.filter(c => c !== cf.key) : [...base, cf.key!];
+                  });
+                }}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all active:scale-95 ${
                   active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground"
                 }`}
