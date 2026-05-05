@@ -634,6 +634,19 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
                   <Button onClick={saveAdminEdit} disabled={editSaving || !editForm.name.trim()} className="w-full gap-2 bg-violet-600 hover:bg-violet-700 text-white">
                     <Save className="w-4 h-4" />{editSaving ? "Enregistrement…" : "Enregistrer"}
                   </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!place || !window.confirm(`Supprimer "${place.name}" définitivement ?`)) return;
+                      const { error } = await supabase.from("pet_friendly_places").delete().eq("id", place.id);
+                      if (error) { toast.error("Erreur : " + error.message); return; }
+                      toast.success("Lieu supprimé");
+                      onClose();
+                    }}
+                    variant="outline"
+                    className="w-full gap-2 text-destructive border-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4" /> Supprimer ce lieu
+                  </Button>
                 </div>
               )}
             </div>
