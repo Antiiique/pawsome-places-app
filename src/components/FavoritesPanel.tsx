@@ -74,6 +74,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
   const [dragDelta, setDragDelta] = useState(0);
   const isDragging    = useRef(false);
   const dragStartY    = useRef(0);
+  const dragDeltaRef  = useRef(0);
   const lastTouchY    = useRef(0);
   const lastTouchTime = useRef(0);
   const lastVelocity  = useRef(0);
@@ -132,6 +133,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
   const handleDragStart = (e: React.TouchEvent) => {
     isDragging.current = true;
     dragStartY.current = e.touches[0].clientY;
+    dragDeltaRef.current = 0;
     lastTouchY.current = e.touches[0].clientY;
     lastTouchTime.current = Date.now();
     lastVelocity.current = 0;
@@ -147,7 +149,9 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
     if (dt > 0) lastVelocity.current = (y - lastTouchY.current) / dt;
     lastTouchY.current = y;
     lastTouchTime.current = now;
-    setDragDelta(y - dragStartY.current);
+    const delta = y - dragStartY.current;
+    dragDeltaRef.current = delta;
+    setDragDelta(delta);
   };
 
   const handleDragEnd = () => {
@@ -155,13 +159,17 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
     setDragging(false);
     const vel = lastVelocity.current;
     const h = window.innerHeight - 56;
-    const deltaPct = h > 0 ? (dragDelta / h) * 100 : 0;
+    // Use ref instead of state to avoid stale closure — state may not have
+    // re-rendered yet when touchend fires after a fast swipe
+    const deltaPct = h > 0 ? (dragDeltaRef.current / h) * 100 : 0;
     if (snapState === "half") {
       if (vel < -0.3 || deltaPct < -15) setSnapState("full");
       else if (vel > 0.5 || deltaPct > 25) onClose();
     } else {
-      if (vel > 0.3 || deltaPct > 15) setSnapState("half");
+      if (vel > 0.5 || deltaPct > 25) onClose();
+      else if (vel > 0.3 || deltaPct > 15) setSnapState("half");
     }
+    dragDeltaRef.current = 0;
     setDragDelta(0);
   };
 
