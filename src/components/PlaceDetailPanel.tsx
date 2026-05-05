@@ -217,6 +217,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     accepts_dogs: false, accepts_cats: false, dogs_on_leash_only: false,
     outdoor_seating: false, water_bowl_provided: false, verified: false,
   });
+  const [publisher, setPublisher] = useState<{display_name: string | null; avatar_url: string | null; id: string} | null>(null);
 
   const userReview = reviews.find(r => r.user_id === user?.id);
   const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
@@ -238,6 +239,15 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
       dogs_on_leash_only: place.dogs_on_leash_only ?? false, outdoor_seating: place.outdoor_seating ?? false,
       water_bowl_provided: (place as any).water_bowl_provided ?? false, verified: place.verified ?? false,
     });
+    setPublisher(null);
+    supabase.from("place_submissions")
+      .select("submitted_by, profiles!submitted_by(id, display_name, avatar_url)")
+      .ilike("name", place.name)
+      .maybeSingle()
+      .then(({ data }) => {
+        const p = (data as any)?.profiles;
+        if (p) setPublisher(p);
+      });
   }, [adminEditOpen]);
 
   async function saveAdminEdit() {
@@ -566,6 +576,22 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
               </button>
               {adminEditOpen && (
                 <div className="px-4 pb-4 space-y-4 border-t border-violet-200 dark:border-violet-700 pt-4">
+                  {publisher ? (
+                    <button
+                      onClick={() => window.dispatchEvent(new CustomEvent("open-user-profile", { detail: { userId: publisher.id } }))}
+                      className="flex items-center gap-3 w-full text-left p-3 rounded-xl bg-violet-100 dark:bg-violet-900/30 hover:bg-violet-200 dark:hover:bg-violet-800/40 transition-colors"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-muted overflow-hidden shrink-0">
+                        {publisher.avatar_url ? <img src={publisher.avatar_url} className="w-full h-full object-cover" /> : <span className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">{publisher.display_name?.[0]?.toUpperCase() ?? "?"}</span>}
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase">Publié par</p>
+                        <p className="text-sm font-semibold text-foreground">{publisher.display_name ?? "Utilisateur"}</p>
+                      </div>
+                    </button>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">Publiant inconnu (import OSM ou non tracé)</p>
+                  )}
                   <div className="space-y-2">
                     <label className="text-xs text-muted-foreground block">Nom</label>
                     <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="h-8 text-sm" />
@@ -607,6 +633,19 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
                   </div>
                   <Button onClick={saveAdminEdit} disabled={editSaving || !editForm.name.trim()} className="w-full gap-2 bg-violet-600 hover:bg-violet-700 text-white">
                     <Save className="w-4 h-4" />{editSaving ? "Enregistrement…" : "Enregistrer"}
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!place || !window.confirm(`Supprimer "${place.name}" définitivement ?`)) return;
+                      const { error } = await supabase.from("pet_friendly_places").delete().eq("id", place.id);
+                      if (error) { toast.error("Erreur : " + error.message); return; }
+                      toast.success("Lieu supprimé");
+                      onClose();
+                    }}
+                    variant="outline"
+                    className="w-full gap-2 text-destructive border-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4" /> Supprimer ce lieu
                   </Button>
                 </div>
               )}
