@@ -99,8 +99,10 @@ export type Database = {
       }
       lost_pets: {
         Row: {
+          age_description: string | null
           breed: string | null
           color: string | null
+          contact_email: string | null
           contact_phone: string | null
           created_at: string
           description: string | null
@@ -108,9 +110,11 @@ export type Database = {
           last_seen_address: string | null
           last_seen_at: string
           last_seen_city: string | null
-          last_seen_lat: number
-          last_seen_lng: number
+          last_seen_date: string | null
+          last_seen_lat: number | null
+          last_seen_lng: number | null
           pet_name: string
+          photo_url: string | null
           reward: number | null
           size_class: string | null
           species: string
@@ -119,8 +123,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          age_description?: string | null
           breed?: string | null
           color?: string | null
+          contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
           description?: string | null
@@ -128,9 +134,11 @@ export type Database = {
           last_seen_address?: string | null
           last_seen_at?: string
           last_seen_city?: string | null
-          last_seen_lat: number
-          last_seen_lng: number
+          last_seen_date?: string | null
+          last_seen_lat?: number | null
+          last_seen_lng?: number | null
           pet_name: string
+          photo_url?: string | null
           reward?: number | null
           size_class?: string | null
           species?: string
@@ -139,8 +147,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          age_description?: string | null
           breed?: string | null
           color?: string | null
+          contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
           description?: string | null
@@ -148,9 +158,11 @@ export type Database = {
           last_seen_address?: string | null
           last_seen_at?: string
           last_seen_city?: string | null
-          last_seen_lat?: number
-          last_seen_lng?: number
+          last_seen_date?: string | null
+          last_seen_lat?: number | null
+          last_seen_lng?: number | null
           pet_name?: string
+          photo_url?: string | null
           reward?: number | null
           size_class?: string | null
           species?: string
