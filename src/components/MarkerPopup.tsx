@@ -381,8 +381,7 @@ export default function MarkerPopup({
     const velocity = lastVelocity.current;
     const total = baseOffset + dragDelta;
     if (velocity > 0.5) {
-      if (snap === "full") { setSnap("half"); setDragDelta(0); }
-      else { handleClose(); }
+      handleClose();
     } else if (velocity < -0.5) {
       setSnap("full"); setDragDelta(0);
     } else {
@@ -476,34 +475,19 @@ export default function MarkerPopup({
 
         {/* Scrollable body */}
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden" style={{ scrollbarWidth: "thin", scrollbarColor: "hsl(var(--border)) transparent" }}>
-          {/* Départ / Arrivée + actions — top of menu */}
-          <div className="px-4 pt-3 pb-2 space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                className="text-xs h-9 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-success"
-                onClick={(e) => { e.stopPropagation(); onSetOrigin(); }}
-              >
-                🚩 Point de départ
-              </button>
-              <button
-                className="text-xs h-9 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-destructive"
-                onClick={(e) => { e.stopPropagation(); onSetDestination(); }}
-              >
-                🏁 Point d'arrivée
-              </button>
-            </div>
 
-            {onAddWaypoint && (
-              <button
-                className="w-full text-xs h-10 rounded-xl font-bold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-primary"
-                onClick={(e) => { e.stopPropagation(); onAddWaypoint(); }}
-              >
-                ⛳ Ajouter comme étape
-              </button>
-            )}
+          {/* 1. Titre du lieu */}
+          <div className="px-4 pt-4 pb-2">
+            <div className="flex items-start gap-2">
+              <span className="text-2xl">{emoji}</span>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-foreground text-lg leading-tight">{place.name}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}{place.city ? ` • ${place.city}` : ""}</p>
+              </div>
+            </div>
           </div>
 
-          {/* Photo carousel */}
+          {/* 2. Photo carousel */}
           {photos.length > 0 && (
             <div className="relative w-full h-[180px]">
               <img
@@ -537,23 +521,14 @@ export default function MarkerPopup({
           )}
 
           <div className="p-4 space-y-4">
-            {/* Header */}
-            <div>
-              <div className="flex items-start gap-2">
-                <span className="text-2xl">{emoji}</span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-bold text-foreground text-lg leading-tight">{place.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}{place.city ? ` • ${place.city}` : ""}</p>
-                </div>
-              </div>
-              {place.isPetFriendly && (
-                <span className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-semibold">
-                  🐾 Pet-friendly
-                </span>
-              )}
-            </div>
+            {/* 3. Badge pet-friendly */}
+            {place.isPetFriendly && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-semibold">
+                🐾 Pet-friendly
+              </span>
+            )}
 
-            {/* Rating block */}
+            {/* 4. Note Google */}
             {place.rating && (
               <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary border border-border">
                 <span className="text-2xl font-extrabold text-warning">{place.rating}</span>
@@ -568,7 +543,7 @@ export default function MarkerPopup({
               </div>
             )}
 
-            {/* Details */}
+            {/* 5. Infos */}
             <div className="space-y-2">
               {place.opening_hours && (
                 <div className="flex gap-2 items-start p-2.5 rounded-lg bg-secondary border border-border">
@@ -601,8 +576,7 @@ export default function MarkerPopup({
               )}
             </div>
 
-
-            {/* Reviews section avec onglets */}
+            {/* 6. Avis — onglets Google / Communauté */}
             <div
               className="pt-2 border-t border-border space-y-3"
               onTouchStart={(e) => { swipeStartX.current = e.touches[0].clientX; }}
@@ -882,18 +856,45 @@ export default function MarkerPopup({
               )}
             </div>
 
-            {/* Signaler un problème — tout en bas */}
-            {onReport && (
-              <div className="pt-2">
-                <button
-                  onClick={(e) => { e.stopPropagation(); onReport?.(); }}
-                  className="w-full text-xs h-9 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800 transition-colors"
-                >
-                  ⚠️ Signaler un problème
-                </button>
-              </div>
+          </div>
+
+          {/* 7. Boutons itinéraire */}
+          <div className="px-4 pt-3 pb-2 space-y-2 border-t border-border">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                className="text-xs h-9 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-success"
+                onClick={(e) => { e.stopPropagation(); onSetOrigin(); }}
+              >
+                🚩 Point de départ
+              </button>
+              <button
+                className="text-xs h-9 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-destructive"
+                onClick={(e) => { e.stopPropagation(); onSetDestination(); }}
+              >
+                🏁 Point d'arrivée
+              </button>
+            </div>
+            {onAddWaypoint && (
+              <button
+                className="w-full text-xs h-10 rounded-xl font-bold text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 bg-primary"
+                onClick={(e) => { e.stopPropagation(); onAddWaypoint(); }}
+              >
+                ⛳ Ajouter comme étape
+              </button>
             )}
           </div>
+
+          {/* 8. Signaler un problème */}
+          {onReport && (
+            <div className="px-4 pb-4 pt-1">
+              <button
+                onClick={(e) => { e.stopPropagation(); onReport?.(); }}
+                className="w-full text-xs h-9 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800 transition-colors"
+              >
+                ⚠️ Signaler un problème
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>
