@@ -11,7 +11,6 @@ import StrayReportModal from "./StrayReportModal";
 import StrayDetailPanel, { type StrayReport } from "./StrayDetailPanel";
 import LostPetModal from "./LostPetModal";
 import LostPetDetailPanel, { type LostPet } from "./LostPetDetailPanel";
-import GlobalSearch from "./GlobalSearch";
 import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useHandedness } from "@/contexts/HandednessContext";
@@ -998,12 +997,38 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         </div>
       )}
 
-      {/* Global search bar — also controls map category filter */}
-      <GlobalSearch
-        mapRef={mapRef}
-        activeCategory={activeCategory}
-        onCategoryChange={setActiveCategory}
-      />
+      {/* Category chips — bottom center, leaves room for FABs on the active side */}
+      <div className="absolute bottom-4 left-0 right-0 z-20 pointer-events-none">
+        <div
+          className="flex gap-1.5 overflow-x-auto scrollbar-hide pointer-events-auto"
+          style={{
+            paddingLeft:  isLeftHanded ? "4.5rem" : "1rem",
+            paddingRight: isLeftHanded ? "1rem"   : "4.5rem",
+          }}
+        >
+          {CATEGORY_FILTERS.map((cf) => {
+            const active = activeCategory === cf.key;
+            return (
+              <button
+                key={cf.key ?? "__all__"}
+                onClick={() => setActiveCategory(cf.key === activeCategory ? null : cf.key)}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all active:scale-95 ${
+                  active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground"
+                }`}
+                style={active ? {} : {
+                  background: "color-mix(in srgb, var(--card) 65%, transparent)",
+                  border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+                }}
+              >
+                {cf.emoji} {cf.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Add place FAB — between search and SOS */}
       <button
