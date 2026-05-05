@@ -239,6 +239,15 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
       dogs_on_leash_only: place.dogs_on_leash_only ?? false, outdoor_seating: place.outdoor_seating ?? false,
       water_bowl_provided: (place as any).water_bowl_provided ?? false, verified: place.verified ?? false,
     });
+    setPublisher(null);
+    supabase.from("place_submissions")
+      .select("submitted_by, profiles!submitted_by(id, display_name, avatar_url)")
+      .ilike("name", place.name)
+      .maybeSingle()
+      .then(({ data }) => {
+        const p = (data as any)?.profiles;
+        if (p) setPublisher(p);
+      });
   }, [adminEditOpen]);
 
   async function saveAdminEdit() {
