@@ -67,8 +67,35 @@ const AUTO_SOURCES = [
     regionFields: [],
     surfFields: ["surf_off", "SURF_OFF", "surface", "SURFACE"],
     urlFields: ["url_fiche", "URL_FICHE", "url", "URL"],
-    // Ce dataset a des coordonnées directes dans geo_point_2d
     pointField: "geo_point_2d",
+  },
+  {
+    // IGN BD TOPO v3 — Réserves naturelles (RNN + RNR + Corse, ~375 polygones)
+    label: "Réserves Naturelles (IGN BDTOPO)",
+    url: "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAME=BDTOPO_V3:parc_ou_reserve&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=500&CQL_FILTER=nature%3D%27R%C3%A9serve%20naturelle%27",
+    defaultType: "réserve naturelle",
+    nameFields: ["toponyme"],
+    codeFields: ["cleabs"],
+    typeFields: [],
+    deptFields: [],
+    regionFields: [],
+    surfFields: [],
+    urlFields: [],
+  },
+  {
+    // IGN BD TOPO v3 — Forêts domaniales (~1 400 polygones nommés)
+    // dedupeByName : une seule entrée par nom (plusieurs polygones peuvent avoir le même toponyme)
+    label: "Forêts Domaniales (IGN BDTOPO)",
+    url: "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAME=BDTOPO_V3:foret_publique&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=2000&CQL_FILTER=nature%3D%27For%C3%AAt%20domaniale%27",
+    defaultType: "forêt domaniale",
+    nameFields: ["toponyme"],
+    codeFields: [],
+    typeFields: [],
+    deptFields: [],
+    regionFields: [],
+    surfFields: [],
+    urlFields: [],
+    dedupeByName: true, // plusieurs polygones peuvent partager le même nom → garder 1 entrée
   },
 ];
 
@@ -334,6 +361,7 @@ function processFeatures(features, source) {
       source_id: sourceId ? String(sourceId).trim() : null,
       accepts_dogs: mapping.dogs,
       dogs_on_leash_only: mapping.leash,
+      _dedupeByName: !!source.dedupeByName,
     });
   }
 
@@ -541,12 +569,18 @@ async function main() {
     process.exit(1);
   }
 
-  // Déduplication locale (évite les doublons entre sources)
+  // Déduplication locale (évite les doublons entre sources et les forêts multi-polygones)
   const seen = new Set();
   const deduped = allRecords.filter(r => {
-    const key = r.source_id
-      ? `id:${r.source_id}`
-      : `pos:${r.latitude.toFixed(3)}_${r.longitude.toFixed(3)}_${r.name.toLowerCase().slice(0,20)}`;
+    let key;
+    if (r._dedupeByName) {
+      // Forêts : plusieurs polygones peuvent avoir le même toponyme → garder le premier
+      key = `name:${r.name.toLowerCase().replace(/\s+/g, " ").slice(0, 60)}`;
+    } else if (r.source_id) {
+      key = `id:${r.source_id}`;
+    } else {
+      key = `pos:${r.latitude.toFixed(3)}_${r.longitude.toFixed(3)}_${r.name.toLowerCase().slice(0, 20)}`;
+    }
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
