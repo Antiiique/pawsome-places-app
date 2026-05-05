@@ -210,7 +210,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
           /* ── The bar uses position:relative so the icon button can be
              absolutely anchored to the right edge — guaranteeing a full
              48×48 hit zone regardless of the animated width. ── */
-          position: "absolute" as any,
+          
           width: isExpanded ? OPEN_W : FAB,
           height: FAB,
           transition: `width ${ANIM_MS}ms cubic-bezier(0.4, 0, 0.2, 1)`,

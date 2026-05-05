@@ -1,4 +1,4 @@
-import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft, ThumbsUp, Flag, Trash2, Pencil, ChevronUp, Save, CheckCircle, Camera } from "lucide-react";
+import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft, ThumbsUp, Flag, Trash2, Pencil, ChevronUp, ChevronDown, Save, CheckCircle, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
