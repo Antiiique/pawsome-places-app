@@ -440,6 +440,7 @@ export default function MarkerPopup({
         {/* Drag handle + header */}
         <div
           className="flex-shrink-0 cursor-grab active:cursor-grabbing"
+          style={{ touchAction: "none" }}
           onTouchStart={handleDragStart}
           onTouchMove={handleDragMove}
           onTouchEnd={handleDragEnd}

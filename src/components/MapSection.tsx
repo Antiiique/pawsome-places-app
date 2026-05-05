@@ -1064,6 +1064,17 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         </button>
       </div>}
 
+      {/* Touch-blocker: captures ALL touches on the map while MarkerPopup is open.
+          z-[499] = just below the panel (z-[500]) so the panel still receives its own touches.
+          touchAction:none tells the browser not to interpret gestures as scroll/pan at all. */}
+      {popupData && (
+        <div
+          className="fixed inset-0 z-[499]"
+          style={{ touchAction: "none" }}
+          onClick={() => setPopupData(null)}
+        />
+      )}
+
       {popupData && (
         <MarkerPopup
           place={popupData.place} position={popupData.position} onClose={() => setPopupData(null)}
