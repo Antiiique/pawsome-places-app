@@ -535,9 +535,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             map.panTo([loc.lng, loc.lat]);
             setCenter(loc);
-            loadPlaces(loc.lat, loc.lng, 20, null);
+            loadPlaces(loc.lat, loc.lng, 20, []);
           },
-          () => loadPlaces(48.8566, 2.3522, 20, null)
+          () => loadPlaces(48.8566, 2.3522, 20, [])
         );
         watchIdRef.current = navigator.geolocation.watchPosition(
           updateUserDot,
@@ -545,7 +545,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
         );
       } else {
-        loadPlaces(48.8566, 2.3522, 20, null);
+        loadPlaces(48.8566, 2.3522, 20, []);
       }
     });
 
@@ -1001,12 +1001,17 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         </div>
       )}
 
-      {/* Category chips — bottom center */}
+      {/* Category chips — above the locate FAB, faded edges */}
       <div
-        className="absolute bottom-8 left-0 right-0 z-20 pointer-events-none"
+        className="absolute bottom-20 left-0 right-0 z-20 pointer-events-none"
         style={{
-          maskImage: "linear-gradient(to right, transparent 0, black 3rem, black calc(100% - 3rem), transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to right, transparent 0, black 3rem, black calc(100% - 3rem), transparent 100%)",
+          // Fade 2rem left, fade 6rem right (covers the 4rem FAB zone + buffer)
+          maskImage: isLeftHanded
+            ? "linear-gradient(to right, transparent 0, black 6rem, black calc(100% - 2rem), transparent 100%)"
+            : "linear-gradient(to right, transparent 0, black 2rem, black calc(100% - 6rem), transparent 100%)",
+          WebkitMaskImage: isLeftHanded
+            ? "linear-gradient(to right, transparent 0, black 6rem, black calc(100% - 2rem), transparent 100%)"
+            : "linear-gradient(to right, transparent 0, black 2rem, black calc(100% - 6rem), transparent 100%)",
         }}
       >
         <div
@@ -1017,8 +1022,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             touchAction: "pan-x",
             scrollbarWidth: "none",
             msOverflowStyle: "none",
-            paddingLeft:  isLeftHanded ? "4.5rem" : "1rem",
-            paddingRight: isLeftHanded ? "1rem"   : "4.5rem",
+            // Padding on FAB side = 5rem (80px) keeps content clear of the 64px FAB zone
+            paddingLeft:  isLeftHanded ? "5rem" : "1rem",
+            paddingRight: isLeftHanded ? "1rem" : "5rem",
           } as React.CSSProperties}
         >
           {CATEGORY_FILTERS.map((cf) => {
