@@ -217,6 +217,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     accepts_dogs: false, accepts_cats: false, dogs_on_leash_only: false,
     outdoor_seating: false, water_bowl_provided: false, verified: false,
   });
+  const [publisher, setPublisher] = useState<{display_name: string | null; avatar_url: string | null; id: string} | null>(null);
 
   const userReview = reviews.find(r => r.user_id === user?.id);
   const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
