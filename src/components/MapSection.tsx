@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Supercluster from "supercluster";
-import { Camera, Loader2, Locate, MapPin, Plus, Search, X } from "lucide-react";
+import { Camera, Loader2, Locate, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
 import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
@@ -248,12 +248,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [locating, setLocating] = useState(false);
   const [closingPanel, setClosingPanel] = useState(false);
   const [panelVisible, setPanelVisible] = useState(false);
-  const [localSearch, setLocalSearch] = useState("");
-  const [searchPredictions, setSearchPredictions] = useState<{ place_id: string; structured_formatting: { main_text: string; secondary_text: string } }[]>([]);
-  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Freeze map camera while panels are open/dragging.
   // Two-layer defence:
@@ -775,46 +770,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   }, [itineraryData, isLoaded, onStepClick]);
 
   // ── Floating search ──
-  const handleLocalSearch = (text: string) => {
-    setLocalSearch(text);
-    clearTimeout(searchTimerRef.current);
-    if (!text.trim()) { setSearchPredictions([]); setShowSearchDropdown(false); return; }
-    searchTimerRef.current = setTimeout(() => {
-      loadGooglePlacesLib().then(() => {
-        const g = (window as any).google;
-        if (!g?.maps?.places) return;
-        new g.maps.places.AutocompleteService().getPlacePredictions({ input: text, language: "fr" }, (results: any[], status: string) => {
-          if (status === g.maps.places.PlacesServiceStatus.OK && results) {
-            setSearchPredictions(results.slice(0, 5));
-            setShowSearchDropdown(true);
-          }
-        });
-      });
-    }, 300);
-  };
-
-  const submitLocalSearch = (query: string) => {
-    if (!query.trim()) return;
-    setShowSearchDropdown(false);
-    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query.trim())}.json?access_token=${MAPBOX_TOKEN}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.features?.[0]) {
-          const [lng, lat] = data.features[0].center;
-          setCenter({ lat, lng });
-          mapRef.current?.flyTo({ center: [lng, lat], zoom: 13 });
-        }
-      });
-  };
-
-  // Click outside search dropdown
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) setShowSearchDropdown(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
   // ── Stray reports ──
   const loadStrayReports = useCallback(async () => {
@@ -1033,41 +988,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           </div>
         </div>
       )}
-
-      {/* Floating search bar */}
-      <div ref={searchContainerRef} className="absolute top-3 left-1/2 -translate-x-1/2 z-20 w-full max-w-md px-4">
-        <div className="flex items-center gap-2 bg-card/95 backdrop-blur-md rounded-full border border-border shadow-lg px-4 py-2.5">
-          <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-          <input
-            type="text"
-            placeholder="Rechercher une ville ou un lieu..."
-            value={localSearch}
-            onChange={(e) => handleLocalSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submitLocalSearch(localSearch)}
-            onFocus={() => { if (searchPredictions.length > 0) setShowSearchDropdown(true); }}
-            className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-none text-sm"
-          />
-          {localSearch && (
-            <button onClick={() => { setLocalSearch(""); setSearchPredictions([]); setShowSearchDropdown(false); }}>
-              <X className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
-        </div>
-        {showSearchDropdown && searchPredictions.length > 0 && (
-          <div className="absolute top-full left-4 right-4 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
-            {searchPredictions.map((pred) => (
-              <button key={pred.place_id} onClick={() => { setLocalSearch(pred.structured_formatting.main_text); submitLocalSearch(pred.structured_formatting.main_text); }}
-                className="w-full text-left px-4 py-2.5 hover:bg-muted transition-colors flex items-center gap-3">
-                <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{pred.structured_formatting.main_text}</p>
-                  <p className="text-xs text-muted-foreground truncate">{pred.structured_formatting.secondary_text}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
 
       {/* Global search bar — also controls map category filter */}
       <GlobalSearch
