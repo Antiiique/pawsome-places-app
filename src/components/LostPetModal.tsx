@@ -171,7 +171,7 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
       const petId = (lostPet as any).id;
 
       for (const photo of photos) {
-        const path = `lost/${petId}/${Date.now()}_${photo.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
+        const path = `${user.id}/lost/${petId}/${Date.now()}_${photo.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
         const { data: uploadData } = await supabase.storage.from("stray-photos").upload(path, photo);
         if (uploadData) {
           const { data: { publicUrl } } = supabase.storage.from("stray-photos").getPublicUrl(path);
