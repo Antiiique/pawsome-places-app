@@ -120,7 +120,7 @@ const Index = () => {
   // ── Strip handler: called when touch starts on a dedicated edge strip ──
   // The strip sits ABOVE the map canvas (z-20 > canvas z-0), so Mapbox never
   // receives the touchstart — all subsequent touchmoves also go to the strip.
-  const handleStripStart = (panel: "itinerary" | "favorites") => (e: React.TouchEvent) => {
+  const handleStripStart = (panel: "itinerary" | "favorites" | "profile") => (e: React.TouchEvent) => {
     e.stopPropagation(); // Don't bubble to outer div
     // Freeze map synchronously — before any setState/re-render — so the canvas
     // has pointer-events:none before the first touchmove fires.
