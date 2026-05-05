@@ -1,6 +1,4 @@
-import logo from "@/assets/logo-wpf.png";
 import { Navigation, Heart, UserCircle, Bell, MessageCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { useState, useEffect } from "react";
@@ -59,77 +57,90 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
   }, [user]);
 
 
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border" style={{ height: 56 }}>
-      <div className="container flex items-center justify-between h-14 px-4">
-        <div className="flex items-center gap-2">
-          <img src={logo} alt="World Pet Friendly" width={40} height={40} className="w-10 h-10" />
-          <span className="font-heading font-bold text-base text-foreground">
-            World Pet <span className="text-primary">Friendly</span>
-          </span>
-        </div>
+  const fabStyle = {
+    background: "color-mix(in srgb, var(--card) 55%, transparent)",
+    border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
+    backdropFilter: "blur(24px)",
+    WebkitBackdropFilter: "blur(24px)",
+  };
 
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative text-foreground hover:bg-accent-soft" onClick={onFavoritesClick} title="Mes favoris">
-            <Heart className="w-5 h-5" />
-            {favoritesCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                {favoritesCount > 99 ? "99+" : favoritesCount}
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-transparent border-none" style={{ height: 56 }}>
+      <div className="flex items-center justify-end h-14 px-4 gap-2">
+
+        <button
+          onClick={onFavoritesClick}
+          title="Mes favoris"
+          className="relative w-11 h-11 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+          style={fabStyle}
+        >
+          <Heart className="w-5 h-5 text-foreground" />
+          {favoritesCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+              {favoritesCount > 99 ? "99+" : favoritesCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={onItineraryClick}
+          title="Itinéraire Pet-Friendly"
+          className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+          style={fabStyle}
+        >
+          <Navigation className="w-5 h-5 text-foreground" />
+        </button>
+
+        {user && (
+          <button
+            onClick={onMessagesClick}
+            title="Messages"
+            className="relative w-11 h-11 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+            style={fabStyle}
+          >
+            <MessageCircle className="w-5 h-5 text-foreground" />
+            {unreadMessages > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
+                {unreadMessages > 9 ? "9+" : unreadMessages}
               </span>
             )}
-          </Button>
+          </button>
+        )}
 
-          <Button variant="ghost" size="icon" className="text-foreground hover:bg-accent-soft" onClick={onItineraryClick} title="Itinéraire Pet-Friendly">
-            <Navigation className="w-5 h-5" />
-          </Button>
-
-          {user && (
+        {user && (
+          <div className="relative">
             <button
-              onClick={onMessagesClick}
-              className="relative p-2 rounded-full hover:bg-muted transition-colors"
-              title="Messages"
+              onClick={() => setShowNotifications(!showNotifications)}
+              title="Notifications"
+              className="relative w-11 h-11 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
+              style={fabStyle}
             >
-              <MessageCircle className="w-5 h-5 text-foreground" />
-              {unreadMessages > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
-                  {unreadMessages > 9 ? "9+" : unreadMessages}
+              <Bell className="w-5 h-5 text-foreground" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
+                  {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
             </button>
-          )}
+            {createPortal(
+              <NotificationPanel open={showNotifications} onClose={() => setShowNotifications(false)} />,
+              document.body
+            )}
+          </div>
+        )}
 
-          {user && (
-            <div className="relative">
+        {user ? (
+          <Popover open={profileMenuOpen} onOpenChange={setProfileMenuOpen}>
+            <PopoverTrigger asChild>
               <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 rounded-full hover:bg-muted transition-colors"
-                title="Notifications"
+                className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold focus:outline-none"
+                style={{ backgroundColor: "#FF6B35", boxShadow: "0 4px 24px rgba(0,0,0,0.10)" }}
+                title={profile?.display_name || "Mon compte"}
               >
-                <Bell className="w-5 h-5 text-foreground" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
+                {initial}
               </button>
-              {createPortal(
-                <NotificationPanel open={showNotifications} onClose={() => setShowNotifications(false)} />,
-                document.body
-              )}
-            </div>
-          )}
-
-          {user ? (
-            <Popover open={profileMenuOpen} onOpenChange={setProfileMenuOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring"
-                  style={{ backgroundColor: "#FF6B35" }}
-                  title={profile?.display_name || "Mon compte"}
-                >
-                  {initial}
-                </button>
-              </PopoverTrigger>
+            </PopoverTrigger>
               <PopoverContent className="w-56 p-2 z-[9999]" align="end">
                 <div className="px-2 py-1.5">
                   <p className="text-sm font-medium">👤 {profile?.display_name || "Utilisateur"}</p>
@@ -163,12 +174,15 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
               </PopoverContent>
             </Popover>
           ) : (
-            <Button variant="outline" className="gap-2 text-sm" onClick={() => setShowAuthModal(true)}>
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="flex items-center gap-1.5 h-11 px-4 rounded-full text-sm font-semibold text-foreground active:scale-95 transition-all duration-150"
+              style={fabStyle}
+            >
               <UserCircle className="w-4 h-4" />
-              Se connecter
-            </Button>
+              Connexion
+            </button>
           )}
-        </div>
       </div>
 
 
