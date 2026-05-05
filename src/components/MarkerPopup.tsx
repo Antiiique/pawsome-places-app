@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Heart, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, X, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -426,16 +426,6 @@ export default function MarkerPopup({
         </div>
       )}
 
-      {/* Floating close button — bottom right, matches locate-me button */}
-      <button
-        onClick={handleClose}
-        className="fixed bottom-8 right-4 z-[501] p-3 bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-border hover:bg-muted transition-colors"
-        style={{ transform: `translateY(${!visible ? 80 : 0}px)`, transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)" }}
-        title="Fermer"
-      >
-        <X className="w-5 h-5 text-foreground" />
-      </button>
-
       {/* Bottom sheet */}
       <div
         data-panel="place-detail"
@@ -459,16 +449,27 @@ export default function MarkerPopup({
           </div>
           <div className="flex items-center justify-between px-4 py-2 border-b border-border">
             <span className="text-sm font-bold text-foreground">📌 Détails du lieu</span>
-            <button
-              className={`flex items-center gap-1.5 px-3 h-7 rounded-full text-xs font-semibold border transition-all ${
-                isFavorite
-                  ? "bg-destructive/20 border-destructive/40 text-destructive"
-                  : "bg-warning/10 border-warning/40 text-warning hover:bg-warning/20"
-              }`}
-              onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
-            >
-              <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-current" : ""}`} />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                className={`flex items-center gap-1.5 px-3 h-7 rounded-full text-xs font-semibold border transition-all ${
+                  isFavorite
+                    ? "bg-destructive/20 border-destructive/40 text-destructive"
+                    : "bg-warning/10 border-warning/40 text-warning hover:bg-warning/20"
+                }`}
+                onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
+              >
+                <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-current" : ""}`} />
+              </button>
+              <button
+                onClick={() => setSnap(s => s === "half" ? "full" : "half")}
+                className="p-1.5 rounded-full hover:bg-muted transition-colors"
+              >
+                <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snap === "full" ? "rotate-180" : ""}`} />
+              </button>
+              <button onClick={handleClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
           </div>
         </div>
 
