@@ -236,6 +236,13 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [filterExpanded, setFilterExpanded] = useState(false);
+  const [filterDragY, setFilterDragY] = useState(0);
+  const filterTouchStartY = useRef<number | null>(null);
+
+  // Freeze map while filter sheet is open
+  useEffect(() => {
+    window.dispatchEvent(new Event(showFilterSheet ? "map-freeze" : "map-unfreeze"));
+  }, [showFilterSheet]);
   const [radiusKm, setRadiusKm] = useState(20);
   const [popupData, setPopupData] = useState<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
   const [originPoint, setOriginPoint] = useState<{ lat: number; lng: number } | null>(null);
