@@ -1082,7 +1082,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
               title={filterExpanded ? "Réduire" : "Agrandir"}
               aria-label={filterExpanded ? "Réduire" : "Agrandir"}
             >
-              {filterExpanded ? <Minimize2 className="w-4 h-4 text-foreground" /> : <Maximize2 className="w-4 h-4 text-foreground" />}
+              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${filterExpanded ? "rotate-180" : ""}`} />
             </button>
             <button
               onClick={() => setShowFilterSheet(false)}
