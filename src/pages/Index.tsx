@@ -210,14 +210,14 @@ const Index = () => {
         <>
           <div
             className="fixed bottom-0 left-0 z-20"
-            style={{ top: 56, width: EDGE_ZONE, touchAction: "none" }}
+            style={{ top: "calc(56px + env(safe-area-inset-top, 0px))", width: EDGE_ZONE, touchAction: "none" }}
             onTouchStart={handleStripStart("itinerary")}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           />
           <div
             className="fixed bottom-0 right-0 z-20"
-            style={{ top: 56, width: EDGE_ZONE, touchAction: "none" }}
+            style={{ top: "calc(56px + env(safe-area-inset-top, 0px))", width: EDGE_ZONE, touchAction: "none" }}
             onTouchStart={handleStripStart("profile")}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}

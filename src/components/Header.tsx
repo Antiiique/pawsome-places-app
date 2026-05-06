@@ -66,7 +66,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-transparent border-none" style={{ height: 56 }}>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-transparent border-none" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <div className="flex items-center justify-end h-14 px-4 gap-2">
 
         <button

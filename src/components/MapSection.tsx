@@ -1020,18 +1020,21 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         return (
           <button
             onClick={() => setShowFilterSheet(true)}
-            className={`absolute bottom-8 ${filterSide} z-40 h-12 px-4 rounded-full flex items-center gap-2 active:scale-95 transition-all duration-150`}
-            style={hasFilter ? {
-              backgroundColor: "var(--primary)",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.20)",
-              touchAction: "manipulation",
-            } : {
-              background: "color-mix(in srgb, var(--card) 55%, transparent)",
-              border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
-              touchAction: "manipulation",
+            className={`absolute ${filterSide} z-40 h-12 px-4 rounded-full flex items-center gap-2 active:scale-95 transition-all duration-150`}
+            style={{
+              bottom: "calc(2rem + var(--safe-bottom, 0px))",
+              ...(hasFilter ? {
+                backgroundColor: "var(--primary)",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.20)",
+                touchAction: "manipulation",
+              } : {
+                background: "color-mix(in srgb, var(--card) 55%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
+                backdropFilter: "blur(24px)",
+                WebkitBackdropFilter: "blur(24px)",
+                touchAction: "manipulation",
+              }),
             } as React.CSSProperties}
             title="Filtrer par catégorie"
           >
@@ -1060,8 +1063,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             showFilterSheet ? "translate-y-0" : "translate-y-full"
           }`}
           style={{
-            maxHeight: filterExpanded ? "92vh" : "60vh",
-            height: filterExpanded ? "92vh" : "60vh",
+            maxHeight: filterExpanded ? "92dvh" : "60dvh",
+            height: filterExpanded ? "92dvh" : "60dvh",
             background: "color-mix(in srgb, var(--card) 55%, transparent)",
             border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
             borderBottom: "none",
@@ -1078,7 +1081,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             onTouchMove={(e) => {
               if (filterTouchStartY.current === null) return;
               const dy = e.touches[0].clientY - filterTouchStartY.current;
-              // Allow drag down (close) and drag up (expand)
               setFilterDragY(filterExpanded ? Math.max(0, dy) : dy);
             }}
             onTouchEnd={() => {
@@ -1173,7 +1175,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
               })}
             </div>
           </div>
-          <div className="shrink-0 px-4 pt-3 pb-6 border-t border-border">
+          <div className="shrink-0 px-4 pt-3 border-t border-border" style={{ paddingBottom: "calc(1.5rem + var(--safe-bottom, 0px))" }}>
             <button
               onClick={() => setShowFilterSheet(false)}
               className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.98] transition-all"
@@ -1194,8 +1196,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             detail: { lat: center?.lat ?? 48.8566, lng: center?.lng ?? 2.3522 },
           }));
         }}
-        className={`absolute bottom-56 ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
-        style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
+        className={`absolute ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
+        style={{ bottom: "calc(14rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Ajouter un lieu"
       >
         <Plus className="w-5 h-5 text-primary" />
@@ -1207,8 +1209,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           if (!user) { toast.error("Connectez-vous pour publier une annonce"); window.dispatchEvent(new CustomEvent("open-auth-modal")); return; }
           setLostPetModal(true);
         }}
-        className={`absolute bottom-40 ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
-        style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
+        className={`absolute ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
+        style={{ bottom: "calc(10rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal perdu"
       >
         <span style={{ fontSize: 20, lineHeight: 1 }}>🆘</span>
@@ -1220,15 +1222,15 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           if (!user) { toast.error("Connectez-vous pour signaler un animal errant"); window.dispatchEvent(new CustomEvent("open-auth-modal")); return; }
           setStrayModal(true);
         }}
-        className={`absolute bottom-24 ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
-        style={{ background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
+        className={`absolute ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
+        style={{ bottom: "calc(6rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal errant"
       >
         <Camera className="w-5 h-5 text-destructive" />
       </button>
 
       {/* Locate me — hidden when place detail panel is open */}
-      {!selectedPlace && <div className={`absolute bottom-8 ${fabSide} z-40`}>
+      {!selectedPlace && <div className={`absolute ${fabSide} z-40`} style={{ bottom: "calc(2rem + var(--safe-bottom, 0px))" }}>
         {locating && (
           <span className="absolute inset-0 rounded-full animate-ping bg-primary/30" />
         )}

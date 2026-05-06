@@ -598,7 +598,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
     <>
       {/* Mobile backdrop */}
       <div data-panel className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-r-2xl" style={{
-        top: 56,
+        top: "var(--header-h, 56px)",
         ...(dragProgress !== undefined
           ? { transform: `translateX(${-(1 - dragProgress) * 100}%)`, transition: "none" }
           : { transform: open ? "translateX(0%)" : "translateX(-100%)" }),

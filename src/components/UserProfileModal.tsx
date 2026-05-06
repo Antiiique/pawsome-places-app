@@ -627,7 +627,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
       data-panel
       className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-l-2xl"
       style={{
-        top: 56,
+        top: "var(--header-h, 56px)",
         overflowX: "hidden",
         ...(dragProgress !== undefined
           ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" }

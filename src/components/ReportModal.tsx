@@ -83,7 +83,7 @@ export default function ReportModal({ open, onClose, placeId, placeName, onLogin
       <div
         className="relative w-full max-w-md bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden"
         style={{
-          maxHeight: "85vh",
+          maxHeight: "85dvh",
           opacity: visible ? 1 : 0,
           transform: visible ? "scale(1) translateY(0)" : "scale(0.96) translateY(12px)",
           transition: "opacity 0.22s ease, transform 0.22s ease",

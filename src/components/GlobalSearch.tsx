@@ -283,7 +283,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
           left: "50%",
           transform: `translateX(-50%) translateY(${showPanel && !closing ? 0 : -8}px)`,
           width: "min(420px, calc(100vw - 32px))",
-          maxHeight: "62vh",
+          maxHeight: "62dvh",
           zIndex: 9990,
           display: "flex",
           flexDirection: "column",

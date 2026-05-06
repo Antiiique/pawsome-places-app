@@ -107,7 +107,7 @@ export default function ChatPanel({ conversationId, otherUser, onBack }: ChatPan
   let lastDay = "";
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[750] bg-card flex flex-col" style={{ top: 56 }}>
+    <div className="fixed bottom-0 left-0 right-0 z-[750] bg-card flex flex-col" style={{ top: "var(--header-h, 56px)" }}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border shrink-0">
         <button onClick={onBack} className="p-1.5 rounded-full hover:bg-muted transition-colors">

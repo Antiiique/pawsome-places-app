@@ -4,6 +4,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Plein écran bord à bord — tous appareils (iOS, Android, tablettes) */
+html, body, #root {
+  height: 100%;
+  min-height: 100dvh;
+}
+
+/* Variables safe-area universelles (iOS notch, Android punch-hole, tablettes) */
+:root {
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+  /* Hauteur du header + safe area top (utilisé par tous les panels) */
+  --header-h: calc(56px + var(--safe-top));
+}
+
+/* Scroll fluide avec momentum sur iOS + contenu qui ne rebondit pas hors du panel */
+.overflow-y-auto,
+.overflow-y-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 @layer base {
   :root {
     /* Stone & Slate — Quiet Luxury 2026 */

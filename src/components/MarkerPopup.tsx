@@ -430,7 +430,7 @@ export default function MarkerPopup({
         data-panel="place-detail"
         className="fixed bottom-0 left-0 right-0 z-[500] flex flex-col bg-card rounded-t-2xl shadow-2xl"
         style={{
-          height: "calc(100vh - 56px)",
+          height: "calc(100dvh - var(--header-h, 56px))",
           transform: `translateY(${!visible ? 100 : currentOffset}%)`,
           transition: isDragging.current ? "none" : "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
           willChange: "transform",

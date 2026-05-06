@@ -212,11 +212,12 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
         className="fixed left-0 right-0 bottom-0 z-[700] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={(() => {
           const snapBase = snapState === "full" ? 0 : 55;
-          const h = window.innerHeight - 56;
+          const headerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 56;
+          const h = window.innerHeight - headerH;
           const dragPct = dragging && h > 0 ? (dragDelta / h) * 100 : 0;
           const currentPct = Math.max(0, Math.min(100, snapBase + dragPct));
           return {
-            top: 56,
+            top: "var(--header-h, 56px)",
             transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
             transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
           };
