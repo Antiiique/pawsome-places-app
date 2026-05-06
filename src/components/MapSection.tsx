@@ -236,6 +236,13 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [filterExpanded, setFilterExpanded] = useState(false);
+  const [filterDragY, setFilterDragY] = useState(0);
+  const filterTouchStartY = useRef<number | null>(null);
+
+  // Freeze map while filter sheet is open
+  useEffect(() => {
+    window.dispatchEvent(new Event(showFilterSheet ? "map-freeze" : "map-unfreeze"));
+  }, [showFilterSheet]);
   const [radiusKm, setRadiusKm] = useState(20);
   const [popupData, setPopupData] = useState<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
   const [originPoint, setOriginPoint] = useState<{ lat: number; lng: number } | null>(null);
@@ -1049,7 +1056,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           onClick={() => setShowFilterSheet(false)}
         />
         <div
-          className={`fixed inset-x-0 bottom-0 z-[495] rounded-t-2xl flex flex-col transition-all duration-300 ease-out ${
+          className={`fixed inset-x-0 bottom-0 z-[495] rounded-t-2xl flex flex-col ${filterDragY === 0 ? "transition-all duration-300 ease-out" : ""} ${
             showFilterSheet ? "translate-y-0" : "translate-y-full"
           }`}
           style={{
@@ -1061,10 +1068,39 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             boxShadow: "0 -4px 24px rgba(0,0,0,0.10)",
             backdropFilter: "blur(24px)",
             WebkitBackdropFilter: "blur(24px)",
+            transform: showFilterSheet && filterDragY > 0 ? `translateY(${filterDragY}px)` : undefined,
           } as React.CSSProperties}
         >
-          {/* Handle */}
-          <div className="flex justify-center pt-3 pb-1 shrink-0">
+          {/* Handle — drag to close */}
+          <div
+            className="flex justify-center pt-3 pb-2 shrink-0 cursor-grab active:cursor-grabbing touch-none"
+            onTouchStart={(e) => { filterTouchStartY.current = e.touches[0].clientY; }}
+            onTouchMove={(e) => {
+              if (filterTouchStartY.current === null) return;
+              const dy = e.touches[0].clientY - filterTouchStartY.current;
+              setFilterDragY(Math.max(0, dy));
+            }}
+            onTouchEnd={() => {
+              const sheetH = filterExpanded ? window.innerHeight * 0.92 : window.innerHeight * 0.6;
+              if (filterDragY > sheetH * 0.25) setShowFilterSheet(false);
+              setFilterDragY(0);
+              filterTouchStartY.current = null;
+            }}
+            onMouseDown={(e) => {
+              const startY = e.clientY;
+              const onMove = (ev: MouseEvent) => setFilterDragY(Math.max(0, ev.clientY - startY));
+              const onUp = (ev: MouseEvent) => {
+                const dy = ev.clientY - startY;
+                const sheetH = filterExpanded ? window.innerHeight * 0.92 : window.innerHeight * 0.6;
+                if (dy > sheetH * 0.25) setShowFilterSheet(false);
+                setFilterDragY(0);
+                window.removeEventListener("mousemove", onMove);
+                window.removeEventListener("mouseup", onUp);
+              };
+              window.addEventListener("mousemove", onMove);
+              window.addEventListener("mouseup", onUp);
+            }}
+          >
             <div className="w-10 h-1 rounded-full bg-border" />
           </div>
           {/* Header */}
