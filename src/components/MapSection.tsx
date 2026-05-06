@@ -1068,7 +1068,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             boxShadow: "0 -4px 24px rgba(0,0,0,0.10)",
             backdropFilter: "blur(24px)",
             WebkitBackdropFilter: "blur(24px)",
-            transform: showFilterSheet && filterDragY > 0 ? `translateY(${filterDragY}px)` : undefined,
+            transform: showFilterSheet && filterDragY !== 0 ? `translateY(${filterDragY}px)` : undefined,
           } as React.CSSProperties}
         >
           {/* Handle — drag to close */}
@@ -1078,21 +1078,33 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             onTouchMove={(e) => {
               if (filterTouchStartY.current === null) return;
               const dy = e.touches[0].clientY - filterTouchStartY.current;
-              setFilterDragY(Math.max(0, dy));
+              // Allow drag down (close) and drag up (expand)
+              setFilterDragY(filterExpanded ? Math.max(0, dy) : dy);
             }}
             onTouchEnd={() => {
               const sheetH = filterExpanded ? window.innerHeight * 0.92 : window.innerHeight * 0.6;
-              if (filterDragY > sheetH * 0.25) setShowFilterSheet(false);
+              if (filterDragY > sheetH * 0.25) {
+                setShowFilterSheet(false);
+              } else if (!filterExpanded && filterDragY < -60) {
+                setFilterExpanded(true);
+              }
               setFilterDragY(0);
               filterTouchStartY.current = null;
             }}
             onMouseDown={(e) => {
               const startY = e.clientY;
-              const onMove = (ev: MouseEvent) => setFilterDragY(Math.max(0, ev.clientY - startY));
+              const onMove = (ev: MouseEvent) => {
+                const dy = ev.clientY - startY;
+                setFilterDragY(filterExpanded ? Math.max(0, dy) : dy);
+              };
               const onUp = (ev: MouseEvent) => {
                 const dy = ev.clientY - startY;
                 const sheetH = filterExpanded ? window.innerHeight * 0.92 : window.innerHeight * 0.6;
-                if (dy > sheetH * 0.25) setShowFilterSheet(false);
+                if (dy > sheetH * 0.25) {
+                  setShowFilterSheet(false);
+                } else if (!filterExpanded && dy < -60) {
+                  setFilterExpanded(true);
+                }
                 setFilterDragY(0);
                 window.removeEventListener("mousemove", onMove);
                 window.removeEventListener("mouseup", onUp);
