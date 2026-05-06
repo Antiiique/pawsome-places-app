@@ -1131,47 +1131,47 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             WebkitBackdropFilter: "blur(24px)",
           } as React.CSSProperties}
         >
-          {/* Drag handle */}
+          {/* Zone header complète = drag handle + titre + boutons — un seul bloc draggable */}
           <div
-            className="shrink-0 flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
+            className="shrink-0 cursor-grab active:cursor-grabbing border-b border-border"
             style={{ touchAction: "none" }}
             onTouchStart={handleFilterDragStart}
             onTouchMove={handleFilterDragMove}
             onTouchEnd={handleFilterDragEnd}
           >
-            <div className="w-10 h-1 rounded-full bg-border" />
-          </div>
-          {/* Header — draggable aussi */}
-          <div
-            className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border shrink-0"
-            style={{ touchAction: "none" }}
-            onTouchStart={handleFilterDragStart}
-            onTouchMove={handleFilterDragMove}
-            onTouchEnd={handleFilterDragEnd}
-          >
-            <h3 className="font-bold text-foreground text-base flex-1">Filtrer par catégorie</h3>
-            <button
-              onClick={() => setActiveCategories([])}
-              className="text-xs text-primary font-semibold px-2 py-1 rounded-md hover:bg-muted transition-colors"
-            >
-              Effacer tout
-            </button>
-            <button
-              onClick={() => setFilterSnap(s => s === "full" ? "half" : "full")}
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
-              title={filterSnap === "full" ? "Réduire" : "Agrandir"}
-              aria-label={filterSnap === "full" ? "Réduire" : "Agrandir"}
-            >
-              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${filterSnap === "full" ? "rotate-180" : ""}`} />
-            </button>
-            <button
-              onClick={() => setShowFilterSheet(false)}
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
-              title="Fermer"
-              aria-label="Fermer"
-            >
-              <X className="w-4 h-4 text-foreground" />
-            </button>
+            {/* Pill */}
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-10 h-1 rounded-full bg-border" />
+            </div>
+            {/* Titre + boutons */}
+            <div className="flex items-center justify-between gap-2 px-4 pb-3">
+              <h3 className="font-bold text-foreground text-base flex-1">Filtrer par catégorie</h3>
+              <button
+                onTouchStart={e => e.stopPropagation()}
+                onClick={() => setActiveCategories([])}
+                className="text-xs text-primary font-semibold px-2 py-1 rounded-md hover:bg-muted transition-colors"
+              >
+                Effacer tout
+              </button>
+              <button
+                onTouchStart={e => e.stopPropagation()}
+                onClick={() => setFilterSnap(s => s === "full" ? "half" : "full")}
+                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+                title={filterSnap === "full" ? "Réduire" : "Agrandir"}
+                aria-label={filterSnap === "full" ? "Réduire" : "Agrandir"}
+              >
+                <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${filterSnap === "full" ? "rotate-180" : ""}`} />
+              </button>
+              <button
+                onTouchStart={e => e.stopPropagation()}
+                onClick={() => setShowFilterSheet(false)}
+                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+                title="Fermer"
+                aria-label="Fermer"
+              >
+                <X className="w-4 h-4 text-foreground" />
+              </button>
+            </div>
           </div>
           {/* Scrollable grid */}
           <div className="overflow-y-auto flex-1 px-3 pt-3 pb-2">
