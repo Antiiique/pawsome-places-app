@@ -72,12 +72,10 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
   const [snapState, setSnapState] = useState<"half" | "full">("half");
   const [dragging, setDragging] = useState(false);
   const [dragDelta, setDragDelta] = useState(0);
-  const isDragging    = useRef(false);
-  const dragStartY    = useRef(0);
-  const dragDeltaRef  = useRef(0);
-  const lastTouchY    = useRef(0);
-  const lastTouchTime = useRef(0);
-  const lastVelocity  = useRef(0);
+  const isDragging   = useRef(false);
+  const dragStartY   = useRef(0);
+  const dragDeltaRef = useRef(0);
+  const gestureStart = useRef(0);
 
   useEffect(() => {
     if (!open) setSnapState("half");
@@ -131,43 +129,41 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
   }, [open, user]);
 
   const handleDragStart = (e: React.TouchEvent) => {
+    e.stopPropagation(); // Prevent outer horizontal-panel drag system from hijacking this gesture
     isDragging.current = true;
     dragStartY.current = e.touches[0].clientY;
     dragDeltaRef.current = 0;
-    lastTouchY.current = e.touches[0].clientY;
-    lastTouchTime.current = Date.now();
-    lastVelocity.current = 0;
+    gestureStart.current = Date.now();
     setDragging(true);
     setDragDelta(0);
   };
 
   const handleDragMove = (e: React.TouchEvent) => {
     if (!isDragging.current) return;
-    const y = e.touches[0].clientY;
-    const now = Date.now();
-    const dt = now - lastTouchTime.current;
-    if (dt > 0) lastVelocity.current = (y - lastTouchY.current) / dt;
-    lastTouchY.current = y;
-    lastTouchTime.current = now;
-    const delta = y - dragStartY.current;
+    e.stopPropagation();
+    const delta = e.touches[0].clientY - dragStartY.current;
     dragDeltaRef.current = delta;
     setDragDelta(delta);
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = (e: React.TouchEvent) => {
+    e.stopPropagation();
     isDragging.current = false;
     setDragging(false);
-    const vel = lastVelocity.current;
+    const delta = dragDeltaRef.current;
     const h = window.innerHeight - 56;
-    // Use ref instead of state to avoid stale closure — state may not have
-    // re-rendered yet when touchend fires after a fast swipe
-    const deltaPct = h > 0 ? (dragDeltaRef.current / h) * 100 : 0;
+    const deltaPct = h > 0 ? (delta / h) * 100 : 0;
+    // Overall velocity over the full gesture — immune to end-of-swipe jitter
+    const elapsed = Date.now() - gestureStart.current;
+    const vel = elapsed > 0 ? delta / elapsed : 0;
+
     if (snapState === "half") {
-      if (vel < -0.3 || deltaPct < -15) setSnapState("full");
-      else if (vel > 0.5 || deltaPct > 25) onClose();
+      // Gate on direction: only expand when swiping up, only close when swiping down
+      if (delta < 0 && (deltaPct < -15 || vel < -0.3)) setSnapState("full");
+      else if (delta > 0 && (deltaPct > 25 || vel > 0.5)) onClose();
     } else {
-      if (vel > 0.5 || deltaPct > 25) onClose();
-      else if (vel > 0.3 || deltaPct > 15) setSnapState("half");
+      if (delta > 0 && (deltaPct > 25 || vel > 0.5)) onClose();
+      else if (delta > 0 && (deltaPct > 15 || vel > 0.3)) setSnapState("half");
     }
     dragDeltaRef.current = 0;
     setDragDelta(0);
