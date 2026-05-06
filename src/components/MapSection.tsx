@@ -235,6 +235,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [selectedPlace, setSelectedPlace] = useState<PetPlace | null>(null);
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
+  const [filterExpanded, setFilterExpanded] = useState(false);
   const [radiusKm, setRadiusKm] = useState(20);
   const [popupData, setPopupData] = useState<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
   const [originPoint, setOriginPoint] = useState<{ lat: number; lng: number } | null>(null);
