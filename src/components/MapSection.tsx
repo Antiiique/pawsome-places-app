@@ -235,13 +235,24 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [selectedPlace, setSelectedPlace] = useState<PetPlace | null>(null);
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
-  const [filterExpanded, setFilterExpanded] = useState(false);
-  const [filterDragY, setFilterDragY] = useState(0);
-  const filterTouchStartY = useRef<number | null>(null);
+  const [filterSnap, setFilterSnap] = useState<"half" | "full">("half");
+  const [filterDragging, setFilterDragging] = useState(false);
+  const [filterDragDelta, setFilterDragDelta] = useState(0);
+  const filterIsDragging    = useRef(false);
+  const filterDragStartY    = useRef(0);
+  const filterLastTouchY    = useRef(0);
+  const filterLastTouchTime = useRef(0);
+  const filterLastVelocity  = useRef(0);
 
-  // Freeze map while filter sheet is open
+  // Freeze map while filter sheet is open; reset snap to "half" on each open
   useEffect(() => {
-    window.dispatchEvent(new Event(showFilterSheet ? "map-freeze" : "map-unfreeze"));
+    if (showFilterSheet) {
+      setFilterSnap("half");
+      setFilterDragDelta(0);
+      window.dispatchEvent(new Event("map-freeze"));
+    } else {
+      window.dispatchEvent(new Event("map-unfreeze"));
+    }
   }, [showFilterSheet]);
   const [radiusKm, setRadiusKm] = useState(20);
   const [popupData, setPopupData] = useState<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
@@ -978,6 +989,49 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     toast(added ? `❤️ ${place.name} ajouté aux favoris` : `💔 ${place.name} retiré des favoris`);
   };
 
+  // ── Filter sheet drag handlers (même pattern que LostPetDetailPanel) ──
+  const handleFilterDragStart = (e: React.TouchEvent) => {
+    filterIsDragging.current = true;
+    filterDragStartY.current = e.touches[0].clientY;
+    filterLastTouchY.current = e.touches[0].clientY;
+    filterLastTouchTime.current = Date.now();
+    filterLastVelocity.current = 0;
+    setFilterDragging(true);
+    setFilterDragDelta(0);
+  };
+  const handleFilterDragMove = (e: React.TouchEvent) => {
+    if (!filterIsDragging.current) return;
+    const y = e.touches[0].clientY;
+    const now = Date.now();
+    const dt = now - filterLastTouchTime.current;
+    if (dt > 0) filterLastVelocity.current = (y - filterLastTouchY.current) / dt;
+    filterLastTouchY.current = y;
+    filterLastTouchTime.current = now;
+    setFilterDragDelta(y - filterDragStartY.current);
+  };
+  const handleFilterDragEnd = () => {
+    if (!filterIsDragging.current) return;
+    filterIsDragging.current = false;
+    setFilterDragging(false);
+    const h = window.innerHeight;
+    const deltaPct = h > 0 ? (filterDragDelta / h) * 100 : 0;
+    const vel = filterLastVelocity.current;
+    if (filterSnap === "half") {
+      if (vel < -0.3 || deltaPct < -15) setFilterSnap("full");
+      else if (vel > 0.3 || deltaPct > 15) setShowFilterSheet(false);
+    } else {
+      if (vel > 0.5 || deltaPct > 20) setFilterSnap("half");
+    }
+    setFilterDragDelta(0);
+  };
+
+  // Position % du filter sheet
+  const filterSnapBase = filterSnap === "full" ? 0 : 40;
+  const filterDragPct  = filterDragging && window.innerHeight > 0
+    ? (filterDragDelta / window.innerHeight) * 100
+    : 0;
+  const filterCurrentPct = Math.max(0, Math.min(100, filterSnapBase + filterDragPct));
+
   // ── Render ──
   return (
     <section id="explore" className="relative flex-1 min-h-0">
@@ -1050,75 +1104,51 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         );
       })()}
 
-      {/* Filter bottom sheet — smooth slide-up with same glassmorphism as side FABs */}
+      {/* Filter bottom sheet — même pattern de swipe que LostPetDetailPanel */}
       <>
+        {/* Scrim */}
         <div
-          className={`fixed inset-0 z-[490] bg-black/40 transition-opacity duration-300 ease-out ${
-            showFilterSheet ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-          }`}
+          className="fixed inset-0 z-[490] bg-black/40"
+          style={{
+            opacity: showFilterSheet ? 1 : 0,
+            transition: "opacity 0.3s ease",
+            pointerEvents: showFilterSheet ? "auto" : "none",
+          }}
           onClick={() => setShowFilterSheet(false)}
         />
+        {/* Sheet */}
         <div
-          className={`fixed inset-x-0 bottom-0 z-[495] rounded-t-2xl flex flex-col ${filterDragY === 0 ? "transition-all duration-300 ease-out" : ""} ${
-            showFilterSheet ? "translate-y-0" : "translate-y-full"
-          }`}
+          className="fixed inset-x-0 bottom-0 z-[495] rounded-t-2xl flex flex-col"
           style={{
-            maxHeight: filterExpanded ? "92dvh" : "60dvh",
-            height: filterExpanded ? "92dvh" : "60dvh",
+            top: "var(--header-h, 56px)",
+            transform: `translateY(${showFilterSheet ? filterCurrentPct + "%" : "100%"})`,
+            transition: filterDragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
             background: "color-mix(in srgb, var(--card) 55%, transparent)",
             border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
             borderBottom: "none",
             boxShadow: "0 -4px 24px rgba(0,0,0,0.10)",
             backdropFilter: "blur(24px)",
             WebkitBackdropFilter: "blur(24px)",
-            transform: showFilterSheet && filterDragY !== 0 ? `translateY(${filterDragY}px)` : undefined,
           } as React.CSSProperties}
         >
-          {/* Handle — drag to close */}
+          {/* Drag handle */}
           <div
-            className="flex justify-center pt-3 pb-2 shrink-0 cursor-grab active:cursor-grabbing touch-none"
-            onTouchStart={(e) => { filterTouchStartY.current = e.touches[0].clientY; }}
-            onTouchMove={(e) => {
-              if (filterTouchStartY.current === null) return;
-              const dy = e.touches[0].clientY - filterTouchStartY.current;
-              setFilterDragY(filterExpanded ? Math.max(0, dy) : dy);
-            }}
-            onTouchEnd={() => {
-              const sheetH = filterExpanded ? window.innerHeight * 0.92 : window.innerHeight * 0.6;
-              if (filterDragY > sheetH * 0.25) {
-                setShowFilterSheet(false);
-              } else if (!filterExpanded && filterDragY < -60) {
-                setFilterExpanded(true);
-              }
-              setFilterDragY(0);
-              filterTouchStartY.current = null;
-            }}
-            onMouseDown={(e) => {
-              const startY = e.clientY;
-              const onMove = (ev: MouseEvent) => {
-                const dy = ev.clientY - startY;
-                setFilterDragY(filterExpanded ? Math.max(0, dy) : dy);
-              };
-              const onUp = (ev: MouseEvent) => {
-                const dy = ev.clientY - startY;
-                const sheetH = filterExpanded ? window.innerHeight * 0.92 : window.innerHeight * 0.6;
-                if (dy > sheetH * 0.25) {
-                  setShowFilterSheet(false);
-                } else if (!filterExpanded && dy < -60) {
-                  setFilterExpanded(true);
-                }
-                setFilterDragY(0);
-                window.removeEventListener("mousemove", onMove);
-                window.removeEventListener("mouseup", onUp);
-              };
-              window.addEventListener("mousemove", onMove);
-              window.addEventListener("mouseup", onUp);
-            }}
+            className="shrink-0 flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
+            style={{ touchAction: "none" }}
+            onTouchStart={handleFilterDragStart}
+            onTouchMove={handleFilterDragMove}
+            onTouchEnd={handleFilterDragEnd}
           >
             <div className="w-10 h-1 rounded-full bg-border" />
           </div>
-          {/* Header */}
-          <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border shrink-0">
+          {/* Header — draggable aussi */}
+          <div
+            className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border shrink-0"
+            style={{ touchAction: "none" }}
+            onTouchStart={handleFilterDragStart}
+            onTouchMove={handleFilterDragMove}
+            onTouchEnd={handleFilterDragEnd}
+          >
             <h3 className="font-bold text-foreground text-base flex-1">Filtrer par catégorie</h3>
             <button
               onClick={() => setActiveCategories([])}
@@ -1127,12 +1157,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
               Effacer tout
             </button>
             <button
-              onClick={() => setFilterExpanded(v => !v)}
+              onClick={() => setFilterSnap(s => s === "full" ? "half" : "full")}
               className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
-              title={filterExpanded ? "Réduire" : "Agrandir"}
-              aria-label={filterExpanded ? "Réduire" : "Agrandir"}
+              title={filterSnap === "full" ? "Réduire" : "Agrandir"}
+              aria-label={filterSnap === "full" ? "Réduire" : "Agrandir"}
             >
-              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${filterExpanded ? "rotate-180" : ""}`} />
+              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${filterSnap === "full" ? "rotate-180" : ""}`} />
             </button>
             <button
               onClick={() => setShowFilterSheet(false)}
