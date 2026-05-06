@@ -1049,11 +1049,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           onClick={() => setShowFilterSheet(false)}
         />
         <div
-          className={`fixed inset-x-0 bottom-0 z-[495] rounded-t-2xl flex flex-col transition-transform duration-300 ease-out ${
+          className={`fixed inset-x-0 bottom-0 z-[495] rounded-t-2xl flex flex-col transition-all duration-300 ease-out ${
             showFilterSheet ? "translate-y-0" : "translate-y-full"
           }`}
           style={{
-            maxHeight: "72vh",
+            maxHeight: filterExpanded ? "92vh" : "60vh",
+            height: filterExpanded ? "92vh" : "auto",
             background: "color-mix(in srgb, var(--card) 55%, transparent)",
             border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
             borderBottom: "none",
@@ -1067,69 +1068,75 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             <div className="w-10 h-1 rounded-full bg-border" />
           </div>
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-              <h3 className="font-bold text-foreground text-base">Filtrer par catégorie</h3>
-              {activeCategories.length > 0 && (
-                <button
-                  onClick={() => setActiveCategories([])}
-                  className="text-xs text-primary font-semibold"
-                >
-                  Effacer tout
-                </button>
-              )}
+          <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border shrink-0">
+            <h3 className="font-bold text-foreground text-base flex-1">Filtrer par catégorie</h3>
+            <button
+              onClick={() => setActiveCategories([])}
+              className="text-xs text-primary font-semibold px-2 py-1 rounded-md hover:bg-muted transition-colors"
+            >
+              Effacer tout
+            </button>
+            <button
+              onClick={() => setFilterExpanded(v => !v)}
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+              title={filterExpanded ? "Réduire" : "Agrandir"}
+              aria-label={filterExpanded ? "Réduire" : "Agrandir"}
+            >
+              {filterExpanded ? <Minimize2 className="w-4 h-4 text-foreground" /> : <Maximize2 className="w-4 h-4 text-foreground" />}
+            </button>
+            <button
+              onClick={() => setShowFilterSheet(false)}
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+              title="Fermer"
+              aria-label="Fermer"
+            >
+              <X className="w-4 h-4 text-foreground" />
+            </button>
+          </div>
+          {/* Scrollable grid */}
+          <div className="overflow-y-auto flex-1 px-3 pt-3 pb-2">
+            <button
+              onClick={() => setActiveCategories([])}
+              className={`w-full mb-3 py-3 rounded-xl font-semibold text-sm transition-all active:scale-[0.98] ${
+                activeCategories.length === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+              }`}
+            >
+              🐾 Tous les lieux
+            </button>
+            <div className="grid grid-cols-3 gap-2">
+              {CATEGORY_FILTERS.filter(cf => cf.key !== null).map((cf) => {
+                const active = activeCategories.includes(cf.key!);
+                return (
+                  <button
+                    key={cf.key}
+                    onClick={() => {
+                      setActiveCategories(prev =>
+                        prev.includes(cf.key!) ? prev.filter(c => c !== cf.key) : [...prev, cf.key!]
+                      );
+                    }}
+                    className={`py-3 px-1 rounded-xl flex flex-col items-center gap-1.5 transition-all active:scale-95 ${
+                      active ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                    }`}
+                  >
+                    <span className="text-2xl leading-none">{cf.emoji}</span>
+                    <span className="text-[10px] font-medium leading-tight text-center">{cf.label}</span>
+                  </button>
+                );
+              })}
             </div>
-            {/* Scrollable grid */}
-            <div className="overflow-y-auto flex-1 px-3 pt-3 pb-2">
-              {/* "Tous" — full width */}
-              <button
-                onClick={() => { setActiveCategories([]); setShowFilterSheet(false); }}
-                className={`w-full mb-3 py-3 rounded-xl font-semibold text-sm transition-all active:scale-[0.98] ${
-                  activeCategories.length === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-                }`}
-              >
-                🐾 Tous les lieux
-              </button>
-              {/* 3-column grid */}
-              <div className="grid grid-cols-3 gap-2">
-                {CATEGORY_FILTERS.filter(cf => cf.key !== null).map((cf) => {
-                  const active = activeCategories.includes(cf.key!);
-                  return (
-                    <button
-                      key={cf.key}
-                      onClick={() => {
-                        if (cf.key === "__strays__" || cf.key === "__lost__") {
-                          setActiveCategories(prev => prev.includes(cf.key!) ? [] : [cf.key!]);
-                        } else {
-                          setActiveCategories(prev => {
-                            const base = prev.filter(c => c !== "__strays__" && c !== "__lost__");
-                            return base.includes(cf.key!) ? base.filter(c => c !== cf.key) : [...base, cf.key!];
-                          });
-                        }
-                      }}
-                      className={`py-3 px-1 rounded-xl flex flex-col items-center gap-1.5 transition-all active:scale-95 ${
-                        active ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-                      }`}
-                    >
-                      <span className="text-2xl leading-none">{cf.emoji}</span>
-                      <span className="text-[10px] font-medium leading-tight text-center">{cf.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            {/* Apply button */}
-            <div className="shrink-0 px-4 pt-3 pb-6 border-t border-border">
-              <button
-                onClick={() => setShowFilterSheet(false)}
-                className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.98] transition-all"
-              >
-                {activeCategories.length === 0
-                  ? "Fermer"
-                  : `Appliquer · ${activeCategories.length} filtre${activeCategories.length > 1 ? "s" : ""}`}
-              </button>
+          </div>
+          <div className="shrink-0 px-4 pt-3 pb-6 border-t border-border">
+            <button
+              onClick={() => setShowFilterSheet(false)}
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.98] transition-all"
+            >
+              {activeCategories.length === 0
+                ? "Fermer"
+                : `Appliquer · ${activeCategories.length} filtre${activeCategories.length > 1 ? "s" : ""}`}
+            </button>
           </div>
         </div>
-      </>
+      >
 
       {/* Add place FAB — between search and SOS */}
       <button
