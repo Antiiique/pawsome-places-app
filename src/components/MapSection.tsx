@@ -1136,7 +1136,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             </button>
           </div>
         </div>
-      >
+      </>
 
       {/* Add place FAB — between search and SOS */}
       <button
