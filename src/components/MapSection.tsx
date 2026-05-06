@@ -1126,10 +1126,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
                   ? "Fermer"
                   : `Appliquer · ${activeCategories.length} filtre${activeCategories.length > 1 ? "s" : ""}`}
               </button>
-            </div>
           </div>
-        </>
-      )}
+        </div>
+      </>
 
       {/* Add place FAB — between search and SOS */}
       <button
