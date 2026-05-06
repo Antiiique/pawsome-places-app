@@ -1054,7 +1054,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           }`}
           style={{
             maxHeight: filterExpanded ? "92vh" : "60vh",
-            height: filterExpanded ? "92vh" : "auto",
+            height: filterExpanded ? "92vh" : "60vh",
             background: "color-mix(in srgb, var(--card) 55%, transparent)",
             border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
             borderBottom: "none",
