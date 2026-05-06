@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Supercluster from "supercluster";
-import { Camera, Loader2, Locate, Plus, X } from "lucide-react";
+import { Camera, Loader2, Locate, Plus, SlidersHorizontal, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
 import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
@@ -209,7 +209,8 @@ interface MapSectionProps {
 const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavorite, onToggleFavorite, onOpenItinerary, frozen }: MapSectionProps) => {
   const { user } = useAuthContext();
   const { isLeftHanded } = useHandedness();
-  const fabSide = isLeftHanded ? "left-4" : "right-4";
+  const fabSide    = isLeftHanded ? "left-4"  : "right-4";
+  const filterSide = isLeftHanded ? "right-4" : "left-4";
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
@@ -233,6 +234,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [searching, setSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PetPlace | null>(null);
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [radiusKm, setRadiusKm] = useState(20);
   const [popupData, setPopupData] = useState<{ place: UniversalPlace; position: { x: number; y: number }; petPlace?: PetPlace } | null>(null);
   const [originPoint, setOriginPoint] = useState<{ lat: number; lng: number } | null>(null);
@@ -1001,69 +1003,119 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         </div>
       )}
 
-      {/* Category chips — above the locate FAB, faded edges */}
-      <div
-        className="absolute bottom-20 left-0 right-0 z-20 pointer-events-none"
-        style={{
-          // Fade 2rem left, fade 6rem right (covers the 4rem FAB zone + buffer)
-          maskImage: isLeftHanded
-            ? "linear-gradient(to right, transparent 0, black 6rem, black calc(100% - 2rem), transparent 100%)"
-            : "linear-gradient(to right, transparent 0, black 2rem, black calc(100% - 6rem), transparent 100%)",
-          WebkitMaskImage: isLeftHanded
-            ? "linear-gradient(to right, transparent 0, black 6rem, black calc(100% - 2rem), transparent 100%)"
-            : "linear-gradient(to right, transparent 0, black 2rem, black calc(100% - 6rem), transparent 100%)",
-        }}
-      >
-        <div
-          className="flex gap-1.5 pointer-events-auto"
-          style={{
-            overflowX: "scroll",
-            WebkitOverflowScrolling: "touch",
-            touchAction: "pan-x",
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-            // Padding on FAB side = 5rem (80px) keeps content clear of the 64px FAB zone
-            paddingLeft:  isLeftHanded ? "5rem" : "1rem",
-            paddingRight: isLeftHanded ? "1rem" : "5rem",
-          } as React.CSSProperties}
-        >
-          {CATEGORY_FILTERS.map((cf) => {
-            const active = cf.key === null
-              ? activeCategories.length === 0
-              : activeCategories.includes(cf.key);
-            return (
+      {/* Filter FAB — opposite side from main FABs */}
+      {(() => {
+        const activeCf = activeCategories.length === 1
+          ? CATEGORY_FILTERS.find(cf => cf.key === activeCategories[0])
+          : null;
+        const hasFilter = activeCategories.length > 0;
+        return (
+          <button
+            onClick={() => setShowFilterSheet(true)}
+            className={`absolute bottom-8 ${filterSide} z-40 h-12 px-4 rounded-full flex items-center gap-2 active:scale-95 transition-all duration-150`}
+            style={hasFilter ? {
+              backgroundColor: "var(--primary)",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.20)",
+              touchAction: "manipulation",
+            } : {
+              background: "color-mix(in srgb, var(--card) 55%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              touchAction: "manipulation",
+            } as React.CSSProperties}
+            title="Filtrer par catégorie"
+          >
+            <SlidersHorizontal className={`w-4 h-4 ${hasFilter ? "text-primary-foreground" : "text-foreground"}`} />
+            <span className={`text-sm font-semibold ${hasFilter ? "text-primary-foreground" : "text-foreground"}`}>
+              {activeCategories.length === 0
+                ? "Filtrer"
+                : activeCategories.length === 1
+                  ? activeCf?.emoji
+                  : `${activeCategories.length} filtres`}
+            </span>
+          </button>
+        );
+      })()}
+
+      {/* Filter bottom sheet */}
+      {showFilterSheet && (
+        <>
+          <div
+            className="fixed inset-0 z-[490] bg-black/40"
+            onClick={() => setShowFilterSheet(false)}
+          />
+          <div className="fixed inset-x-0 bottom-0 z-[495] bg-card rounded-t-2xl shadow-2xl flex flex-col" style={{ maxHeight: "72vh" }}>
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-1 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-border" />
+            </div>
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+              <h3 className="font-bold text-foreground text-base">Filtrer par catégorie</h3>
+              {activeCategories.length > 0 && (
+                <button
+                  onClick={() => setActiveCategories([])}
+                  className="text-xs text-primary font-semibold"
+                >
+                  Effacer tout
+                </button>
+              )}
+            </div>
+            {/* Scrollable grid */}
+            <div className="overflow-y-auto flex-1 px-3 pt-3 pb-2">
+              {/* "Tous" — full width */}
               <button
-                key={cf.key ?? "__all__"}
-                onClick={() => {
-                  if (cf.key === null) { setActiveCategories([]); return; }
-                  // Special filters are exclusive
-                  if (cf.key === "__strays__" || cf.key === "__lost__") {
-                    setActiveCategories(prev => prev.includes(cf.key!) ? [] : [cf.key!]);
-                    return;
-                  }
-                  // Normal: toggle, removing any special filter
-                  setActiveCategories(prev => {
-                    const base = prev.filter(c => c !== "__strays__" && c !== "__lost__");
-                    return base.includes(cf.key!) ? base.filter(c => c !== cf.key) : [...base, cf.key!];
-                  });
-                }}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all active:scale-95 ${
-                  active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground"
+                onClick={() => { setActiveCategories([]); setShowFilterSheet(false); }}
+                className={`w-full mb-3 py-3 rounded-xl font-semibold text-sm transition-all active:scale-[0.98] ${
+                  activeCategories.length === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                 }`}
-                style={active ? {} : {
-                  background: "color-mix(in srgb, var(--card) 65%, transparent)",
-                  border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
-                  backdropFilter: "blur(20px)",
-                  WebkitBackdropFilter: "blur(20px)",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
-                }}
               >
-                {cf.emoji} {cf.label}
+                🐾 Tous les lieux
               </button>
-            );
-          })}
-        </div>
-      </div>
+              {/* 3-column grid */}
+              <div className="grid grid-cols-3 gap-2">
+                {CATEGORY_FILTERS.filter(cf => cf.key !== null).map((cf) => {
+                  const active = activeCategories.includes(cf.key!);
+                  return (
+                    <button
+                      key={cf.key}
+                      onClick={() => {
+                        if (cf.key === "__strays__" || cf.key === "__lost__") {
+                          setActiveCategories(prev => prev.includes(cf.key!) ? [] : [cf.key!]);
+                        } else {
+                          setActiveCategories(prev => {
+                            const base = prev.filter(c => c !== "__strays__" && c !== "__lost__");
+                            return base.includes(cf.key!) ? base.filter(c => c !== cf.key) : [...base, cf.key!];
+                          });
+                        }
+                      }}
+                      className={`py-3 px-1 rounded-xl flex flex-col items-center gap-1.5 transition-all active:scale-95 ${
+                        active ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                      }`}
+                    >
+                      <span className="text-2xl leading-none">{cf.emoji}</span>
+                      <span className="text-[10px] font-medium leading-tight text-center">{cf.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {/* Apply button */}
+            <div className="shrink-0 px-4 pt-3 pb-6 border-t border-border">
+              <button
+                onClick={() => setShowFilterSheet(false)}
+                className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.98] transition-all"
+              >
+                {activeCategories.length === 0
+                  ? "Fermer"
+                  : `Appliquer · ${activeCategories.length} filtre${activeCategories.length > 1 ? "s" : ""}`}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Add place FAB — between search and SOS */}
       <button
