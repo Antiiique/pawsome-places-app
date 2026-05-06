@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Supercluster from "supercluster";
-import { Camera, Loader2, Locate, Plus, SlidersHorizontal, X, Maximize2, Minimize2 } from "lucide-react";
+import { Camera, Loader2, Locate, Plus, SlidersHorizontal, X, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
 import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
@@ -1054,7 +1054,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           }`}
           style={{
             maxHeight: filterExpanded ? "92vh" : "60vh",
-            height: filterExpanded ? "92vh" : "auto",
+            height: filterExpanded ? "92vh" : "60vh",
             background: "color-mix(in srgb, var(--card) 55%, transparent)",
             border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
             borderBottom: "none",
@@ -1082,7 +1082,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
               title={filterExpanded ? "Réduire" : "Agrandir"}
               aria-label={filterExpanded ? "Réduire" : "Agrandir"}
             >
-              {filterExpanded ? <Minimize2 className="w-4 h-4 text-foreground" /> : <Maximize2 className="w-4 h-4 text-foreground" />}
+              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${filterExpanded ? "rotate-180" : ""}`} />
             </button>
             <button
               onClick={() => setShowFilterSheet(false)}
