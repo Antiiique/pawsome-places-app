@@ -1039,20 +1039,34 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         );
       })()}
 
-      {/* Filter bottom sheet */}
-      {showFilterSheet && (
-        <>
-          <div
-            className="fixed inset-0 z-[490] bg-black/40"
-            onClick={() => setShowFilterSheet(false)}
-          />
-          <div className="fixed inset-x-0 bottom-0 z-[495] bg-card rounded-t-2xl shadow-2xl flex flex-col" style={{ maxHeight: "72vh" }}>
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-1 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-border" />
-            </div>
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+      {/* Filter bottom sheet — smooth slide-up with same glassmorphism as side FABs */}
+      <>
+        <div
+          className={`fixed inset-0 z-[490] bg-black/40 transition-opacity duration-300 ease-out ${
+            showFilterSheet ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+          onClick={() => setShowFilterSheet(false)}
+        />
+        <div
+          className={`fixed inset-x-0 bottom-0 z-[495] rounded-t-2xl flex flex-col transition-transform duration-300 ease-out ${
+            showFilterSheet ? "translate-y-0" : "translate-y-full"
+          }`}
+          style={{
+            maxHeight: "72vh",
+            background: "color-mix(in srgb, var(--card) 55%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
+            borderBottom: "none",
+            boxShadow: "0 -4px 24px rgba(0,0,0,0.10)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
+          } as React.CSSProperties}
+        >
+          {/* Handle */}
+          <div className="flex justify-center pt-3 pb-1 shrink-0">
+            <div className="w-10 h-1 rounded-full bg-border" />
+          </div>
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
               <h3 className="font-bold text-foreground text-base">Filtrer par catégorie</h3>
               {activeCategories.length > 0 && (
                 <button
