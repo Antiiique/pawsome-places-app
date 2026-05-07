@@ -474,20 +474,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     scLoadedRef.current = true;
     renderClusters(results);
 
-    // Flagged places
-    const existingIds = results.map((p) => p.id);
-    if (existingIds.length > 0 && mapRef.current) {
-      const { data: flagged } = await supabase.from("pet_friendly_places").select("id, name, latitude, longitude, report_count").eq("is_flagged", true).not("id", "in", `(${existingIds.join(",")})`);
-      (flagged as any[] || []).forEach((fp) => {
-        const el = document.createElement("div");
-        el.style.cssText = "position:relative;cursor:pointer;";
-        el.innerHTML = `<span style="font-size:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))">⚠️</span><span style="position:absolute;top:-4px;right:-6px;background:#E53935;color:white;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid white">${fp.report_count || 0}</span>`;
-        el.addEventListener("click", (e) => { e.stopPropagation(); toast.warning(`⚠️ Ce lieu a été signalé ${fp.report_count || 0} fois par la communauté.`); });
-        const m = new mapboxgl.Marker({ element: el, anchor: "center" }).setLngLat([fp.longitude, fp.latitude]).addTo(mapRef.current!);
-        markersRef.current.set(`flagged-${fp.id}`, m);
-      });
-    }
-
     setSearching(false);
   }, [clearPlaceMarkers, renderClusters]);
 
