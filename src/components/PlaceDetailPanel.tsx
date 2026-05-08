@@ -1,4 +1,4 @@
-import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft, ThumbsUp, Flag, Trash2, Pencil, ChevronUp, ChevronDown, Save, CheckCircle, Camera } from "lucide-react";
+import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft, ThumbsUp, Flag, Trash2, Pencil, ChevronUp, ChevronDown, Save, CheckCircle, Camera, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -89,6 +89,27 @@ const categoryBgColors: Record<string, string> = {
 const KNOWN_CATEGORIES = [
   "veterinaire","animalerie","parc","refuge","toiletteur","pension","educateur",
   "restaurant","hotel","cafe","camping","bar","commerce","plage",
+];
+
+const CATEGORY_OPTIONS = [
+  { value: "veterinaire", label: "Vétérinaire 🏥" },
+  { value: "animalerie", label: "Animalerie 🐾" },
+  { value: "parc", label: "Parc & Nature 🌿" },
+  { value: "refuge", label: "Refuge 🏠" },
+  { value: "toiletteur", label: "Toiletteur ✂️" },
+  { value: "pension", label: "Pension 🏡" },
+  { value: "educateur", label: "Éducateur canin 🦮" },
+  { value: "restaurant", label: "Restaurant 🍽️" },
+  { value: "hotel", label: "Hôtel 🛏️" },
+  { value: "cafe", label: "Café ☕" },
+  { value: "camping", label: "Camping ⛺" },
+  { value: "bar", label: "Bar 🍺" },
+  { value: "commerce", label: "Commerce 🛍️" },
+  { value: "plage", label: "Plage 🏖️" },
+  { value: "outdoor", label: "Outdoor 🏕️" },
+  { value: "services", label: "Services ❤️" },
+  { value: "shop", label: "Pet Shop 🛍️" },
+  { value: "other", label: "Autre 📍" },
 ];
 
 const VELOCITY_THRESHOLD = 0.4; // px/ms
@@ -218,6 +239,9 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     outdoor_seating: false, water_bowl_provided: false, verified: false,
   });
   const [publisher, setPublisher] = useState<{display_name: string | null; avatar_url: string | null; id: string} | null>(null);
+  const [displayCategory, setDisplayCategory] = useState(place?.category ?? "");
+  const [categoryEditing, setCategoryEditing] = useState(false);
+  const [savingCategory, setSavingCategory] = useState(false);
 
   const userReview = reviews.find(r => r.user_id === user?.id);
   const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
@@ -226,6 +250,8 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     setActiveTab("google"); setReviews([]); setNewRating(0);
     setNewBody(""); setVisitedWithPet(false); setAdminEditOpen(false);
     setPhotoFiles([]); setPhotoPreviews([]);
+    setDisplayCategory(place?.category ?? "");
+    setCategoryEditing(false);
   }, [place?.id]);
 
   useEffect(() => {
@@ -267,6 +293,20 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     if (error) { toast.error("Erreur : " + error.message); return; }
     toast.success(`✅ "${editForm.name}" mis à jour`);
     setAdminEditOpen(false);
+  }
+
+  async function quickSaveCategory(newCat: string) {
+    if (!place || newCat === displayCategory) { setCategoryEditing(false); return; }
+    setSavingCategory(true);
+    const { error } = await supabase.from("pet_friendly_places")
+      .update({ category: newCat, last_updated: new Date().toISOString() })
+      .eq("id", place.id);
+    setSavingCategory(false);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    setDisplayCategory(newCat);
+    setCategoryEditing(false);
+    const label = CATEGORY_OPTIONS.find(c => c.value === newCat)?.label ?? newCat;
+    toast.success(`Catégorie modifiée → ${label}`);
   }
 
   async function loadReviews() {
@@ -404,9 +444,42 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
         )}
 
         <div className="p-4 space-y-4">
-          <Badge className={`${categoryBgColors[place.category] || "bg-gray-500"} text-white`}>
-            {categoryLabels[place.category] || place.category}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {isAdmin && categoryEditing ? (
+              <select
+                autoFocus
+                disabled={savingCategory}
+                defaultValue={displayCategory}
+                onChange={e => quickSaveCategory(e.target.value)}
+                onBlur={() => setCategoryEditing(false)}
+                className="h-7 rounded-md border border-violet-400 bg-violet-50 dark:bg-violet-950/40 px-2 text-sm font-semibold text-violet-700 dark:text-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400"
+              >
+                {CATEGORY_OPTIONS.map(c => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+                {!CATEGORY_OPTIONS.find(c => c.value === displayCategory) && displayCategory && (
+                  <option value={displayCategory}>{displayCategory}</option>
+                )}
+              </select>
+            ) : (
+              <Badge className={`${categoryBgColors[displayCategory] || "bg-gray-500"} text-white`}>
+                {categoryLabels[displayCategory] || displayCategory}
+              </Badge>
+            )}
+            {isAdmin && !categoryEditing && (
+              <button
+                onClick={() => setCategoryEditing(true)}
+                title="Changer la catégorie"
+                className="p-1 rounded-full hover:bg-violet-100 dark:hover:bg-violet-900/40 text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 transition-colors"
+              >
+                {savingCategory ? (
+                  <div className="w-3.5 h-3.5 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Tag className="w-3.5 h-3.5" />
+                )}
+              </button>
+            )}
+          </div>
 
           <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
             <p className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">✅ Lieu vérifié pet-friendly</p>
