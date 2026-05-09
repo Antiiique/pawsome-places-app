@@ -205,6 +205,9 @@ interface MapSectionProps {
 
 const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavorite, onToggleFavorite, onOpenItinerary, frozen }: MapSectionProps) => {
   const { user } = useAuthContext();
+  const ADMIN_EMAILS = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"];
+  const isMapAdmin = ADMIN_EMAILS.includes(user?.email ?? "");
+  const [adminCatSaving, setAdminCatSaving] = useState(false);
   const { isLeftHanded } = useHandedness();
   const fabSide    = isLeftHanded ? "left-4"  : "right-4";
   const filterSide = isLeftHanded ? "right-4" : "left-4";
@@ -1296,6 +1299,44 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           isInDatabase={!!popupData.petPlace} dbId={popupData.petPlace?.id}
           onReport={popupData.petPlace ? () => setReportModal({ open: true, placeId: popupData.petPlace!.id, placeName: popupData.place.name }) : undefined}
         />
+      )}
+
+      {selectedPlace && isMapAdmin && (
+        <div className="fixed left-4 right-4 z-[60] flex items-center gap-2 bg-violet-600 text-white rounded-2xl px-4 py-2.5 shadow-xl"
+          style={{ bottom: "calc(45dvh + 12px)" }}>
+          <span className="text-sm font-bold shrink-0">🏷</span>
+          <select
+            value={selectedPlace.category}
+            disabled={adminCatSaving}
+            onChange={async e => {
+              const newCat = e.target.value;
+              setAdminCatSaving(true);
+              const { error } = await supabase.from("pet_friendly_places").update({ category: newCat }).eq("id", selectedPlace.id);
+              setAdminCatSaving(false);
+              if (error) { toast.error("Erreur : " + error.message); return; }
+              toast.success("Catégorie modifiée ✓");
+            }}
+            className="flex-1 bg-violet-700 text-white text-sm font-semibold rounded-xl px-3 py-1 border border-violet-400 focus:outline-none cursor-pointer"
+          >
+            {[
+              { value: "veterinaire", label: "Vétérinaire 🏥" },
+              { value: "animalerie", label: "Animalerie 🐾" },
+              { value: "parc", label: "Parc & Nature 🌿" },
+              { value: "refuge", label: "Refuge 🏠" },
+              { value: "toiletteur", label: "Toiletteur ✂️" },
+              { value: "pension", label: "Pension 🏡" },
+              { value: "educateur", label: "Éducateur canin 🦮" },
+              { value: "restaurant", label: "Restaurant 🍽️" },
+              { value: "hotel", label: "Hôtel 🛏️" },
+              { value: "cafe", label: "Café ☕" },
+              { value: "camping", label: "Camping ⛺" },
+              { value: "bar", label: "Bar 🍺" },
+              { value: "commerce", label: "Commerce 🛍️" },
+              { value: "plage", label: "Plage 🏖️" },
+            ].map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+          {adminCatSaving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0" />}
+        </div>
       )}
 
       {selectedPlace && (
