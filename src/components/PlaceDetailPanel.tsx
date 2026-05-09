@@ -126,14 +126,8 @@ interface PlaceDetailPanelProps {
 
 const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport, isClosing }: PlaceDetailPanelProps) => {
   const { user, profile } = useAuthContext();
-  const [isAdmin, setIsAdmin] = useState(profile?.is_admin === true);
-
-  useEffect(() => {
-    if (profile?.is_admin === true) { setIsAdmin(true); return; }
-    if (!user) { setIsAdmin(false); return; }
-    supabase.from("profiles").select("is_admin").eq("id", user.id).single()
-      .then(({ data }) => setIsAdmin(data?.is_admin === true));
-  }, [user?.id, profile?.is_admin]);
+  const ADMIN_EMAILS = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"];
+  const isAdmin = profile?.is_admin === true || ADMIN_EMAILS.includes(user?.email ?? "");
 
   // ── Bottom sheet snap state ──
   const [snap, setSnap] = useState<"half" | "full">("half");
