@@ -91,26 +91,6 @@ const KNOWN_CATEGORIES = [
   "restaurant","hotel","cafe","camping","bar","commerce","plage",
 ];
 
-const CATEGORY_OPTIONS = [
-  { value: "veterinaire", label: "Vétérinaire 🏥" },
-  { value: "animalerie", label: "Animalerie 🐾" },
-  { value: "parc", label: "Parc & Nature 🌿" },
-  { value: "refuge", label: "Refuge 🏠" },
-  { value: "toiletteur", label: "Toiletteur ✂️" },
-  { value: "pension", label: "Pension 🏡" },
-  { value: "educateur", label: "Éducateur canin 🦮" },
-  { value: "restaurant", label: "Restaurant 🍽️" },
-  { value: "hotel", label: "Hôtel 🛏️" },
-  { value: "cafe", label: "Café ☕" },
-  { value: "camping", label: "Camping ⛺" },
-  { value: "bar", label: "Bar 🍺" },
-  { value: "commerce", label: "Commerce 🛍️" },
-  { value: "plage", label: "Plage 🏖️" },
-  { value: "outdoor", label: "Outdoor 🏕️" },
-  { value: "services", label: "Services ❤️" },
-  { value: "shop", label: "Pet Shop 🛍️" },
-  { value: "other", label: "Autre 📍" },
-];
 
 const VELOCITY_THRESHOLD = 0.4; // px/ms
 
@@ -126,8 +106,7 @@ interface PlaceDetailPanelProps {
 
 const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport, isClosing }: PlaceDetailPanelProps) => {
   const { user, profile } = useAuthContext();
-  const ADMIN_EMAILS = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"];
-  const isAdmin = profile?.is_admin === true || ADMIN_EMAILS.includes(user?.email ?? "");
+  const isAdmin = profile?.is_admin === true;
 
   // ── Bottom sheet snap state ──
   const [snap, setSnap] = useState<"half" | "full">("half");
@@ -240,9 +219,6 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     outdoor_seating: false, water_bowl_provided: false, verified: false,
   });
   const [publisher, setPublisher] = useState<{display_name: string | null; avatar_url: string | null; id: string} | null>(null);
-  const [displayCategory, setDisplayCategory] = useState(place?.category ?? "");
-  const [categoryEditing, setCategoryEditing] = useState(false);
-  const [savingCategory, setSavingCategory] = useState(false);
 
   const userReview = reviews.find(r => r.user_id === user?.id);
   const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
@@ -251,8 +227,6 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     setActiveTab("google"); setReviews([]); setNewRating(0);
     setNewBody(""); setVisitedWithPet(false); setAdminEditOpen(false);
     setPhotoFiles([]); setPhotoPreviews([]);
-    setDisplayCategory(place?.category ?? "");
-    setCategoryEditing(false);
   }, [place?.id]);
 
   useEffect(() => {
@@ -294,20 +268,6 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     if (error) { toast.error("Erreur : " + error.message); return; }
     toast.success(`✅ "${editForm.name}" mis à jour`);
     setAdminEditOpen(false);
-  }
-
-  async function quickSaveCategory(newCat: string) {
-    if (!place || newCat === displayCategory) { setCategoryEditing(false); return; }
-    setSavingCategory(true);
-    const { error } = await supabase.from("pet_friendly_places")
-      .update({ category: newCat })
-      .eq("id", place.id);
-    setSavingCategory(false);
-    if (error) { toast.error("Erreur : " + error.message); return; }
-    setDisplayCategory(newCat);
-    setCategoryEditing(false);
-    const label = CATEGORY_OPTIONS.find(c => c.value === newCat)?.label ?? newCat;
-    toast.success(`Catégorie modifiée → ${label}`);
   }
 
   async function loadReviews() {
@@ -421,24 +381,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
               <ChevronLeft className="w-5 h-5 text-muted-foreground" />
             </button>
           )}
-          <div className="flex flex-col min-w-0 flex-1">
-            <h2 className="font-bold text-lg text-foreground truncate">{place.name}</h2>
-            {isAdmin && (
-              <select
-                value={displayCategory}
-                onChange={e => quickSaveCategory(e.target.value)}
-                disabled={savingCategory}
-                className="text-xs text-violet-600 dark:text-violet-400 bg-transparent border-none cursor-pointer focus:outline-none w-fit font-medium -ml-0.5"
-              >
-                {CATEGORY_OPTIONS.map(c => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
-                ))}
-                {!CATEGORY_OPTIONS.find(c => c.value === displayCategory) && displayCategory && (
-                  <option value={displayCategory}>{displayCategory}</option>
-                )}
-              </select>
-            )}
-          </div>
+          <h2 className="font-bold text-lg text-foreground truncate">{place.name}</h2>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {onToggleFavorite && (
@@ -462,8 +405,8 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
         )}
 
         <div className="p-4 space-y-4">
-          <Badge className={`${categoryBgColors[displayCategory] || "bg-gray-500"} text-white`}>
-            {categoryLabels[displayCategory] || displayCategory}
+          <Badge className={`${categoryBgColors[place.category] || "bg-gray-500"} text-white`}>
+            {categoryLabels[place.category] || place.category}
           </Badge>
 
           <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
