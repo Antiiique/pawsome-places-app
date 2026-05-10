@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const ADMIN_EMAILS = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"];
 
 const CATS = [
   { value: "veterinaire", label: "Vétérinaire 🏥" },
@@ -29,8 +31,17 @@ interface AdminCategoryBarProps {
 }
 
 export default function AdminCategoryBar({ placeId, category }: AdminCategoryBarProps) {
+  const [isAdmin, setIsAdmin] = useState(false);
   const [saving, setSaving] = useState(false);
   const [current, setCurrent] = useState(category);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setIsAdmin(ADMIN_EMAILS.includes(data.user?.email ?? ""));
+    });
+  }, []);
+
+  if (!isAdmin) return null;
 
   const save = async (val: string) => {
     if (val === current) return;
