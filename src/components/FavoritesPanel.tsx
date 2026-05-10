@@ -179,8 +179,10 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
     return true;
   });
 
-  const openPlace = (id: string) =>
-    window.dispatchEvent(new CustomEvent("open-community-reviews", { detail: { placeId: id } }));
+  const openPlace = (id: string) => {
+    onClose();
+    window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: id } }));
+  };
 
   return (
     <div
@@ -245,17 +247,23 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
               </div>
             )}
             {filteredFavs.map((fav) => (
-              <div key={fav.id} className="bg-card border border-border rounded-xl p-3 shadow-sm space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-foreground text-sm truncate">🐾 {fav.name}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{fav.category} • {fav.city || "—"}</p>
+              <div key={fav.id} className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+                <div
+                  className="p-3 pb-2 cursor-pointer hover:bg-muted/50 active:bg-muted transition-colors"
+                  onClick={() => openPlace(fav.id)}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-foreground text-sm truncate">🐾 {fav.name}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{fav.category} • {fav.city || "—"}</p>
+                    </div>
+                    <Heart className="w-4 h-4 text-destructive fill-destructive shrink-0 mt-0.5" />
                   </div>
-                  <Heart className="w-4 h-4 text-destructive fill-destructive shrink-0 mt-0.5" />
+                  {fav.address && <p className="text-xs text-muted-foreground mt-1">📍 {fav.address}</p>}
+                  {fav.phone && <p className="text-xs text-muted-foreground">📞 {fav.phone}</p>}
+                  <p className="text-[10px] text-primary font-semibold mt-1">Voir la fiche →</p>
                 </div>
-                {fav.address && <p className="text-xs text-muted-foreground">📍 {fav.address}</p>}
-                {fav.phone && <p className="text-xs text-muted-foreground">📞 {fav.phone}</p>}
-                <div className="grid grid-cols-2 gap-1.5 pt-1">
+                <div className="grid grid-cols-2 gap-1.5 px-3 pb-3 pt-1">
                   <Button variant="outline" size="sm" className="text-xs" onClick={() => { onViewOnMap(fav.lat, fav.lng); onClose(); }}>
                     📍 Voir sur carte
                   </Button>
@@ -298,7 +306,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
               myPlaces.map((place) => (
                 <div
                   key={place.id}
-                  onClick={() => { openPlace(place.id); onClose(); }}
+                  onClick={() => openPlace(place.id)}
                   className="bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:bg-muted active:scale-[0.985] transition-all shadow-sm hover:shadow-md"
                 >
                   <div className="flex gap-3 p-3">
