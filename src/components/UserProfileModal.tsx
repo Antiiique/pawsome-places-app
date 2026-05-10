@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useNotificationPreferences, type NotifPrefs } from "@/hooks/useNotificationPreferences";
+
+const ADMIN_EMAILS = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"];
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
@@ -286,6 +289,40 @@ function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
   );
 }
 
+function NotifToggleRow({
+  icon, label, desc, enabled, onToggle, variant,
+}: {
+  icon: string; label: string; desc: string; enabled: boolean;
+  onToggle: () => void; variant: "user" | "admin";
+}) {
+  return (
+    <div className={`flex items-center justify-between py-3 px-4 rounded-xl border ${
+      variant === "admin"
+        ? "bg-violet-50 dark:bg-violet-950/20 border-violet-200 dark:border-violet-800"
+        : "bg-secondary border-border"
+    }`}>
+      <div className="flex items-center gap-3 flex-1 min-w-0 pr-3">
+        <span className="text-lg shrink-0">{icon}</span>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground leading-tight">{label}</p>
+          <p className="text-xs text-muted-foreground leading-tight">{desc}</p>
+        </div>
+      </div>
+      <button
+        onClick={onToggle}
+        className={`relative w-10 h-6 rounded-full transition-colors duration-200 shrink-0 ${
+          enabled
+            ? variant === "admin" ? "bg-violet-600" : "bg-primary"
+            : "bg-muted-foreground/30"
+        }`}
+        aria-label={enabled ? "Désactiver" : "Activer"}
+      >
+        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ${enabled ? "translate-x-5" : "translate-x-1"}`} />
+      </button>
+    </div>
+  );
+}
+
 const glassStyle: React.CSSProperties = {
   background: "color-mix(in srgb, var(--card) 55%, transparent)",
   border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
@@ -296,8 +333,10 @@ const glassStyle: React.CSSProperties = {
 };
 
 export default function UserProfileModal({ open, onClose, dragProgress }: UserProfileModalProps) {
-  const { user } = useAuthContext();
+  const { user, profile: authProfile } = useAuthContext();
   const { isLeftHanded, setIsLeftHanded } = useHandedness();
+  const isAdmin = authProfile?.is_admin === true || ADMIN_EMAILS.includes(user?.email ?? "");
+  const { prefs, loading: prefsLoading, saving: prefsSaving, updatePref } = useNotificationPreferences();
 
   const [activeMainTab, setActiveMainTab] = useState("profile");
   const [loading, setLoading] = useState(false);
@@ -1302,6 +1341,63 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
               <PlacesSubTabs submissions={submissions} />
             )}
           </TabsContent>
+
+          {/* ── NOTIFICATIONS ── */}
+          <TabsContent value="notifications" className="p-4 space-y-5">
+            {prefsLoading ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Chargement…</p>
+            ) : (
+              <>
+                {/* Section utilisateur */}
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Mes notifications</p>
+                  {([
+                    { key: "notif_messages",               icon: "💬", label: "Messages",                     desc: "Nouveaux messages reçus" },
+                    { key: "notif_submission_approved",    icon: "✅", label: "Lieu approuvé",                 desc: "Un de mes lieux est validé" },
+                    { key: "notif_submission_rejected",    icon: "❌", label: "Lieu refusé",                   desc: "Un de mes lieux est rejeté" },
+                    { key: "notif_new_review_on_my_place", icon: "⭐", label: "Avis sur mes lieux",            desc: "Quelqu'un commente un lieu que j'ai soumis" },
+                    { key: "notif_lost_pet_zone",          icon: "🆘", label: "Animal perdu près de moi",     desc: "Signalement dans ma zone d'alerte" },
+                    { key: "notif_new_stray_zone",         icon: "🚨", label: "Animal errant près de moi",    desc: "Signalement dans ma zone d'alerte" },
+                  ] as const).map(({ key, icon, label, desc }) => (
+                    <NotifToggleRow
+                      key={key}
+                      icon={icon} label={label} desc={desc}
+                      enabled={prefs[key]}
+                      onToggle={() => updatePref(key, !prefs[key])}
+                      variant="user"
+                    />
+                  ))}
+                </div>
+
+                {/* Section admin */}
+                {isAdmin && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wide">⚙️ Administration</p>
+                    {([
+                      { key: "notif_admin_new_review",        icon: "💬", label: "Nouvel avis posté",        desc: "Un utilisateur publie un commentaire" },
+                      { key: "notif_admin_new_place",         icon: "📍", label: "Nouveau lieu soumis",      desc: "Un utilisateur soumet un lieu" },
+                      { key: "notif_admin_new_stray",         icon: "🚨", label: "Signalement errant",       desc: "Un animal errant est signalé" },
+                      { key: "notif_admin_lost_pet",          icon: "🆘", label: "Animal perdu",             desc: "Un animal perdu est signalé" },
+                      { key: "notif_admin_new_user",          icon: "👤", label: "Nouvelle inscription",     desc: "Un nouvel utilisateur crée un compte" },
+                      { key: "notif_admin_profile_complete",  icon: "✨", label: "Profil complété",          desc: "Un utilisateur remplit son profil" },
+                    ] as const).map(({ key, icon, label, desc }) => (
+                      <NotifToggleRow
+                        key={key}
+                        icon={icon} label={label} desc={desc}
+                        enabled={prefs[key]}
+                        onToggle={() => updatePref(key, !prefs[key])}
+                        variant="admin"
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {prefsSaving && (
+                  <p className="text-center text-[11px] text-muted-foreground animate-pulse">💾 Sauvegarde…</p>
+                )}
+              </>
+            )}
+          </TabsContent>
         </div>
 
         {/* ── Bouton Ajouter un animal — visible uniquement en vue liste de l'onglet Mes Animaux ── */}
@@ -1314,11 +1410,12 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
         )}
 
         {/* ── Onglets fixes en bas ── */}
-        <div className="shrink-0 border-t border-border px-4 py-3">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile" className="text-xs">Mon profil</TabsTrigger>
-            <TabsTrigger value="pets" className="text-xs">Mes Animaux{pets.length > 0 ? ` (${pets.length})` : ""}</TabsTrigger>
-            <TabsTrigger value="places" className="text-xs">Mes lieux{submissions.filter(s => s.status === "approved" && !!s.linked_place?.id).length > 0 ? ` (${submissions.filter(s => s.status === "approved" && !!s.linked_place?.id).length})` : ""}</TabsTrigger>
+        <div className="shrink-0 border-t border-border px-2 py-3">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="profile" className="text-[10px] px-1">Profil</TabsTrigger>
+            <TabsTrigger value="pets" className="text-[10px] px-1">Animaux{pets.length > 0 ? ` (${pets.length})` : ""}</TabsTrigger>
+            <TabsTrigger value="places" className="text-[10px] px-1">Lieux{submissions.filter(s => s.status === "approved" && !!s.linked_place?.id).length > 0 ? ` (${submissions.filter(s => s.status === "approved" && !!s.linked_place?.id).length})` : ""}</TabsTrigger>
+            <TabsTrigger value="notifications" className="text-[10px] px-1">🔔 Notifs</TabsTrigger>
           </TabsList>
         </div>
       </Tabs>
