@@ -73,6 +73,35 @@ function getSafePhone(phone: string | null | undefined): string | null {
   return /^[0-9\s+\-().]+$/.test(phone.trim()) ? phone.trim() : null;
 }
 
+const ADMIN_EMAILS = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"];
+
+const isAdminEmail = (email: string | null | undefined) =>
+  ADMIN_EMAILS.includes(email?.trim().toLowerCase() ?? "");
+
+const CATEGORY_OPTIONS = [
+  { value: "veterinaire", label: "Vétérinaire 🏥" },
+  { value: "animalerie", label: "Animalerie 🐾" },
+  { value: "parc", label: "Parc & Nature 🌿" },
+  { value: "refuge", label: "Refuge 🏠" },
+  { value: "toiletteur", label: "Toiletteur ✂️" },
+  { value: "pension", label: "Pension 🏡" },
+  { value: "educateur", label: "Éducateur canin 🦮" },
+  { value: "masseur", label: "Masseur / Ostéo 💆" },
+  { value: "pet_sitter", label: "Pet Sitter 🏡" },
+  { value: "dog_walker", label: "Dog Walker 🦮" },
+  { value: "restaurant", label: "Restaurant 🍽️" },
+  { value: "hotel", label: "Hôtel 🛏️" },
+  { value: "cafe", label: "Café ☕" },
+  { value: "camping", label: "Camping ⛺" },
+  { value: "bar", label: "Bar 🍺" },
+  { value: "commerce", label: "Commerce 🛍️" },
+  { value: "plage", label: "Plage 🏖️" },
+  { value: "outdoor", label: "Outdoor 🏕️" },
+  { value: "services", label: "Services ❤️" },
+  { value: "shop", label: "Pet Shop 🛍️" },
+  { value: "other", label: "Autre 📍" },
+];
+
 function getPlaceEmoji(place: UniversalPlace): string {
   if (place.isPetFriendly) return "🐾";
   const types = place.types || [];
