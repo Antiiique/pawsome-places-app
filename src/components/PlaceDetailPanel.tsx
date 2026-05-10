@@ -545,7 +545,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
             </select>
             {savingCategory && <div className="w-3.5 h-3.5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0" />}
           </div>
-          {/* Ligne 2 : Vérifié / Signalé / Supprimer */}
+          {/* Ligne 2 : Vérifié / Signalé / Modifier / Supprimer */}
           <div className="flex items-center gap-1.5 px-4 pb-2">
             <button
               onClick={toggleVerified}
@@ -573,6 +573,16 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
             </button>
             {savingMeta && <div className="w-3 h-3 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />}
             <button
+              onClick={() => { const next = !adminEditOpen; setAdminEditOpen(next); if (next) setSnapState("full"); }}
+              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg border font-medium transition-colors ${
+                adminEditOpen
+                  ? "bg-violet-600 border-violet-600 text-white"
+                  : "bg-white border-violet-200 text-violet-600 dark:bg-transparent dark:border-violet-700 dark:text-violet-400 hover:bg-violet-50"
+              }`}
+            >
+              <Pencil className="w-3 h-3" />{adminEditOpen ? "Fermer" : "Modifier"}
+            </button>
+            <button
               onClick={handleAdminDelete}
               className="ml-auto flex items-center gap-1 text-xs px-2 py-1 rounded-lg border border-red-200 bg-white text-red-500 hover:bg-red-50 font-medium transition-colors dark:bg-transparent dark:border-red-800 dark:text-red-400"
             >
@@ -584,6 +594,77 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
 
       {/* Scrollable content — scroll uniquement en mode full comme les autres panels */}
       <div className="flex-1" style={{ overflowY: snap === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
+        {adminEditOpen ? (
+          <div className="p-4 space-y-4">
+            {publisher ? (
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("open-user-profile", { detail: { userId: publisher.id } }))}
+                className="flex items-center gap-3 w-full text-left p-3 rounded-xl bg-violet-100 dark:bg-violet-900/30 hover:bg-violet-200 dark:hover:bg-violet-800/40 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-full bg-muted overflow-hidden shrink-0">
+                  {publisher.avatar_url
+                    ? <img src={publisher.avatar_url} className="w-full h-full object-cover" />
+                    : <span className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">{publisher.display_name?.[0]?.toUpperCase() ?? "?"}</span>}
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase">Publié par</p>
+                  <p className="text-sm font-semibold text-foreground">{publisher.display_name ?? "Utilisateur"}</p>
+                </div>
+              </button>
+            ) : (
+              <p className="text-xs text-muted-foreground italic">Publiant inconnu (import OSM ou non tracé)</p>
+            )}
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground block">Nom</label>
+              <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="h-8 text-sm" />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-0.5 block">Catégorie</label>
+                  <select value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))} className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm">
+                    {CATS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                    {!CATS.find(c => c.value === editForm.category) && editForm.category && <option value={editForm.category}>{editForm.category}</option>}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-0.5 block">Sous-catégorie</label>
+                  <Input value={editForm.subcategory} onChange={e => setEditForm(f => ({ ...f, subcategory: e.target.value }))} className="h-8 text-sm" placeholder="Optionnel" />
+                </div>
+              </div>
+              <textarea value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} rows={3} className="w-full text-sm rounded-md border border-input bg-background px-3 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Description…" />
+              <Input value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} className="h-8 text-sm" placeholder="Adresse" />
+              <div className="grid grid-cols-2 gap-2">
+                <Input value={editForm.city} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} className="h-8 text-sm" placeholder="Ville" />
+                <Input value={editForm.country} onChange={e => setEditForm(f => ({ ...f, country: e.target.value }))} className="h-8 text-sm" placeholder="Pays" />
+              </div>
+              <Input value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} className="h-8 text-sm" placeholder="Téléphone" />
+              <Input value={editForm.website} onChange={e => setEditForm(f => ({ ...f, website: e.target.value }))} className="h-8 text-sm" placeholder="Site web" />
+              <Input value={editForm.opening_hours} onChange={e => setEditForm(f => ({ ...f, opening_hours: e.target.value }))} className="h-8 text-sm" placeholder="Horaires" />
+              <Input value={editForm.photo_url} onChange={e => setEditForm(f => ({ ...f, photo_url: e.target.value }))} className="h-8 text-sm" placeholder="URL photo" />
+              <div className="grid grid-cols-2 gap-y-2 gap-x-4 pt-1">
+                {([
+                  { key: "accepts_dogs", label: "🐕 Chiens" },
+                  { key: "accepts_cats", label: "🐈 Chats" },
+                  { key: "outdoor_seating", label: "🌿 Terrasse" },
+                  { key: "water_bowl_provided", label: "🥣 Gamelle" },
+                  { key: "dogs_on_leash_only", label: "🦮 Laisse" },
+                ] as const).map(({ key, label }) => (
+                  <label key={key} className="flex items-center gap-2 cursor-pointer text-xs">
+                    <input type="checkbox" checked={editForm[key]} onChange={e => setEditForm(f => ({ ...f, [key]: e.target.checked }))} className="rounded accent-primary w-4 h-4" />
+                    {label}
+                  </label>
+                ))}
+                <label className="flex items-center gap-2 cursor-pointer text-xs col-span-2">
+                  <input type="checkbox" checked={editForm.verified} onChange={e => setEditForm(f => ({ ...f, verified: e.target.checked }))} className="rounded accent-green-500 w-4 h-4" />
+                  <CheckCircle className="w-3.5 h-3.5 text-green-500" /> ✅ Vérifié
+                </label>
+              </div>
+            </div>
+            <Button onClick={saveAdminEdit} disabled={editSaving || !editForm.name.trim()} className="w-full gap-2 bg-violet-600 hover:bg-violet-700 text-white">
+              <Save className="w-4 h-4" />{editSaving ? "Enregistrement…" : "Enregistrer"}
+            </Button>
+          </div>
+        ) : (
+        <>
         {place.photo_url && (
           <img src={place.photo_url} alt={place.name} className="w-full h-40 object-cover" />
         )}
@@ -755,91 +836,6 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
           {getSafeUrl(place.website) && <div className="flex items-center gap-2"><Globe className="w-4 h-4 text-muted-foreground shrink-0" /><a href={getSafeUrl(place.website)!} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate">{place.website}</a></div>}
           {place.description && <div><p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Description</p><p className="text-sm leading-relaxed">{place.description}</p></div>}
 
-          {isAdmin && (
-            <div className="rounded-xl border border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-950/30 overflow-hidden">
-              <button onClick={() => setAdminEditOpen(o => !o)}
-                className="w-full flex items-center justify-between px-4 py-3 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors">
-                <span className="flex items-center gap-2 text-sm font-semibold"><Pencil className="w-4 h-4" /> Modifier ce lieu (Admin)</span>
-                {adminEditOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-              {adminEditOpen && (
-                <div className="px-4 pb-4 space-y-4 border-t border-violet-200 dark:border-violet-700 pt-4">
-                  {publisher ? (
-                    <button
-                      onClick={() => window.dispatchEvent(new CustomEvent("open-user-profile", { detail: { userId: publisher.id } }))}
-                      className="flex items-center gap-3 w-full text-left p-3 rounded-xl bg-violet-100 dark:bg-violet-900/30 hover:bg-violet-200 dark:hover:bg-violet-800/40 transition-colors"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-muted overflow-hidden shrink-0">
-                        {publisher.avatar_url ? <img src={publisher.avatar_url} className="w-full h-full object-cover" /> : <span className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">{publisher.display_name?.[0]?.toUpperCase() ?? "?"}</span>}
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-muted-foreground uppercase">Publié par</p>
-                        <p className="text-sm font-semibold text-foreground">{publisher.display_name ?? "Utilisateur"}</p>
-                      </div>
-                    </button>
-                  ) : (
-                    <p className="text-xs text-muted-foreground italic">Publiant inconnu (import OSM ou non tracé)</p>
-                  )}
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground block">Nom</label>
-                    <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="h-8 text-sm" />
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-xs text-muted-foreground mb-0.5 block">Catégorie</label>
-                        <select value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))} className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm">
-                          {KNOWN_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                          {!KNOWN_CATEGORIES.includes(editForm.category) && editForm.category && <option value={editForm.category}>{editForm.category}</option>}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground mb-0.5 block">Sous-catégorie</label>
-                        <Input value={editForm.subcategory} onChange={e => setEditForm(f => ({ ...f, subcategory: e.target.value }))} className="h-8 text-sm" placeholder="Optionnel" />
-                      </div>
-                    </div>
-                    <textarea value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} rows={3} className="w-full text-sm rounded-md border border-input bg-background px-3 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Description…" />
-                    <Input value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} className="h-8 text-sm" placeholder="Adresse" />
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input value={editForm.city} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} className="h-8 text-sm" placeholder="Ville" />
-                      <Input value={editForm.country} onChange={e => setEditForm(f => ({ ...f, country: e.target.value }))} className="h-8 text-sm" placeholder="Pays" />
-                    </div>
-                    <Input value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} className="h-8 text-sm" placeholder="Téléphone" />
-                    <Input value={editForm.website} onChange={e => setEditForm(f => ({ ...f, website: e.target.value }))} className="h-8 text-sm" placeholder="Site web" />
-                    <Input value={editForm.opening_hours} onChange={e => setEditForm(f => ({ ...f, opening_hours: e.target.value }))} className="h-8 text-sm" placeholder="Horaires" />
-                    <Input value={editForm.photo_url} onChange={e => setEditForm(f => ({ ...f, photo_url: e.target.value }))} className="h-8 text-sm" placeholder="URL photo" />
-                    <div className="grid grid-cols-2 gap-y-2 gap-x-4 pt-1">
-                      {([ { key: "accepts_dogs", label: "🐕 Chiens" }, { key: "accepts_cats", label: "🐈 Chats" }, { key: "outdoor_seating", label: "🌿 Terrasse" }, { key: "water_bowl_provided", label: "🥣 Gamelle" }, { key: "dogs_on_leash_only", label: "🦮 Laisse" } ] as const).map(({ key, label }) => (
-                        <label key={key} className="flex items-center gap-2 cursor-pointer text-xs">
-                          <input type="checkbox" checked={editForm[key]} onChange={e => setEditForm(f => ({ ...f, [key]: e.target.checked }))} className="rounded accent-primary w-4 h-4" />
-                          {label}
-                        </label>
-                      ))}
-                      <label className="flex items-center gap-2 cursor-pointer text-xs col-span-2">
-                        <input type="checkbox" checked={editForm.verified} onChange={e => setEditForm(f => ({ ...f, verified: e.target.checked }))} className="rounded accent-green-500 w-4 h-4" />
-                        <CheckCircle className="w-3.5 h-3.5 text-green-500" /> ✅ Vérifié
-                      </label>
-                    </div>
-                  </div>
-                  <Button onClick={saveAdminEdit} disabled={editSaving || !editForm.name.trim()} className="w-full gap-2 bg-violet-600 hover:bg-violet-700 text-white">
-                    <Save className="w-4 h-4" />{editSaving ? "Enregistrement…" : "Enregistrer"}
-                  </Button>
-                  <Button
-                    onClick={async () => {
-                      if (!place || !window.confirm(`Supprimer "${place.name}" définitivement ?`)) return;
-                      const { error } = await supabase.from("pet_friendly_places").delete().eq("id", place.id);
-                      if (error) { toast.error("Erreur : " + error.message); return; }
-                      toast.success("Lieu supprimé");
-                      onClose();
-                    }}
-                    variant="outline"
-                    className="w-full gap-2 text-destructive border-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="w-4 h-4" /> Supprimer ce lieu
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-
           {onReport && (
             <button onClick={onReport} className="w-full text-xs h-9 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800 transition-colors">
               ⚠️ Signaler un problème
@@ -854,6 +850,8 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
             <p className="text-xs text-center text-muted-foreground">À {place.distance_km.toFixed(1)} km de votre position</p>
           )}
         </div>
+        </>
+        )}
       </div>
     </div>
   );
