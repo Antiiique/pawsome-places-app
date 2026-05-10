@@ -206,6 +206,7 @@ interface MapSectionProps {
 
 const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavorite, onToggleFavorite, onOpenItinerary, frozen }: MapSectionProps) => {
   const { user } = useAuthContext();
+  const isMapAdmin = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"].includes(user?.email ?? "");
   const { isLeftHanded } = useHandedness();
   const fabSide    = isLeftHanded ? "left-4"  : "right-4";
   const filterSide = isLeftHanded ? "right-4" : "left-4";
