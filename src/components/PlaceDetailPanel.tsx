@@ -1,4 +1,4 @@
-import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft, ThumbsUp, Flag, Trash2, Pencil, ChevronUp, ChevronDown, Save, CheckCircle, Camera, Tag } from "lucide-react";
+import { X, Star, Phone, Globe, MapPin, Navigation, Dog, Cat, TreePine, Home, Heart, ChevronLeft, ThumbsUp, Flag, Trash2, Pencil, ChevronUp, ChevronDown, Save, CheckCircle, Camera, Tag, EyeOff, ShieldCheck, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ export interface PetPlace {
   description: string | null;
   photo_url: string | null;
   verified: boolean;
+  is_flagged?: boolean;
   distance_km?: number;
   google_place_id?: string | null;
 }
@@ -137,26 +138,29 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   const [isAdmin, setIsAdmin] = useState(false);
   const [localCategory, setLocalCategory] = useState(place?.category ?? "");
   const [savingCategory, setSavingCategory] = useState(false);
+  const [localName, setLocalName] = useState(place?.name ?? "");
+  const [savingName, setSavingName] = useState(false);
+  const [localVerified, setLocalVerified] = useState(place?.verified ?? false);
+  const [localFlagged, setLocalFlagged] = useState(place?.is_flagged ?? false);
+  const [savingMeta, setSavingMeta] = useState(false);
 
   useEffect(() => {
     const contextIsAdmin = isAdminEmail(user?.email) || profile?.is_admin === true;
-    if (contextIsAdmin) {
-      setIsAdmin(true);
-      return;
-    }
-
+    if (contextIsAdmin) { setIsAdmin(true); return; }
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       setIsAdmin(isAdminEmail(data.session?.user?.email));
-    }).catch(() => {
-      if (mounted) setIsAdmin(false);
-    });
-
+    }).catch(() => { if (mounted) setIsAdmin(false); });
     return () => { mounted = false; };
   }, [user?.email, profile?.is_admin]);
 
-  useEffect(() => { setLocalCategory(place?.category ?? ""); }, [place?.id, place?.category]);
+  useEffect(() => {
+    setLocalCategory(place?.category ?? "");
+    setLocalName(place?.name ?? "");
+    setLocalVerified(place?.verified ?? false);
+    setLocalFlagged(place?.is_flagged ?? false);
+  }, [place?.id]);
 
   const quickSaveCategory = async (val: string) => {
     if (!place || val === localCategory) return;
@@ -166,6 +170,53 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     if (error) { toast.error("Erreur : " + error.message); return; }
     setLocalCategory(val);
     toast.success("Catégorie modifiée ✓");
+  };
+
+  const saveNameInline = async () => {
+    const trimmed = localName.trim();
+    if (!place || !trimmed || trimmed === place.name) return;
+    setSavingName(true);
+    const { error } = await supabase.from("pet_friendly_places").update({ name: trimmed }).eq("id", place.id);
+    setSavingName(false);
+    if (error) { toast.error("Erreur : " + error.message); setLocalName(place.name); return; }
+    toast.success("Nom modifié ✓");
+  };
+
+  const toggleVerified = async () => {
+    if (!place || savingMeta) return;
+    setSavingMeta(true);
+    const newVal = !localVerified;
+    const { error } = await supabase.from("pet_friendly_places").update({ verified: newVal }).eq("id", place.id);
+    setSavingMeta(false);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    setLocalVerified(newVal);
+    toast.success(newVal ? "Lieu marqué vérifié ✓" : "Vérification retirée");
+  };
+
+  const toggleFlagged = async () => {
+    if (!place || savingMeta) return;
+    setSavingMeta(true);
+    const newVal = !localFlagged;
+    const { error } = await supabase.from("pet_friendly_places").update({ is_flagged: newVal }).eq("id", place.id);
+    setSavingMeta(false);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    setLocalFlagged(newVal);
+    toast.success(newVal ? "Lieu signalé" : "Signalement retiré");
+  };
+
+  const handleAdminDelete = async () => {
+    if (!place || !window.confirm(`Supprimer "${place.name}" définitivement ?`)) return;
+    const { error } = await supabase.from("pet_friendly_places").delete().eq("id", place.id);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    toast.success("Lieu supprimé");
+    onClose();
+  };
+
+  const hideReview = async (reviewId: string) => {
+    const { error } = await supabase.from("place_reviews").update({ is_hidden: true }).eq("id", reviewId);
+    if (error) { toast.error("Erreur lors du masquage"); return; }
+    toast.success("Avis masqué");
+    await loadReviews();
   };
 
   // ── Bottom sheet snap state ──
@@ -441,7 +492,20 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
               <ChevronLeft className="w-5 h-5 text-muted-foreground" />
             </button>
           )}
-          <h2 className="font-bold text-lg text-foreground truncate">{place.name}</h2>
+          {isAdmin ? (
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <input
+                value={localName}
+                onChange={e => setLocalName(e.target.value)}
+                onBlur={saveNameInline}
+                onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                className="font-bold text-lg bg-transparent border-b-2 border-violet-400 focus:outline-none text-foreground w-full min-w-0 focus:border-violet-600"
+              />
+              {savingName && <div className="w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0" />}
+            </div>
+          ) : (
+            <h2 className="font-bold text-lg text-foreground truncate">{place.name}</h2>
+          )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {onToggleFavorite && (
@@ -458,24 +522,59 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
         </div>
       </div>
 
-      {/* Admin category bar — always visible, even in half-snap mode */}
+      {/* ── Barre admin — toujours visible même en half-snap ── */}
       {isAdmin && (
-        <div className="shrink-0 flex items-center gap-2 px-4 py-2 border-b border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30">
-          <span className="text-xs font-bold text-violet-700 dark:text-violet-300 shrink-0">🏷️ Catégorie :</span>
-          <select
-            value={localCategory}
-            disabled={savingCategory}
-            onChange={e => quickSaveCategory(e.target.value)}
-            className="flex-1 text-xs font-semibold bg-white dark:bg-violet-900/40 border border-violet-300 dark:border-violet-600 rounded-lg px-2 py-1 text-violet-900 dark:text-violet-100 focus:outline-none"
-          >
-            {CATS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-            {!CATS.find(c => c.value === localCategory) && localCategory && (
-              <option value={localCategory}>{localCategory}</option>
-            )}
-          </select>
-          {savingCategory && (
-            <div className="w-3.5 h-3.5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0" />
-          )}
+        <div className="shrink-0 border-b border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30">
+          {/* Ligne 1 : Catégorie */}
+          <div className="flex items-center gap-2 px-4 pt-2 pb-1">
+            <span className="text-xs font-bold text-violet-700 dark:text-violet-300 shrink-0">🏷️</span>
+            <select
+              value={localCategory}
+              disabled={savingCategory}
+              onChange={e => quickSaveCategory(e.target.value)}
+              className="flex-1 text-xs font-semibold bg-white dark:bg-violet-900/40 border border-violet-300 dark:border-violet-600 rounded-lg px-2 py-1 text-violet-900 dark:text-violet-100 focus:outline-none"
+            >
+              {CATS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              {!CATS.find(c => c.value === localCategory) && localCategory && (
+                <option value={localCategory}>{localCategory}</option>
+              )}
+            </select>
+            {savingCategory && <div className="w-3.5 h-3.5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0" />}
+          </div>
+          {/* Ligne 2 : Vérifié / Signalé / Supprimer */}
+          <div className="flex items-center gap-1.5 px-4 pb-2">
+            <button
+              onClick={toggleVerified}
+              disabled={savingMeta}
+              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg border font-medium transition-colors ${
+                localVerified
+                  ? "bg-green-100 border-green-300 text-green-700 dark:bg-green-900/30 dark:border-green-700 dark:text-green-300"
+                  : "bg-white border-violet-200 text-violet-500 dark:bg-transparent dark:border-violet-700 dark:text-violet-400 hover:bg-violet-50"
+              }`}
+            >
+              <ShieldCheck className="w-3 h-3" />
+              {localVerified ? "Vérifié" : "À vérifier"}
+            </button>
+            <button
+              onClick={toggleFlagged}
+              disabled={savingMeta}
+              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg border font-medium transition-colors ${
+                localFlagged
+                  ? "bg-orange-100 border-orange-300 text-orange-700 dark:bg-orange-900/30 dark:border-orange-700 dark:text-orange-300"
+                  : "bg-white border-violet-200 text-violet-500 dark:bg-transparent dark:border-violet-700 dark:text-violet-400 hover:bg-violet-50"
+              }`}
+            >
+              <ShieldAlert className="w-3 h-3" />
+              {localFlagged ? "Signalé ⚠️" : "Non signalé"}
+            </button>
+            {savingMeta && <div className="w-3 h-3 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />}
+            <button
+              onClick={handleAdminDelete}
+              className="ml-auto flex items-center gap-1 text-xs px-2 py-1 rounded-lg border border-red-200 bg-white text-red-500 hover:bg-red-50 font-medium transition-colors dark:bg-transparent dark:border-red-800 dark:text-red-400"
+            >
+              <Trash2 className="w-3 h-3" /> Supprimer
+            </button>
+          </div>
         </div>
       )}
 
@@ -564,11 +663,14 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
                           <button onClick={() => markHelpful(r.id)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
                             <ThumbsUp className="w-3 h-3" />{r.helpful_count > 0 && r.helpful_count}
                           </button>
-                          {user && user.id !== r.user_id && !r.is_reported && (
+                          {user && user.id !== r.user_id && !r.is_reported && !isAdmin && (
                             <button onClick={() => reportReview(r.id)} className="text-xs text-muted-foreground hover:text-orange-500" title="Signaler"><Flag className="w-3 h-3" /></button>
                           )}
-                          {user && user.id === r.user_id && (
+                          {user && (user.id === r.user_id || isAdmin) && (
                             <button onClick={() => deleteReview(r.id)} className="text-xs text-muted-foreground hover:text-destructive" title="Supprimer"><Trash2 className="w-3 h-3" /></button>
+                          )}
+                          {isAdmin && (
+                            <button onClick={() => hideReview(r.id)} className="text-xs text-muted-foreground hover:text-amber-500" title="Masquer l'avis"><EyeOff className="w-3 h-3" /></button>
                           )}
                         </div>
                       </div>

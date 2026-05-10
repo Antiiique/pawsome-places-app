@@ -664,7 +664,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     const handler = (e: Event) => {
       const placeId = (e as CustomEvent).detail?.placeId;
       if (!placeId) return;
-      supabase.from("pet_friendly_places").select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, rating, description, photo_url, verified, google_place_id").eq("id", placeId).maybeSingle().then(({ data }) => { if (data) setSelectedPlace(data as any); });
+      supabase.from("pet_friendly_places").select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, rating, description, photo_url, verified, is_flagged, google_place_id").eq("id", placeId).maybeSingle().then(({ data }) => { if (data) setSelectedPlace(data as any); });
     };
     window.addEventListener("open-community-reviews", handler);
     return () => window.removeEventListener("open-community-reviews", handler);
@@ -836,7 +836,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     const handler = async (e: Event) => {
       const placeId = (e as CustomEvent).detail?.placeId;
       if (!placeId) return;
-      const { data } = await supabase.from("pet_friendly_places").select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, rating, description, photo_url, verified, google_place_id").eq("id", placeId).maybeSingle();
+      const { data } = await supabase.from("pet_friendly_places").select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, rating, description, photo_url, verified, is_flagged, google_place_id").eq("id", placeId).maybeSingle();
       if (data) setSelectedPlace(data as any);
     };
     window.addEventListener("global-search-open-place", handler);

@@ -49,13 +49,15 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
 
   const handleNotificationClick = (n: (typeof notifications)[number]) => {
     if (!n.is_read) markAsRead(n.id);
+    onClose();
     if (n.type === "new_review" && n.related_id) {
       window.dispatchEvent(new CustomEvent("open-community-reviews", { detail: { placeId: n.related_id } }));
-      onClose();
-    }
-    if (n.type === "lost_pet" && n.related_id) {
+    } else if (n.type === "lost_pet" && n.related_id) {
       window.dispatchEvent(new CustomEvent("open-lost-pet", { detail: { petId: n.related_id } }));
-      onClose();
+    } else if (n.type === "new_stray" && n.related_id) {
+      window.dispatchEvent(new CustomEvent("open-stray", { detail: { strayId: n.related_id } }));
+    } else if (n.type === "new_place" && n.related_id) {
+      window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: n.related_id } }));
     }
   };
 
@@ -106,7 +108,7 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
           ) : (
             notifications.map((n) => {
               const cfg = typeConfig[n.type] || typeConfig.report_dismissed;
-              const isClickable = (n.type === "new_review" || n.type === "lost_pet") && !!n.related_id;
+              const isClickable = !!n.related_id && ["new_review", "lost_pet", "new_stray", "new_place"].includes(n.type);
               return (
                 <button
                   key={n.id}
@@ -124,12 +126,10 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <p className="text-[10px] text-muted-foreground">{timeAgo(n.created_at)}</p>
-                        {n.type === "new_review" && isClickable && (
-                          <span className="text-[10px] text-primary font-medium">→ Voir les avis</span>
-                        )}
-                        {n.type === "lost_pet" && isClickable && (
-                          <span className="text-[10px] text-amber-600 font-medium">→ Voir l'annonce</span>
-                        )}
+                        {n.type === "new_review" && isClickable && <span className="text-[10px] text-primary font-medium">→ Voir les avis</span>}
+                        {n.type === "lost_pet" && isClickable && <span className="text-[10px] text-amber-600 font-medium">→ Voir l'annonce</span>}
+                        {n.type === "new_stray" && isClickable && <span className="text-[10px] text-red-600 font-medium">→ Voir le signalement</span>}
+                        {n.type === "new_place" && isClickable && <span className="text-[10px] text-primary font-medium">→ Ouvrir le lieu</span>}
                       </div>
                     </div>
                     {!n.is_read && <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />}
