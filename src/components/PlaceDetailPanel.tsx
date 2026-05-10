@@ -106,6 +106,9 @@ interface PlaceDetailPanelProps {
 
 const ADMIN_EMAILS = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"];
 
+const isAdminEmail = (email: string | null | undefined) =>
+  ADMIN_EMAILS.includes(email?.trim().toLowerCase() ?? "");
+
 const CATS = [
   { value: "veterinaire", label: "Vétérinaire 🏥" },
   { value: "animalerie", label: "Animalerie 🐾" },
@@ -130,18 +133,30 @@ const CATS = [
 ];
 
 const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport, isClosing }: PlaceDetailPanelProps) => {
-  const { user } = useAuthContext();
+  const { user, profile } = useAuthContext();
   const [isAdmin, setIsAdmin] = useState(false);
   const [localCategory, setLocalCategory] = useState(place?.category ?? "");
   const [savingCategory, setSavingCategory] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setIsAdmin(ADMIN_EMAILS.includes(data.user?.email ?? ""));
-    });
-  }, []);
+    const contextIsAdmin = isAdminEmail(user?.email) || profile?.is_admin === true;
+    if (contextIsAdmin) {
+      setIsAdmin(true);
+      return;
+    }
 
-  useEffect(() => { setLocalCategory(place?.category ?? ""); }, [place?.id]);
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      setIsAdmin(isAdminEmail(data.session?.user?.email));
+    }).catch(() => {
+      if (mounted) setIsAdmin(false);
+    });
+
+    return () => { mounted = false; };
+  }, [user?.email, profile?.is_admin]);
+
+  useEffect(() => { setLocalCategory(place?.category ?? ""); }, [place?.id, place?.category]);
 
   const quickSaveCategory = async (val: string) => {
     if (!place || val === localCategory) return;

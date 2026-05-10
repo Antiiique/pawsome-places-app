@@ -4,6 +4,9 @@ import { toast } from "sonner";
 
 const ADMIN_EMAILS = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"];
 
+const isAdminEmail = (email: string | null | undefined) =>
+  ADMIN_EMAILS.includes(email?.trim().toLowerCase() ?? "");
+
 const CATS = [
   { value: "veterinaire", label: "Vétérinaire 🏥" },
   { value: "animalerie", label: "Animalerie 🐾" },
@@ -36,10 +39,14 @@ export default function AdminCategoryBar({ placeId, category }: AdminCategoryBar
   const [current, setCurrent] = useState(category);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setIsAdmin(ADMIN_EMAILS.includes(data.user?.email ?? ""));
-    });
+    supabase.auth.getSession().then(({ data }) => {
+      setIsAdmin(isAdminEmail(data.session?.user?.email));
+    }).catch(() => setIsAdmin(false));
   }, []);
+
+  useEffect(() => {
+    setCurrent(category);
+  }, [category, placeId]);
 
   if (!isAdmin) return null;
 
