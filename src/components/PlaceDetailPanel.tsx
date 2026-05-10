@@ -88,8 +88,9 @@ const categoryBgColors: Record<string, string> = {
 };
 
 const KNOWN_CATEGORIES = [
-  "veterinaire","animalerie","parc","refuge","toiletteur","pension","educateur",
-  "restaurant","hotel","cafe","camping","bar","commerce","plage",
+  "veterinaire","restaurant","hotel","outdoor","parc_chiens","shop","pension",
+  "toiletteur","educateur","masseur","pet_sitter","dog_walker","camping","plage",
+  "loisir","refuge","spa","cafe_animalier","aeroport","aire_repos","transport","evenement","other",
 ];
 
 
@@ -111,26 +112,29 @@ const isAdminEmail = (email: string | null | undefined) =>
   ADMIN_EMAILS.includes(email?.trim().toLowerCase() ?? "");
 
 const CATS = [
-  { value: "veterinaire", label: "Vétérinaire 🏥" },
-  { value: "animalerie", label: "Animalerie 🐾" },
-  { value: "parc", label: "Parc & Nature 🌿" },
-  { value: "refuge", label: "Refuge 🏠" },
-  { value: "toiletteur", label: "Toiletteur ✂️" },
-  { value: "pension", label: "Pension 🏡" },
-  { value: "educateur", label: "Éducateur canin 🦮" },
-  { value: "masseur", label: "Masseur / Ostéo 💆" },
-  { value: "pet_sitter", label: "Pet Sitter 🏡" },
-  { value: "dog_walker", label: "Dog Walker 🦮" },
-  { value: "restaurant", label: "Restaurant 🍽️" },
-  { value: "hotel", label: "Hôtel 🛏️" },
-  { value: "cafe", label: "Café ☕" },
-  { value: "camping", label: "Camping ⛺" },
-  { value: "bar", label: "Bar 🍺" },
-  { value: "commerce", label: "Commerce 🛍️" },
-  { value: "plage", label: "Plage 🏖️" },
-  { value: "outdoor", label: "Parc & Nature 🌿" },
-  { value: "shop", label: "Pet Shop 🛍️" },
-  { value: "other", label: "Autre 📍" },
+  { value: "veterinaire",    label: "Vétérinaires 🏥" },
+  { value: "restaurant",     label: "Restaurants 🍽️" },
+  { value: "hotel",          label: "Hôtels 🛏️" },
+  { value: "outdoor",        label: "Parcs & Nature 🌿" },
+  { value: "parc_chiens",    label: "Parcs à chiens 🐕" },
+  { value: "shop",           label: "Pet Shops 🛒" },
+  { value: "pension",        label: "Pension 🏠" },
+  { value: "toiletteur",     label: "Toiletteurs 🛁" },
+  { value: "educateur",      label: "Éducateurs 🎓" },
+  { value: "masseur",        label: "Masseurs / Ostéo 💆" },
+  { value: "pet_sitter",     label: "Pet Sitters 🏡" },
+  { value: "dog_walker",     label: "Dog Walkers 🦮" },
+  { value: "camping",        label: "Camping ⛺" },
+  { value: "plage",          label: "Plages 🏖️" },
+  { value: "loisir",         label: "Loisirs 🎯" },
+  { value: "refuge",         label: "Refuges 🏚️" },
+  { value: "spa",            label: "SPA 🐾" },
+  { value: "cafe_animalier", label: "Cafés animaux ☕" },
+  { value: "aeroport",       label: "Aéroports ✈️" },
+  { value: "aire_repos",     label: "Aires de repos 🛣️" },
+  { value: "transport",      label: "Transport 🚇" },
+  { value: "evenement",      label: "Événements 📅" },
+  { value: "other",          label: "Autres 📍" },
 ];
 
 const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport, isClosing }: PlaceDetailPanelProps) => {
