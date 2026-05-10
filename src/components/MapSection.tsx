@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import AdminCategoryBar from "./AdminCategoryBar";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Supercluster from "supercluster";
@@ -1299,10 +1298,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           isInDatabase={!!popupData.petPlace} dbId={popupData.petPlace?.id}
           onReport={popupData.petPlace ? () => setReportModal({ open: true, placeId: popupData.petPlace!.id, placeName: popupData.place.name }) : undefined}
         />
-      )}
-
-      {selectedPlace && isMapAdmin && (
-        <AdminCategoryBar placeId={selectedPlace.id} category={selectedPlace.category} />
       )}
 
       {selectedPlace && (
