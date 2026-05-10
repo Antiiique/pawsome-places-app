@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import AdminCategoryBar from "./AdminCategoryBar";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Supercluster from "supercluster";
@@ -205,6 +206,7 @@ interface MapSectionProps {
 
 const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavorite, onToggleFavorite, onOpenItinerary, frozen }: MapSectionProps) => {
   const { user } = useAuthContext();
+  const isMapAdmin = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"].includes(user?.email ?? "");
   const { isLeftHanded } = useHandedness();
   const fabSide    = isLeftHanded ? "left-4"  : "right-4";
   const filterSide = isLeftHanded ? "right-4" : "left-4";
@@ -1296,6 +1298,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           isInDatabase={!!popupData.petPlace} dbId={popupData.petPlace?.id}
           onReport={popupData.petPlace ? () => setReportModal({ open: true, placeId: popupData.petPlace!.id, placeName: popupData.place.name }) : undefined}
         />
+      )}
+
+      {selectedPlace && isMapAdmin && (
+        <AdminCategoryBar placeId={selectedPlace.id} category={selectedPlace.category} />
       )}
 
       {selectedPlace && (
