@@ -536,6 +536,26 @@ export default function MarkerPopup({
           </div>
         </div>
 
+        {isAdmin && dbId && (
+          <div className="shrink-0 flex items-center gap-2 px-4 py-2 border-b border-border bg-primary text-primary-foreground">
+            <span className="text-xs font-bold shrink-0">🏷️ Catégorie :</span>
+            <select
+              value={localCategory}
+              disabled={savingCategory}
+              onChange={e => quickSaveCategory(e.target.value)}
+              className="min-w-0 flex-1 rounded-lg border border-primary-foreground/30 bg-primary-foreground/15 px-2 py-1 text-xs font-semibold text-primary-foreground focus:outline-none disabled:opacity-60"
+            >
+              {CATEGORY_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              {!CATEGORY_OPTIONS.find(c => c.value === localCategory) && localCategory && (
+                <option value={localCategory}>{localCategory}</option>
+              )}
+            </select>
+            {savingCategory && (
+              <div className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+            )}
+          </div>
+        )}
+
         {/* Scrollable body */}
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden" style={{ scrollbarWidth: "thin", scrollbarColor: "hsl(var(--border)) transparent" }}>
 
