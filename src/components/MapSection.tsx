@@ -116,7 +116,7 @@ const CATEGORY_FILTERS = [
   { key: "hotel",          label: "Hôtels",         emoji: "🛏️" },
   { key: "outdoor",        label: "Parcs & Nature", emoji: "🌿" },
   { key: "parc_chiens",    label: "Parcs à chiens", emoji: "🐕" },
-  { key: "shop",           label: "Pet Shops",      emoji: "🛒" },
+  { key: "animalerie",      label: "Animaleries",    emoji: "🐾" },
   { key: "pension",        label: "Pension",        emoji: "🏠" },
   { key: "toiletteur",     label: "Toiletteurs",    emoji: "🛁" },
   { key: "educateur",      label: "Éducateurs",     emoji: "🎓" },
@@ -142,7 +142,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   hotel:          "#4285F4",
   outdoor:        "#4CAF50",
   parc_chiens:    "#8BC34A",
-  shop:           "#9C27B0",
+  animalerie:     "#9C27B0",
   pension:        "#3F51B5",
   toiletteur:     "#00BCD4",
   educateur:      "#FF9800",
@@ -169,7 +169,7 @@ const CATEGORY_EMOJIS: Record<string, string> = {
   hotel:          "🛏️",
   outdoor:        "🌿",
   parc_chiens:    "🐕",
-  shop:           "🛒",
+  animalerie:     "🐾",
   pension:        "🏠",
   toiletteur:     "🛁",
   educateur:      "🎓",
@@ -751,7 +751,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       map.addLayer({ id: "route-line", type: "line", source: "route", paint: { "line-color": "#FF6B35", "line-width": 5, "line-opacity": 0.8 } });
     } catch {}
 
-    const catColors: Record<string, string> = { restaurant: "#FF6B35", hotel: "#4285F4", outdoor: "#4CAF50", services: "#E53935", shop: "#9C27B0" };
+    const catColors: Record<string, string> = { restaurant: "#FF6B35", hotel: "#4285F4", outdoor: "#4CAF50", services: "#E53935", animalerie: "#9C27B0" };
     const markers: mapboxgl.Marker[] = [];
 
     const mkLabel = (text: string, bg: string) => {

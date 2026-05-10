@@ -13,7 +13,7 @@ const CATS = [
   { value: "hotel",          label: "Hôtels 🛏️" },
   { value: "outdoor",        label: "Parcs & Nature 🌿" },
   { value: "parc_chiens",    label: "Parcs à chiens 🐕" },
-  { value: "shop",           label: "Pet Shops 🛒" },
+  { value: "animalerie",     label: "Animalerie 🐾" },
   { value: "pension",        label: "Pension 🏠" },
   { value: "toiletteur",     label: "Toiletteurs 🛁" },
   { value: "educateur",      label: "Éducateurs 🎓" },

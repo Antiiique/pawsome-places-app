@@ -37,7 +37,7 @@ function distanceBetween(p1: { lat: number; lng: number }, p2: { lat: number; ln
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-const ROUTE_CATEGORIES = ["restaurant", "hotel", "outdoor", "parc_chiens", "veterinaire", "cafe_animalier", "shop", "aire_repos"];
+const ROUTE_CATEGORIES = ["restaurant", "hotel", "outdoor", "parc_chiens", "veterinaire", "cafe_animalier", "animalerie", "aire_repos"];
 
 const CATEGORY_COLORS: Record<string, string> = {
   restaurant: "#FF6B35",

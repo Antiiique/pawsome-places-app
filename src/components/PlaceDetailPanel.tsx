@@ -79,16 +79,16 @@ function timeAgo(dateStr: string): string {
 
 const categoryLabels: Record<string, string> = {
   restaurant: "Restaurant 🍽️", hotel: "Hôtel 🛏️", outdoor: "Parc & Nature 🌿",
-  services: "Services ❤️", shop: "Pet Shop 🐾", other: "Autre",
+  services: "Services ❤️", animalerie: "Animalerie 🐾", other: "Autre",
 };
 
 const categoryBgColors: Record<string, string> = {
   restaurant: "bg-orange-500", hotel: "bg-blue-500", outdoor: "bg-green-500",
-  services: "bg-red-500", shop: "bg-purple-500", other: "bg-gray-500",
+  services: "bg-red-500", animalerie: "bg-purple-500", other: "bg-gray-500",
 };
 
 const KNOWN_CATEGORIES = [
-  "veterinaire","restaurant","hotel","outdoor","parc_chiens","shop","pension",
+  "veterinaire","restaurant","hotel","outdoor","parc_chiens","animalerie","pension",
   "toiletteur","educateur","masseur","pet_sitter","dog_walker","camping","plage",
   "loisir","refuge","spa","cafe_animalier","aeroport","aire_repos","transport","evenement","other",
 ];
@@ -117,7 +117,7 @@ const CATS = [
   { value: "hotel",          label: "Hôtels 🛏️" },
   { value: "outdoor",        label: "Parcs & Nature 🌿" },
   { value: "parc_chiens",    label: "Parcs à chiens 🐕" },
-  { value: "shop",           label: "Pet Shops 🛒" },
+  { value: "animalerie",     label: "Animalerie 🐾" },
   { value: "pension",        label: "Pension 🏠" },
   { value: "toiletteur",     label: "Toiletteurs 🛁" },
   { value: "educateur",      label: "Éducateurs 🎓" },

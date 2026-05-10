@@ -98,7 +98,7 @@ const CATEGORY_OPTIONS = [
   { value: "plage", label: "Plage 🏖️" },
   { value: "outdoor", label: "Outdoor 🏕️" },
   { value: "services", label: "Services ❤️" },
-  { value: "shop", label: "Pet Shop 🛍️" },
+  { value: "animalerie", label: "Animalerie 🐾" },
   { value: "other", label: "Autre 📍" },
 ];
 

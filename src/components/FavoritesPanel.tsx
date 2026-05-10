@@ -15,7 +15,7 @@ const CATEGORY_FILTERS = [
   { key: "hotel",          label: "Hôtels",         emoji: "🛏️" },
   { key: "outdoor",        label: "Parcs",          emoji: "🌿" },
   { key: "parc_chiens",    label: "Parcs chiens",   emoji: "🐕" },
-  { key: "shop",           label: "Shops",          emoji: "🛒" },
+  { key: "animalerie",      label: "Animaleries",    emoji: "🐾" },
   { key: "pension",        label: "Pension",        emoji: "🏠" },
   { key: "toiletteur",     label: "Toiletteurs",    emoji: "🛁" },
   { key: "educateur",      label: "Éducateurs",     emoji: "🎓" },

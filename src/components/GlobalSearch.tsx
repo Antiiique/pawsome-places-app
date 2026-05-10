@@ -14,7 +14,7 @@ const KM20    = 0.18; // ~20 km in degrees lat
 const CATEGORY_FILTERS: { value: string | null; label: string; emoji: string }[] = [
   { value: null,          label: "Tous",        emoji: "🗺️" },
   { value: "veterinaire", label: "Vétérinaire", emoji: "🏥" },
-  { value: "shop",        label: "Animalerie",  emoji: "🐾" },
+  { value: "animalerie",  label: "Animalerie",  emoji: "🐾" },
   { value: "parc_chiens", label: "Parc chiens", emoji: "🐕" },
   { value: "refuge",      label: "Refuge",      emoji: "🏚️" },
   { value: "restaurant",  label: "Restaurant",  emoji: "🍽️" },

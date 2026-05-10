@@ -53,7 +53,7 @@ const TYPE_GROUPS = [
     subcats: [
       { value: "restaurant",     label: "🍽️ Restaurant / Café / Bar" },
       { value: "cafe_animalier", label: "☕ Café animalier" },
-      { value: "shop",           label: "🛒 Pet Shop / Animalerie" },
+      { value: "animalerie",     label: "🐾 Animalerie" },
       { value: "transport",      label: "🚇 Transport pet-friendly" },
       { value: "aeroport",       label: "✈️ Aéroport" },
       { value: "other",          label: "📍 Autre lieu" },

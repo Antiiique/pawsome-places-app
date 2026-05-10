@@ -20,7 +20,7 @@ const ALL_TYPES: ResultType[] = ["place", "user", "stray", "lost_pet"];
 // Maps typed keywords to DB category values
 const CATEGORY_MAP: Record<string, string> = {
   "vétérinaire": "veterinaire", "veterinaire": "veterinaire", "véto": "veterinaire", "veto": "veterinaire", "clinique": "veterinaire",
-  "animalerie": "shop", "boutique": "shop", "shop": "shop",
+  "animalerie": "animalerie", "boutique": "animalerie", "shop": "animalerie",
   "parc": "parc_chiens", "parcs": "parc_chiens",
   "restaurant": "restaurant", "resto": "restaurant", "brasserie": "restaurant",
   "hôtel": "hotel", "hotel": "hotel", "hébergement": "hotel",
