@@ -73,6 +73,35 @@ function getSafePhone(phone: string | null | undefined): string | null {
   return /^[0-9\s+\-().]+$/.test(phone.trim()) ? phone.trim() : null;
 }
 
+const ADMIN_EMAILS = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"];
+
+const isAdminEmail = (email: string | null | undefined) =>
+  ADMIN_EMAILS.includes(email?.trim().toLowerCase() ?? "");
+
+const CATEGORY_OPTIONS = [
+  { value: "veterinaire", label: "Vétérinaire 🏥" },
+  { value: "animalerie", label: "Animalerie 🐾" },
+  { value: "parc", label: "Parc & Nature 🌿" },
+  { value: "refuge", label: "Refuge 🏠" },
+  { value: "toiletteur", label: "Toiletteur ✂️" },
+  { value: "pension", label: "Pension 🏡" },
+  { value: "educateur", label: "Éducateur canin 🦮" },
+  { value: "masseur", label: "Masseur / Ostéo 💆" },
+  { value: "pet_sitter", label: "Pet Sitter 🏡" },
+  { value: "dog_walker", label: "Dog Walker 🦮" },
+  { value: "restaurant", label: "Restaurant 🍽️" },
+  { value: "hotel", label: "Hôtel 🛏️" },
+  { value: "cafe", label: "Café ☕" },
+  { value: "camping", label: "Camping ⛺" },
+  { value: "bar", label: "Bar 🍺" },
+  { value: "commerce", label: "Commerce 🛍️" },
+  { value: "plage", label: "Plage 🏖️" },
+  { value: "outdoor", label: "Outdoor 🏕️" },
+  { value: "services", label: "Services ❤️" },
+  { value: "shop", label: "Pet Shop 🛍️" },
+  { value: "other", label: "Autre 📍" },
+];
+
 function getPlaceEmoji(place: UniversalPlace): string {
   if (place.isPetFriendly) return "🐾";
   const types = place.types || [];
@@ -134,10 +163,13 @@ export default function MarkerPopup({
   const [expandedReviews, setExpandedReviews] = useState<Record<number, boolean>>({});
   const [fullPhoto, setFullPhoto] = useState<string | null>(null);
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
-  const { user } = useAuthContext();
+  const { user, profile } = useAuthContext();
   const [reviewTab, setReviewTab] = useState<"google" | "community">("google");
   const [communityReviews, setCommunityReviews] = useState<CommunityReview[]>([]);
   const [loadingCR, setLoadingCR] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [localCategory, setLocalCategory] = useState(place.category ?? "other");
+  const [savingCategory, setSavingCategory] = useState(false);
   const [newRating, setNewRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [newBody, setNewBody] = useState("");
@@ -162,6 +194,37 @@ export default function MarkerPopup({
     const raf = requestAnimationFrame(() => setVisible(true));
     return () => cancelAnimationFrame(raf);
   }, []);
+
+  useEffect(() => {
+    const contextIsAdmin = isAdminEmail(user?.email) || profile?.is_admin === true;
+    if (contextIsAdmin) {
+      setIsAdmin(true);
+      return;
+    }
+
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setIsAdmin(isAdminEmail(data.session?.user?.email));
+    }).catch(() => {
+      if (mounted) setIsAdmin(false);
+    });
+
+    return () => { mounted = false; };
+  }, [user?.email, profile?.is_admin]);
+
+  useEffect(() => {
+    setLocalCategory(place.category ?? "other");
+  }, [place.placeId, place.name, place.category]);
+
+  async function quickSaveCategory(val: string) {
+    if (!dbId || val === localCategory) return;
+    setSavingCategory(true);
+    const { error } = await supabase.from("pet_friendly_places").update({ category: val }).eq("id", dbId);
+    setSavingCategory(false);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    setLocalCategory(val);
+    toast.success("Catégorie modifiée ✓");
+  }
 
   function handleClose() {
     setVisible(false);
@@ -472,6 +535,26 @@ export default function MarkerPopup({
             </div>
           </div>
         </div>
+
+        {isAdmin && dbId && (
+          <div className="shrink-0 flex items-center gap-2 px-4 py-2 border-b border-border bg-primary text-primary-foreground">
+            <span className="text-xs font-bold shrink-0">🏷️ Catégorie :</span>
+            <select
+              value={localCategory}
+              disabled={savingCategory}
+              onChange={e => quickSaveCategory(e.target.value)}
+              className="min-w-0 flex-1 rounded-lg border border-primary-foreground/30 bg-primary-foreground/15 px-2 py-1 text-xs font-semibold text-primary-foreground focus:outline-none disabled:opacity-60"
+            >
+              {CATEGORY_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              {!CATEGORY_OPTIONS.find(c => c.value === localCategory) && localCategory && (
+                <option value={localCategory}>{localCategory}</option>
+              )}
+            </select>
+            {savingCategory && (
+              <div className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+            )}
+          </div>
+        )}
 
         {/* Scrollable body */}
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden" style={{ scrollbarWidth: "thin", scrollbarColor: "hsl(var(--border)) transparent" }}>
