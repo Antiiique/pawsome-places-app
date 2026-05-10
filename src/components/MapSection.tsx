@@ -5,7 +5,6 @@ import Supercluster from "supercluster";
 import { Camera, Loader2, Locate, Plus, SlidersHorizontal, X, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
-import AdminCategoryBar from "./AdminCategoryBar";
 import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
 import ReportModal from "./ReportModal";
 import StrayReportModal from "./StrayReportModal";
@@ -1316,7 +1315,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             onToggleFavorite={() => handleToggleFav(selectedPlace)}
             onReport={() => setReportModal({ open: true, placeId: selectedPlace.id, placeName: selectedPlace.name })}
           />
-          <AdminCategoryBar placeId={selectedPlace.id} category={selectedPlace.category} />
         </>
       )}
 

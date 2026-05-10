@@ -163,12 +163,13 @@ const STATUS_TABS = [
 
 type StatusKey = typeof STATUS_TABS[number]["key"];
 
-function PlaceCard({ sub }: { sub: UserSubmission }) {
+function PlaceCard({ sub, onClose }: { sub: UserSubmission; onClose?: () => void }) {
   const isClickable = sub.status === "approved" && !!sub.linked_place?.id;
 
   const handleClick = () => {
     if (isClickable) {
-      window.dispatchEvent(new CustomEvent("open-community-reviews", { detail: { placeId: sub.linked_place!.id } }));
+      onClose?.();
+      window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: sub.linked_place!.id } }));
     }
   };
 
@@ -213,7 +214,7 @@ function PlaceCard({ sub }: { sub: UserSubmission }) {
   );
 }
 
-function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
+function PlacesSubTabs({ submissions, onClose }: { submissions: UserSubmission[]; onClose?: () => void }) {
   const [activeStatus, setActiveStatus] = useState<StatusKey>("approved");
   const [approvedCollapsed, setApprovedCollapsed] = useState(false);
 
@@ -283,7 +284,7 @@ function PlacesSubTabs({ submissions }: { submissions: UserSubmission[] }) {
       ) : (
         !(activeStatus === "approved" && approvedCollapsed) && (
           <div className="space-y-2">
-            {filtered.map(sub => <PlaceCard key={sub.id} sub={sub} />)}
+            {filtered.map(sub => <PlaceCard key={sub.id} sub={sub} onClose={onClose} />)}
           </div>
         )
       )}
@@ -1334,7 +1335,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                 <p className="text-xs text-muted-foreground">Contribue à la communauté en ajoutant un lieu pet-friendly !</p>
               </div>
             ) : (
-              <PlacesSubTabs submissions={submissions} />
+              <PlacesSubTabs submissions={submissions} onClose={onClose} />
             )}
           </TabsContent>
 
