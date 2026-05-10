@@ -110,10 +110,12 @@ function getLevelProgress(points: number) {
 }
 
 const ALERT_RADIUS_OPTIONS = [
-  { value: null, label: "Désactivé" },
-  { value: 5,   label: "5 km" },
+  { value: null, label: "Off" },
   { value: 10,  label: "10 km" },
-  { value: 25,  label: "25 km" },
+  { value: 15,  label: "15 km" },
+  { value: 20,  label: "20 km" },
+  { value: 30,  label: "30 km" },
+  { value: 40,  label: "40 km" },
   { value: 50,  label: "50 km" },
 ];
 
@@ -859,32 +861,26 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                   </div>
                 </div>
 
-                {/* Alertes de zone */}
-                <div className="p-4 rounded-xl bg-secondary border border-border space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-primary" />
-                    <p className="text-xs font-semibold text-foreground">Alertes de zone</p>
+                {/* Alertes de zone — accès rapide vers l'onglet Notifications */}
+                <button
+                  onClick={() => setActiveMainTab("notifications")}
+                  className="w-full p-4 rounded-xl bg-secondary border border-border text-left hover:bg-muted transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-primary" />
+                      <p className="text-xs font-semibold text-foreground">Alertes de zone</p>
+                    </div>
+                    <span className="text-xs text-primary font-medium">
+                      {profile.alert_radius_km ? `${profile.alert_radius_km} km →` : "Configurer →"}
+                    </span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">Reçois une notification quand un lieu pet-friendly, un animal errant ou perdu est signalé près de chez toi. Utilise le bouton "Localiser" sur la carte pour définir ton centre.</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {ALERT_RADIUS_OPTIONS.map(opt => (
-                      <button
-                        key={String(opt.value)}
-                        onClick={() => setProfile(p => ({ ...p, alert_radius_km: opt.value }))}
-                        className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
-                          profile.alert_radius_km === opt.value
-                            ? "bg-primary/10 border-primary text-primary"
-                            : "border-border text-muted-foreground hover:bg-muted"
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                  {profile.alert_radius_km && (
-                    <p className="text-[10px] text-primary font-medium">✅ Alertes activées dans un rayon de {profile.alert_radius_km} km</p>
-                  )}
-                </div>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    {profile.alert_radius_km
+                      ? `Notifications activées dans un rayon de ${profile.alert_radius_km} km`
+                      : "Configure ton rayon d'alerte dans l'onglet Notifications"}
+                  </p>
+                </button>
 
                 {saving && (
                   <p className="text-center text-[11px] text-muted-foreground animate-pulse">💾 Sauvegarde…</p>
@@ -1348,16 +1344,68 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
               <p className="text-sm text-muted-foreground text-center py-8">Chargement…</p>
             ) : (
               <>
-                {/* Section utilisateur */}
+                {/* ── Zone d'alerte ── */}
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🌍 Zone d'alerte</p>
+                  <div className="p-3 rounded-xl bg-secondary border border-border space-y-3">
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Reçois des notifications pour les événements autour de toi.
+                      Appuie sur <span className="font-semibold text-foreground">Localiser</span> sur la carte pour définir ton centre.
+                    </p>
+                    {/* Rayon */}
+                    <div>
+                      <p className="text-xs font-semibold text-foreground mb-2">Rayon</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {ALERT_RADIUS_OPTIONS.map(opt => (
+                          <button
+                            key={String(opt.value)}
+                            onClick={() => setProfile(p => ({ ...p, alert_radius_km: opt.value }))}
+                            className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
+                              profile.alert_radius_km === opt.value
+                                ? "bg-primary/10 border-primary text-primary"
+                                : "border-border text-muted-foreground hover:bg-muted"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                      {profile.alert_radius_km
+                        ? <p className="text-[10px] text-primary font-medium mt-1.5">✅ Zone active — {profile.alert_radius_km} km à la ronde</p>
+                        : <p className="text-[10px] text-muted-foreground mt-1.5">Alertes de zone désactivées</p>
+                      }
+                    </div>
+                    {/* Toggles événements — seulement si rayon actif */}
+                    {profile.alert_radius_km && (
+                      <div className="space-y-1.5 pt-1 border-t border-border">
+                        <p className="text-xs font-semibold text-foreground pt-1">M'alerter pour :</p>
+                        {([
+                          { key: "notif_new_place_zone",     icon: "📍", label: "Nouveau lieu publié",   desc: `Dans un rayon de ${profile.alert_radius_km} km` },
+                          { key: "notif_place_updated_zone", icon: "✏️", label: "Lieu modifié",           desc: `Dans un rayon de ${profile.alert_radius_km} km` },
+                          { key: "notif_lost_pet_zone",      icon: "🆘", label: "Animal perdu",           desc: `Dans un rayon de ${profile.alert_radius_km} km` },
+                          { key: "notif_new_stray_zone",     icon: "🚨", label: "Animal errant",          desc: `Dans un rayon de ${profile.alert_radius_km} km` },
+                        ] as const).map(({ key, icon, label, desc }) => (
+                          <NotifToggleRow
+                            key={key}
+                            icon={icon} label={label} desc={desc}
+                            enabled={prefs[key]}
+                            onToggle={() => updatePref(key, !prefs[key])}
+                            variant="user"
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Notifications personnelles ── */}
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Mes notifications</p>
                   {([
-                    { key: "notif_messages",               icon: "💬", label: "Messages",                     desc: "Nouveaux messages reçus" },
-                    { key: "notif_submission_approved",    icon: "✅", label: "Lieu approuvé",                 desc: "Un de mes lieux est validé" },
-                    { key: "notif_submission_rejected",    icon: "❌", label: "Lieu refusé",                   desc: "Un de mes lieux est rejeté" },
-                    { key: "notif_new_review_on_my_place", icon: "⭐", label: "Avis sur mes lieux",            desc: "Quelqu'un commente un lieu que j'ai soumis" },
-                    { key: "notif_lost_pet_zone",          icon: "🆘", label: "Animal perdu près de moi",     desc: "Signalement dans ma zone d'alerte" },
-                    { key: "notif_new_stray_zone",         icon: "🚨", label: "Animal errant près de moi",    desc: "Signalement dans ma zone d'alerte" },
+                    { key: "notif_messages",               icon: "💬", label: "Messages",          desc: "Nouveaux messages reçus" },
+                    { key: "notif_submission_approved",    icon: "✅", label: "Lieu approuvé",      desc: "Un de mes lieux est validé" },
+                    { key: "notif_submission_rejected",    icon: "❌", label: "Lieu refusé",         desc: "Un de mes lieux est rejeté" },
+                    { key: "notif_new_review_on_my_place", icon: "⭐", label: "Avis sur mes lieux", desc: "Quelqu'un commente un lieu soumis" },
                   ] as const).map(({ key, icon, label, desc }) => (
                     <NotifToggleRow
                       key={key}

@@ -3,13 +3,16 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface NotifPrefs {
-  // Commun — tous les utilisateurs
+  // Zone d'alerte (géographique)
+  notif_new_place_zone: boolean;
+  notif_place_updated_zone: boolean;
+  notif_lost_pet_zone: boolean;
+  notif_new_stray_zone: boolean;
+  // Personnel
   notif_messages: boolean;
   notif_submission_approved: boolean;
   notif_submission_rejected: boolean;
   notif_new_review_on_my_place: boolean;
-  notif_lost_pet_zone: boolean;
-  notif_new_stray_zone: boolean;
   // Admin uniquement
   notif_admin_new_review: boolean;
   notif_admin_new_place: boolean;
@@ -20,12 +23,14 @@ export interface NotifPrefs {
 }
 
 export const DEFAULT_PREFS: NotifPrefs = {
+  notif_new_place_zone: true,
+  notif_place_updated_zone: false,
+  notif_lost_pet_zone: true,
+  notif_new_stray_zone: true,
   notif_messages: true,
   notif_submission_approved: true,
   notif_submission_rejected: true,
   notif_new_review_on_my_place: true,
-  notif_lost_pet_zone: true,
-  notif_new_stray_zone: true,
   notif_admin_new_review: true,
   notif_admin_new_place: true,
   notif_admin_new_stray: true,
