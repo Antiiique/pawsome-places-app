@@ -163,10 +163,13 @@ export default function MarkerPopup({
   const [expandedReviews, setExpandedReviews] = useState<Record<number, boolean>>({});
   const [fullPhoto, setFullPhoto] = useState<string | null>(null);
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
-  const { user } = useAuthContext();
+  const { user, profile } = useAuthContext();
   const [reviewTab, setReviewTab] = useState<"google" | "community">("google");
   const [communityReviews, setCommunityReviews] = useState<CommunityReview[]>([]);
   const [loadingCR, setLoadingCR] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [localCategory, setLocalCategory] = useState(place.category ?? "other");
+  const [savingCategory, setSavingCategory] = useState(false);
   const [newRating, setNewRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [newBody, setNewBody] = useState("");
@@ -191,6 +194,37 @@ export default function MarkerPopup({
     const raf = requestAnimationFrame(() => setVisible(true));
     return () => cancelAnimationFrame(raf);
   }, []);
+
+  useEffect(() => {
+    const contextIsAdmin = isAdminEmail(user?.email) || profile?.is_admin === true;
+    if (contextIsAdmin) {
+      setIsAdmin(true);
+      return;
+    }
+
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setIsAdmin(isAdminEmail(data.session?.user?.email));
+    }).catch(() => {
+      if (mounted) setIsAdmin(false);
+    });
+
+    return () => { mounted = false; };
+  }, [user?.email, profile?.is_admin]);
+
+  useEffect(() => {
+    setLocalCategory(place.category ?? "other");
+  }, [place.placeId, place.name, place.category]);
+
+  async function quickSaveCategory(val: string) {
+    if (!dbId || val === localCategory) return;
+    setSavingCategory(true);
+    const { error } = await supabase.from("pet_friendly_places").update({ category: val }).eq("id", dbId);
+    setSavingCategory(false);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    setLocalCategory(val);
+    toast.success("Catégorie modifiée ✓");
+  }
 
   function handleClose() {
     setVisible(false);
