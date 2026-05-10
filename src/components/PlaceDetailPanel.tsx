@@ -156,7 +156,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     return () => { mounted = false; };
   }, [user?.email, profile?.is_admin]);
 
-  useEffect(() => { setLocalCategory(place?.category ?? ""); }, [place?.id]);
+  useEffect(() => { setLocalCategory(place?.category ?? ""); }, [place?.id, place?.category]);
 
   const quickSaveCategory = async (val: string) => {
     if (!place || val === localCategory) return;
