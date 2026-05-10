@@ -104,9 +104,54 @@ interface PlaceDetailPanelProps {
   isClosing?: boolean;
 }
 
+const ADMIN_EMAILS = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"];
+
+const CATS = [
+  { value: "veterinaire", label: "Vétérinaire 🏥" },
+  { value: "animalerie", label: "Animalerie 🐾" },
+  { value: "parc", label: "Parc & Nature 🌿" },
+  { value: "refuge", label: "Refuge 🏠" },
+  { value: "toiletteur", label: "Toiletteur ✂️" },
+  { value: "pension", label: "Pension 🏡" },
+  { value: "educateur", label: "Éducateur canin 🦮" },
+  { value: "masseur", label: "Masseur / Ostéo 💆" },
+  { value: "pet_sitter", label: "Pet Sitter 🏡" },
+  { value: "dog_walker", label: "Dog Walker 🦮" },
+  { value: "restaurant", label: "Restaurant 🍽️" },
+  { value: "hotel", label: "Hôtel 🛏️" },
+  { value: "cafe", label: "Café ☕" },
+  { value: "camping", label: "Camping ⛺" },
+  { value: "bar", label: "Bar 🍺" },
+  { value: "commerce", label: "Commerce 🛍️" },
+  { value: "plage", label: "Plage 🏖️" },
+  { value: "outdoor", label: "Parc & Nature 🌿" },
+  { value: "shop", label: "Pet Shop 🛍️" },
+  { value: "other", label: "Autre 📍" },
+];
+
 const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport, isClosing }: PlaceDetailPanelProps) => {
-  const { user, profile } = useAuthContext();
-  const isAdmin = profile?.is_admin === true;
+  const { user } = useAuthContext();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [localCategory, setLocalCategory] = useState(place?.category ?? "");
+  const [savingCategory, setSavingCategory] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setIsAdmin(ADMIN_EMAILS.includes(data.user?.email ?? ""));
+    });
+  }, []);
+
+  useEffect(() => { setLocalCategory(place?.category ?? ""); }, [place?.id]);
+
+  const quickSaveCategory = async (val: string) => {
+    if (!place || val === localCategory) return;
+    setSavingCategory(true);
+    const { error } = await supabase.from("pet_friendly_places").update({ category: val }).eq("id", place.id);
+    setSavingCategory(false);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    setLocalCategory(val);
+    toast.success("Catégorie modifiée ✓");
+  };
 
   // ── Bottom sheet snap state ──
   const [snap, setSnap] = useState<"half" | "full">("half");
@@ -397,6 +442,27 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
           </button>
         </div>
       </div>
+
+      {/* Admin category bar — always visible, even in half-snap mode */}
+      {isAdmin && (
+        <div className="shrink-0 flex items-center gap-2 px-4 py-2 border-b border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30">
+          <span className="text-xs font-bold text-violet-700 dark:text-violet-300 shrink-0">🏷️ Catégorie :</span>
+          <select
+            value={localCategory}
+            disabled={savingCategory}
+            onChange={e => quickSaveCategory(e.target.value)}
+            className="flex-1 text-xs font-semibold bg-white dark:bg-violet-900/40 border border-violet-300 dark:border-violet-600 rounded-lg px-2 py-1 text-violet-900 dark:text-violet-100 focus:outline-none"
+          >
+            {CATS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            {!CATS.find(c => c.value === localCategory) && localCategory && (
+              <option value={localCategory}>{localCategory}</option>
+            )}
+          </select>
+          {savingCategory && (
+            <div className="w-3.5 h-3.5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0" />
+          )}
+        </div>
+      )}
 
       {/* Scrollable content — scroll uniquement en mode full comme les autres panels */}
       <div className="flex-1" style={{ overflowY: snap === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
