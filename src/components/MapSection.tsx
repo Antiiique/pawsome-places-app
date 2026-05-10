@@ -1300,6 +1300,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         />
       )}
 
+      {selectedPlace && isMapAdmin && (
+        <AdminCategoryBar placeId={selectedPlace.id} category={selectedPlace.category} />
+      )}
+
       {selectedPlace && (
         <>
           <div
