@@ -207,6 +207,74 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          alert_radius_km: number | null
+          notif_admin_lost_pet: boolean | null
+          notif_admin_new_place: boolean | null
+          notif_admin_new_review: boolean | null
+          notif_admin_new_stray: boolean | null
+          notif_admin_new_user: boolean | null
+          notif_admin_profile_complete: boolean | null
+          notif_lost_pet_zone: boolean | null
+          notif_messages: boolean | null
+          notif_new_place_zone: boolean | null
+          notif_new_review_on_my_place: boolean | null
+          notif_new_stray_zone: boolean | null
+          notif_place_updated_zone: boolean | null
+          notif_submission_approved: boolean | null
+          notif_submission_rejected: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_radius_km?: number | null
+          notif_admin_lost_pet?: boolean | null
+          notif_admin_new_place?: boolean | null
+          notif_admin_new_review?: boolean | null
+          notif_admin_new_stray?: boolean | null
+          notif_admin_new_user?: boolean | null
+          notif_admin_profile_complete?: boolean | null
+          notif_lost_pet_zone?: boolean | null
+          notif_messages?: boolean | null
+          notif_new_place_zone?: boolean | null
+          notif_new_review_on_my_place?: boolean | null
+          notif_new_stray_zone?: boolean | null
+          notif_place_updated_zone?: boolean | null
+          notif_submission_approved?: boolean | null
+          notif_submission_rejected?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_radius_km?: number | null
+          notif_admin_lost_pet?: boolean | null
+          notif_admin_new_place?: boolean | null
+          notif_admin_new_review?: boolean | null
+          notif_admin_new_stray?: boolean | null
+          notif_admin_new_user?: boolean | null
+          notif_admin_profile_complete?: boolean | null
+          notif_lost_pet_zone?: boolean | null
+          notif_messages?: boolean | null
+          notif_new_place_zone?: boolean | null
+          notif_new_review_on_my_place?: boolean | null
+          notif_new_stray_zone?: boolean | null
+          notif_place_updated_zone?: boolean | null
+          notif_submission_approved?: boolean | null
+          notif_submission_rejected?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_friendly_places: {
         Row: {
           accepts_cats: boolean
@@ -764,6 +832,8 @@ export type Database = {
           is_admin: boolean
           is_banned: boolean
           last_seen_at: string | null
+          location_lat: number | null
+          location_lng: number | null
           points: number
           postal_code: string | null
         }
@@ -780,6 +850,8 @@ export type Database = {
           is_admin?: boolean
           is_banned?: boolean
           last_seen_at?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           points?: number
           postal_code?: string | null
         }
@@ -796,6 +868,8 @@ export type Database = {
           is_admin?: boolean
           is_banned?: boolean
           last_seen_at?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           points?: number
           postal_code?: string | null
         }
@@ -1037,6 +1111,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      haversine_km: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
       }
       is_user_banned: { Args: never; Returns: boolean }
       mark_review_helpful: { Args: { review_id: string }; Returns: undefined }
