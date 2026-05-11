@@ -33,10 +33,10 @@ BEGIN
 
     INSERT INTO public.user_notifications (user_id, type, title, message, related_id)
     SELECT p.id,
-           'new_review',
+           'new_review'::text,
            '💬 Nouvel avis communauté',
            'Un utilisateur a laissé un avis sur "' || COALESCE(place_name, 'un lieu') || '".',
-           NEW.place_id
+           NEW.place_id::uuid
     FROM public.profiles p
     WHERE p.is_admin = TRUE;
   EXCEPTION WHEN OTHERS THEN
