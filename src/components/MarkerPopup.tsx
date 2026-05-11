@@ -315,14 +315,16 @@ export default function MarkerPopup({
     const isEditing = !!userReview;
     if (isEditing) {
       const { error } = await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photo_url: uploadedPhotoUrl, has_been_edited: true }).eq("id", userReview.id).eq("user_id", user.id);
-      if (error) { toast.error("Erreur lors de la publication"); setSubmitting(false); return; }
+      if (error) { toast.error("Erreur : " + error.message); setSubmitting(false); return; }
       await supabase.from("review_pets" as any).delete().eq("review_id", userReview.id);
       if (selectedPetIds.length > 0) {
         await supabase.from("review_pets" as any).insert(selectedPetIds.map(petId => ({ review_id: userReview.id, pet_id: petId })));
       }
     } else {
-      const { data: newReview, error } = await supabase.from("place_reviews").insert({ place_id: dbId, user_id: user.id, rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photo_url: uploadedPhotoUrl }).select("id").single();
-      if (error) { toast.error("Erreur lors de la publication"); setSubmitting(false); return; }
+      const { data: newReview, error } = await supabase.from("place_reviews")
+        .upsert({ place_id: dbId, user_id: user.id, rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photo_url: uploadedPhotoUrl }, { onConflict: "place_id,user_id" })
+        .select("id").single();
+      if (error) { toast.error("Erreur : " + error.message); setSubmitting(false); return; }
       if (newReview && selectedPetIds.length > 0) {
         await supabase.from("review_pets" as any).insert(selectedPetIds.map(petId => ({ review_id: newReview.id, pet_id: petId })));
       }

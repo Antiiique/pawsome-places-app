@@ -433,7 +433,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     const { error } = userReview
       ? await supabase.from("place_reviews").update({ rating: newRating, body: newBody || null, visited_with_pet: visitedWithPet, photos: allPhotos }).eq("id", userReview.id).eq("user_id", user.id)
       : await supabase.from("place_reviews").insert(payload);
-    if (error) toast.error("Erreur lors de la publication");
+    if (error) toast.error("Erreur : " + error.message);
     else { toast.success(userReview ? "Avis mis à jour !" : "Avis publié !"); setPhotoFiles([]); await loadReviews(); }
     setSubmitting(false);
   }
