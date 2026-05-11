@@ -674,7 +674,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
             {categoryLabels[place.category] || place.category}
           </Badge>
 
-          <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
+          {localVerified && <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
             <p className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">✅ Lieu vérifié pet-friendly</p>
             <div className="flex flex-wrap gap-2">
               {place.accepts_dogs && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Dog className="w-3.5 h-3.5" /> 🐕 Chiens acceptés</Badge>}
@@ -683,7 +683,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
               {!place.outdoor_seating && <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 gap-1"><Home className="w-3.5 h-3.5" /> Animaux OK en intérieur</Badge>}
               {place.dogs_on_leash_only && <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 gap-1">🐕‍🦺 Laisse obligatoire</Badge>}
             </div>
-          </div>
+          </div>}
 
           {/* Tabs */}
           <div className="flex rounded-xl border border-border overflow-hidden">
