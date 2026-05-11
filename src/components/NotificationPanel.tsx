@@ -51,7 +51,7 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
     if (!n.is_read) markAsRead(n.id);
     onClose();
     if (n.type === "new_review" && n.related_id) {
-      window.dispatchEvent(new CustomEvent("open-community-reviews", { detail: { placeId: n.related_id } }));
+      window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: n.related_id } }));
     } else if (n.type === "lost_pet" && n.related_id) {
       window.dispatchEvent(new CustomEvent("open-lost-pet", { detail: { petId: n.related_id } }));
     } else if (n.type === "new_stray" && n.related_id) {
