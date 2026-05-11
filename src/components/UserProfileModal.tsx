@@ -667,10 +667,9 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
     <>
     <div
       data-panel
-      className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-l-2xl"
+      className="fixed z-[600] inset-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-l-2xl"
       style={{
-        top: 0,
-        overflowX: "hidden",
+        overflow: "hidden",
         ...(dragProgress !== undefined
           ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" }
           : { transform: open ? "translateX(0%)" : "translateX(100%)" }),
@@ -682,8 +681,8 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
         </button>
       </div>
 
-      <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="flex-1 min-h-0 flex flex-col">
-        <div className="flex-1 min-h-0 overflow-y-auto">
+      <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-y-auto" style={{ touchAction: "pan-y" }}>
 
           {/* ── PROFIL ── */}
           <TabsContent value="profile" className="p-4 space-y-4">
