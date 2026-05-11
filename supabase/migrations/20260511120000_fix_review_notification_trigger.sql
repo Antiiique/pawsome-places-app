@@ -1,6 +1,5 @@
 -- Fix: extend validate_user_notification_type to include all types used by the app
--- Fix: make notify_admins_new_review exception-safe so a notification failure
---      never blocks a review from being saved.
+-- Fix: notify_admins_new_review uses local UUID variable to avoid SELECT/INSERT type mismatch
 
 CREATE OR REPLACE FUNCTION public.validate_user_notification_type()
 RETURNS trigger LANGUAGE plpgsql SET search_path TO 'public' AS $$
@@ -19,34 +18,42 @@ BEGIN
 END;
 $$;
 
--- Recreate notify_admins_new_review with exception handling so any failure
--- inside (RLS, missing column, etc.) never rolls back the review insert.
+DROP TRIGGER IF EXISTS trg_notify_admins_new_review ON public.place_reviews;
+
 CREATE OR REPLACE FUNCTION public.notify_admins_new_review()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $$
 DECLARE
-  place_name TEXT;
+  v_place_name TEXT;
+  v_place_id   UUID;
+  v_admin_id   UUID;
 BEGIN
   BEGIN
-    SELECT name INTO place_name
-    FROM public.pet_friendly_places
-    WHERE id = NEW.place_id;
+    v_place_id := NEW.place_id;
 
-    INSERT INTO public.user_notifications (user_id, type, title, message, related_id)
-    SELECT p.id,
-           'new_review'::text,
-           '💬 Nouvel avis communauté',
-           'Un utilisateur a laissé un avis sur "' || COALESCE(place_name, 'un lieu') || '".',
-           NEW.place_id::uuid
-    FROM public.profiles p
-    WHERE p.is_admin = TRUE;
+    SELECT name INTO v_place_name
+    FROM public.pet_friendly_places
+    WHERE id = v_place_id;
+
+    FOR v_admin_id IN
+      SELECT id FROM public.profiles WHERE is_admin = TRUE
+    LOOP
+      INSERT INTO public.user_notifications
+        (user_id, type, title, message, related_id)
+      VALUES (
+        v_admin_id,
+        'new_review',
+        '💬 Nouvel avis communauté',
+        'Avis posté sur "' || COALESCE(v_place_name, 'un lieu') || '".',
+        v_place_id
+      );
+    END LOOP;
   EXCEPTION WHEN OTHERS THEN
-    NULL; -- notification failure must never block the review save
+    NULL;
   END;
   RETURN NEW;
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_notify_admins_new_review ON public.place_reviews;
 CREATE TRIGGER trg_notify_admins_new_review
   AFTER INSERT ON public.place_reviews
   FOR EACH ROW EXECUTE FUNCTION public.notify_admins_new_review();
