@@ -8,16 +8,19 @@
 CREATE OR REPLACE FUNCTION public.notify_users_near_place_on_review()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $$
 DECLARE
-  place_lat   FLOAT;
-  place_lng   FLOAT;
-  place_name  TEXT;
+  place_lat    FLOAT;
+  place_lng    FLOAT;
+  place_name   TEXT;
+  v_place_id   UUID;
 BEGIN
   BEGIN
+    v_place_id := NEW.place_id;
+
     -- Coordonnées et nom du lieu commenté
     SELECT latitude, longitude, name
     INTO place_lat, place_lng, place_name
     FROM public.pet_friendly_places
-    WHERE id = NEW.place_id;
+    WHERE id = v_place_id;
 
     -- Pas de coordonnées → rien à faire
     IF place_lat IS NULL OR place_lng IS NULL THEN
@@ -31,7 +34,7 @@ BEGIN
       'new_review'::text,
       '💬 Nouvel avis à proximité',
       'Un avis a été posté sur "' || COALESCE(place_name, 'un lieu') || '" près de chez vous.',
-      NEW.place_id::uuid
+      v_place_id
     FROM public.profiles p
     LEFT JOIN public.notification_preferences np ON np.user_id = p.id
     WHERE
