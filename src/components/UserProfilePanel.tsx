@@ -280,7 +280,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
       <div
         className="fixed bottom-0 left-0 right-0 z-[700] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
-          top: "var(--header-h, 56px)",
+          top: 0,
           transform: compact ? "translateY(55%)" : "translateY(0%)",
           transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
         }}
