@@ -418,7 +418,11 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
                     })();
 
                     return (
-                      <div key={pet.id} className="rounded-2xl border border-border overflow-hidden bg-card">
+                      <div
+                        key={pet.id}
+                        className="rounded-2xl border border-border overflow-hidden bg-card cursor-pointer hover:border-primary/50 transition-colors"
+                        onClick={() => window.dispatchEvent(new CustomEvent("open-pet-profile", { detail: { petId: pet.id } }))}
+                      >
                         {/* Photo banner */}
                         <div className="relative w-full h-36 bg-muted">
                           {pet.avatar_url

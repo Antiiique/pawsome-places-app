@@ -4,6 +4,7 @@ import ItineraryPanel from "@/components/itinerary/ItineraryPanel";
 import UserProfileModal from "@/components/UserProfileModal";
 import FavoritesPanel from "@/components/FavoritesPanel";
 import UserProfilePanel from "@/components/UserProfilePanel";
+import PetProfilePanel from "@/components/PetProfilePanel";
 import MessagesPanel from "@/components/MessagesPanel";
 import type { PickMode } from "@/components/itinerary/ItineraryPanel";
 import { useState, useCallback, useEffect, useRef } from "react";
@@ -22,6 +23,7 @@ const Index = () => {
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [showMessages, setShowMessages] = useState(false);
   const [pendingChat, setPendingChat] = useState<{ convId: string; other: { id: string; display_name: string | null; avatar_url: string | null } } | null>(null);
+  const [petProfileId, setPetProfileId] = useState<string | null>(null);
   const [itineraryData, setItineraryData] = useState<ItineraryMapData | null>(null);
   const [pickMode, setPickMode] = useState<PickMode>(null);
   const [panelDrag, setPanelDrag] = useState<{ panel: "itinerary" | "favorites" | "profile"; progress: number } | null>(null);
@@ -43,6 +45,15 @@ const Index = () => {
     };
     window.addEventListener("open-user-profile", handler);
     return () => window.removeEventListener("open-user-profile", handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const petId = (e as CustomEvent).detail?.petId;
+      if (petId) setPetProfileId(petId);
+    };
+    window.addEventListener("open-pet-profile", handler);
+    return () => window.removeEventListener("open-pet-profile", handler);
   }, []);
 
   // Freeze map whenever a panel is open OR being dragged
@@ -273,6 +284,11 @@ const Index = () => {
           setPendingChat({ convId, other });
           setShowMessages(true);
         }}
+      />
+
+      <PetProfilePanel
+        petId={petProfileId}
+        onClose={() => setPetProfileId(null)}
       />
 
       <MessagesPanel

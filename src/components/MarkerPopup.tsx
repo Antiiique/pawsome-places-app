@@ -874,13 +874,17 @@ export default function MarkerPopup({
                           {r.review_pets && r.review_pets.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-0.5">
                               {r.review_pets.map(rp => rp.pets && (
-                                <span key={rp.pet_id} className="flex items-center gap-1 text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                                <button
+                                  key={rp.pet_id}
+                                  onClick={() => window.dispatchEvent(new CustomEvent("open-pet-profile", { detail: { petId: rp.pets!.id } }))}
+                                  className="flex items-center gap-1 text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full hover:bg-primary/20 transition-colors"
+                                >
                                   {rp.pets.avatar_url
                                     ? <img src={rp.pets.avatar_url} className="w-3.5 h-3.5 rounded-full object-cover" alt="" />
                                     : <span>{rp.pets.species === "dog" ? "🐶" : rp.pets.species === "cat" ? "🐱" : rp.pets.species === "rabbit" ? "🐰" : rp.pets.species === "bird" ? "🐦" : "🐾"}</span>
                                   }
                                   {rp.pets.name}
-                                </span>
+                                </button>
                               ))}
                             </div>
                           )}

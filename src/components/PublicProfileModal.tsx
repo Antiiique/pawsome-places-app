@@ -122,13 +122,17 @@ export default function PublicProfileModal({ userId, onClose }: PublicProfileMod
                 <p className="text-xs font-semibold text-muted-foreground mb-2">Animaux</p>
                 <div className="flex flex-wrap gap-2">
                   {pets.map(pet => (
-                    <div key={pet.id} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs text-primary">
+                    <button
+                      key={pet.id}
+                      onClick={() => window.dispatchEvent(new CustomEvent("open-pet-profile", { detail: { petId: pet.id } }))}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs text-primary hover:bg-primary/20 transition-colors"
+                    >
                       {pet.avatar_url
                         ? <img src={pet.avatar_url} className="w-5 h-5 rounded-full object-cover" alt="" />
                         : <span>{petEmoji(pet.species)}</span>
                       }
                       {pet.name}
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
