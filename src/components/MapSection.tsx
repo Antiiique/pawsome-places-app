@@ -969,7 +969,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
   const handleToggleFav = (place: PetPlace) => {
     if (!onToggleFavorite) return;
-    const added = onToggleFavorite({ id: place.id, name: place.name, category: place.category, subcategory: place.subcategory, address: place.address, city: place.city, lat: place.latitude, lng: place.longitude, phone: place.phone, website: place.website, accepts_dogs: place.accepts_dogs, accepts_cats: place.accepts_cats });
+    const added = onToggleFavorite({ id: place.id, name: place.name, category: place.category, subcategory: place.subcategory, address: place.address, city: place.city, lat: place.latitude, lng: place.longitude, phone: place.phone, website: place.website, accepts_dogs: place.accepts_dogs, accepts_cats: place.accepts_cats, photo_url: place.photo_url || null });
     toast(added ? `❤️ ${place.name} ajouté aux favoris` : `💔 ${place.name} retiré des favoris`);
   };
 
@@ -1284,7 +1284,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             const p = popupData.place;
             const id = popupData.petPlace?.id || p.placeId || `custom_${p.lat}_${p.lng}`;
             const category = popupData.petPlace?.category || detectCategoryFromTypes(p.types);
-            const added = onToggleFavorite({ id, name: p.name, category, address: p.address || null, city: p.city || null, lat: p.lat, lng: p.lng, phone: p.phone || null, website: p.website || null, accepts_dogs: p.isPetFriendly, rating: p.rating || null, placeId: p.placeId || null, isPetFriendly: p.isPetFriendly, source: p.isPetFriendly ? "supabase" : "mapbox" });
+            const added = onToggleFavorite({ id, name: p.name, category, address: p.address || null, city: p.city || null, lat: p.lat, lng: p.lng, phone: p.phone || null, website: p.website || null, accepts_dogs: p.isPetFriendly, rating: p.rating || null, photo_url: popupData.petPlace?.photo_url || (p.photos?.[0] ?? null), placeId: p.placeId || null, isPetFriendly: p.isPetFriendly, source: p.isPetFriendly ? "supabase" : "mapbox" });
             toast(added ? `❤️ ${p.name} ajouté aux favoris` : `💔 ${p.name} retiré des favoris`);
           }}
           onAddWaypoint={() => {

@@ -16,6 +16,7 @@ export interface FavoritePlace {
   accepts_dogs: boolean;
   accepts_cats?: boolean;
   rating?: number | null;
+  photo_url?: string | null;
   placeId?: string | null;
   isPetFriendly?: boolean;
   source?: string;
