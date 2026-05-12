@@ -287,14 +287,15 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
         />
       )}
 
-      {/* Panel */}
+      {/* Panel — bottom sheet */}
       <div
-        className="fixed top-0 right-0 h-full z-[10003] flex flex-col overflow-hidden"
+        className="fixed bottom-0 left-1/2 z-[10003] flex flex-col overflow-hidden rounded-t-2xl"
         style={{
           ...glassStyle,
-          width: "min(400px, 100vw)",
-          transform: isOpen ? "translateX(0)" : "translateX(100%)",
-          transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
+          width: "min(480px, 100vw)",
+          maxHeight: "85dvh",
+          transform: isOpen ? "translate(-50%, 0)" : "translate(-50%, 100%)",
+          transition: "transform 0.30s cubic-bezier(0.4,0,0.2,1)",
           pointerEvents: isOpen ? "auto" : "none",
         }}
       >
@@ -306,8 +307,13 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
           />
         ) : (
           <>
+            {/* Drag handle */}
+            <div className="flex justify-center pt-2.5 pb-1 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-border opacity-60" />
+            </div>
+
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-border shrink-0">
               <span className="text-sm font-bold text-foreground">
                 {pet ? `${speciesEmoji(pet.species)} ${pet.name}` : "Profil animal"}
               </span>
@@ -329,7 +335,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
               ) : (
                 <div className="space-y-0">
                   {/* Hero */}
-                  <div className="relative w-full bg-muted" style={{ height: 200 }}>
+                  <div className="relative w-full bg-muted" style={{ height: 160 }}>
                     {pet.avatar_url
                       ? <img src={pet.avatar_url} alt={pet.name} className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center text-7xl">{speciesEmoji(pet.species)}</div>
