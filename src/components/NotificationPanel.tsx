@@ -30,6 +30,7 @@ const typeConfig: Record<string, { icon: string; borderColor: string; bgColor: s
   lost_pet: { icon: "🆘", borderColor: "border-l-amber-500", bgColor: "bg-amber-100 dark:bg-amber-900/30" },
   new_stray: { icon: "🚨", borderColor: "border-l-red-500", bgColor: "bg-red-100 dark:bg-red-900/30" },
   new_place: { icon: "📍", borderColor: "border-l-primary", bgColor: "bg-primary/10" },
+  new_user:  { icon: "👤", borderColor: "border-l-violet-500", bgColor: "bg-violet-100 dark:bg-violet-900/30" },
 };
 
 export default function NotificationPanel({ open, onClose }: NotificationPanelProps) {
