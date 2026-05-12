@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { X, ChevronLeft, Send, Loader2 } from "lucide-react";
+import { createPortal } from "react-dom";
+import { X, ChevronLeft, ChevronUp, Send, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -71,13 +72,6 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
 
-// ─── Props ────────────────────────────────────────────────────────────────────
-
-interface PetProfilePanelProps {
-  petId: string | null;
-  onClose: () => void;
-}
-
 // ─── Photo detail view ────────────────────────────────────────────────────────
 
 function PhotoDetail({
@@ -132,7 +126,6 @@ function PhotoDetail({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border shrink-0">
         <button
           onClick={onBack}
@@ -140,33 +133,20 @@ function PhotoDetail({
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-sm font-bold text-foreground flex-1 truncate">
-          Photo de {petName}
-        </span>
+        <span className="text-sm font-bold text-foreground flex-1 truncate">Photo de {petName}</span>
       </div>
 
-      {/* Photo */}
-      <div className="relative bg-black shrink-0" style={{ maxHeight: "45vh" }}>
-        <img
-          src={photo.url}
-          alt={photo.caption ?? ""}
-          className="w-full object-contain"
-          style={{ maxHeight: "45vh" }}
-        />
+      <div className="relative bg-black shrink-0" style={{ maxHeight: "40vh" }}>
+        <img src={photo.url} alt={photo.caption ?? ""} className="w-full object-contain" style={{ maxHeight: "40vh" }} />
       </div>
 
       {photo.caption && (
-        <div className="px-4 py-2 text-xs text-muted-foreground border-b border-border italic shrink-0">
-          {photo.caption}
-        </div>
+        <div className="px-4 py-2 text-xs text-muted-foreground border-b border-border italic shrink-0">{photo.caption}</div>
       )}
 
-      {/* Comments */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {loadingComments ? (
-          <div className="flex justify-center py-6">
-            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-          </div>
+          <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
         ) : comments.length === 0 ? (
           <div className="text-center py-8 text-xs text-muted-foreground">
             <span className="text-2xl opacity-30">💬</span>
@@ -183,9 +163,7 @@ function PhotoDetail({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-xs font-semibold text-foreground truncate">
-                    {c.profiles?.display_name ?? "Anonyme"}
-                  </span>
+                  <span className="text-xs font-semibold text-foreground truncate">{c.profiles?.display_name ?? "Anonyme"}</span>
                   <span className="text-[10px] text-muted-foreground shrink-0">{timeAgo(c.created_at)}</span>
                 </div>
                 <p className="text-xs text-foreground mt-0.5 leading-relaxed">{c.body}</p>
@@ -196,7 +174,6 @@ function PhotoDetail({
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       {user ? (
         <div className="shrink-0 border-t border-border px-4 py-3 flex items-center gap-2">
           <input
@@ -224,26 +201,83 @@ function PhotoDetail({
   );
 }
 
+// ─── Props ────────────────────────────────────────────────────────────────────
+
+interface PetProfilePanelProps {
+  petId: string | null;
+  onClose: () => void;
+}
+
 // ─── Main panel ───────────────────────────────────────────────────────────────
 
-
 export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps) {
+  const [visible, setVisible] = useState(false);
+  const [snapState, setSnapState] = useState<"half" | "full">("half");
   const [pet, setPet] = useState<Pet | null>(null);
   const [photos, setPhotos] = useState<PetPhoto[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<PetPhoto | null>(null);
 
-  useEffect(() => {
-    if (!petId) {
-      setPet(null);
-      setPhotos([]);
-      setSelectedPhoto(null);
-      return;
+  // ── Drag state (same pattern as StrayReportModal) ──
+  const [dragging, setDragging] = useState(false);
+  const [dragDelta, setDragDelta] = useState(0);
+  const isDragging    = useRef(false);
+  const dragStartY    = useRef(0);
+  const lastTouchY    = useRef(0);
+  const lastTouchTime = useRef(0);
+  const lastVelocity  = useRef(0);
+
+  const handleClose = () => {
+    setVisible(false);
+    setTimeout(onClose, 300);
+  };
+
+  const handleDragStart = (e: React.TouchEvent) => {
+    isDragging.current = true;
+    dragStartY.current = e.touches[0].clientY;
+    lastTouchY.current = e.touches[0].clientY;
+    lastTouchTime.current = Date.now();
+    lastVelocity.current = 0;
+    setDragging(true);
+    setDragDelta(0);
+  };
+
+  const handleDragMove = (e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    const y = e.touches[0].clientY;
+    const now = Date.now();
+    const dt = now - lastTouchTime.current;
+    if (dt > 0) lastVelocity.current = (y - lastTouchY.current) / dt;
+    lastTouchY.current = y;
+    lastTouchTime.current = now;
+    setDragDelta(y - dragStartY.current);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    setDragging(false);
+    const h = window.innerHeight - 56;
+    const deltaPct = h > 0 ? (dragDelta / h) * 100 : 0;
+    const vel = lastVelocity.current;
+    if (snapState === "half") {
+      if (vel < -0.3 || deltaPct < -15) { setSnapState("full"); }
+      else if (vel > 0.3 || deltaPct > 15) { handleClose(); }
+    } else {
+      if (vel > 0.5 || deltaPct > 25) { setSnapState("half"); }
     }
+    setDragDelta(0);
+  };
+
+  // ── Load pet data when petId changes ──
+  useEffect(() => {
+    if (!petId) return;
+    setVisible(true);
+    setSnapState("half");
+    setSelectedPhoto(null);
     let cancelled = false;
     async function load() {
       setLoading(true);
-      setSelectedPhoto(null);
       const [petRes, photosRes] = await Promise.all([
         supabase
           .from("pets" as any)
@@ -266,26 +300,36 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
     return () => { cancelled = true; };
   }, [petId]);
 
-  const isOpen = !!petId;
+  if (!petId && !visible) return null;
+
   const age = pet ? petAge(pet.birth_date) : null;
 
-  return (
+  const panelStyle = (() => {
+    const snapBase = snapState === "full" ? 0 : 55;
+    const headerH = 56;
+    const h = window.innerHeight - headerH;
+    const dragPct = dragging && h > 0 ? (dragDelta / h) * 100 : 0;
+    const currentPct = Math.max(0, Math.min(100, snapBase + dragPct));
+    return {
+      top: "var(--header-h, 56px)",
+      transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
+      transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+    };
+  })();
+
+  return createPortal(
     <>
-      {/* Overlay — identique à SubmitPlaceModal / StrayReportModal */}
+      {/* Scrim — identique StrayReportModal */}
       <div
         className="fixed inset-0 z-[700] bg-black/50"
-        style={{ opacity: isOpen ? 1 : 0, transition: "opacity 0.3s ease", pointerEvents: isOpen ? "auto" : "none" }}
-        onClick={onClose}
+        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease" }}
+        onClick={handleClose}
       />
 
-      {/* Panel — bottom sheet identique à SubmitPlaceModal */}
+      {/* Bottom sheet — identique StrayReportModal */}
       <div
-        className="fixed left-0 right-0 bottom-0 z-[701] bg-card rounded-t-2xl shadow-2xl flex flex-col"
-        style={{
-          maxHeight: "85dvh",
-          transform: isOpen ? "translateY(0)" : "translateY(100%)",
-          transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
-        }}
+        className="fixed left-0 right-0 bottom-0 z-[700] bg-card rounded-t-2xl shadow-2xl flex flex-col"
+        style={panelStyle}
       >
         {selectedPhoto && pet ? (
           <PhotoDetail
@@ -296,24 +340,42 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
         ) : (
           <>
             {/* Drag handle */}
-            <div className="shrink-0 flex justify-center pt-3 pb-1">
+            <div
+              className="shrink-0 flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
+              onTouchStart={handleDragStart}
+              onTouchMove={handleDragMove}
+              onTouchEnd={handleDragEnd}
+              style={{ touchAction: "none" }}
+            >
               <div className="w-10 h-1 rounded-full bg-border" />
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-border shrink-0">
-              <span className="text-sm font-bold text-foreground">
+            <div
+              className="flex items-center justify-between px-5 pt-3 pb-3 border-b border-border shrink-0"
+              onTouchStart={handleDragStart}
+              onTouchMove={handleDragMove}
+              onTouchEnd={handleDragEnd}
+              style={{ touchAction: "none" }}
+            >
+              <h2 className="font-bold text-foreground text-lg">
                 {pet ? `${speciesEmoji(pet.species)} ${pet.name}` : "Profil animal"}
-              </span>
-              <button
-                onClick={onClose}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              </h2>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={() => setSnapState(s => s === "half" ? "full" : "half")}
+                  className="p-1.5 rounded-full hover:bg-muted transition-colors"
+                >
+                  <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snapState === "full" ? "rotate-180" : ""}`} />
+                </button>
+                <button onClick={handleClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            {/* Scrollable content — only in full mode */}
+            <div className="flex-1" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
               {loading ? (
                 <div className="flex justify-center items-center py-16">
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -321,14 +383,13 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
               ) : !pet ? (
                 <div className="p-8 text-center text-sm text-muted-foreground">Animal introuvable</div>
               ) : (
-                <div className="space-y-0">
+                <div>
                   {/* Hero */}
                   <div className="relative w-full bg-muted" style={{ height: 160 }}>
                     {pet.avatar_url
                       ? <img src={pet.avatar_url} alt={pet.name} className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center text-7xl">{speciesEmoji(pet.species)}</div>
                     }
-                    {/* Species overlay */}
                     <span className="absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-black/50 text-white backdrop-blur-sm">
                       {speciesEmoji(pet.species)} {pet.species}
                     </span>
@@ -341,9 +402,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
                   </div>
 
                   {/* Info */}
-                  <div className="px-4 py-4 space-y-3 border-b border-border">
-                    <h2 className="text-xl font-extrabold text-foreground">{pet.name}</h2>
-
+                  <div className="px-5 py-4 space-y-3 border-b border-border">
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                       {pet.breed && <span>{pet.breed}</span>}
                       {pet.color && <span>· {pet.color}</span>}
@@ -359,15 +418,15 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
 
                     {(pet.is_vaccinated || pet.is_sterilized || pet.is_microchipped) && (
                       <div className="flex gap-1.5 flex-wrap">
-                        {pet.is_vaccinated  && <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 px-2 py-0.5 rounded-full font-medium">💉 Vacciné</span>}
-                        {pet.is_sterilized  && <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-2 py-0.5 rounded-full font-medium">✂️ Stérilisé</span>}
+                        {pet.is_vaccinated   && <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 px-2 py-0.5 rounded-full font-medium">💉 Vacciné</span>}
+                        {pet.is_sterilized   && <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-2 py-0.5 rounded-full font-medium">✂️ Stérilisé</span>}
                         {pet.is_microchipped && <span className="text-[10px] bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 px-2 py-0.5 rounded-full font-medium">📡 Pucé</span>}
                       </div>
                     )}
                   </div>
 
                   {/* Photo album */}
-                  <div className="px-4 py-4">
+                  <div className="px-5 py-4">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                       Album · {photos.length} photo{photos.length !== 1 ? "s" : ""}
                     </p>
@@ -385,11 +444,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
                             onClick={() => setSelectedPhoto(photo)}
                             className="relative aspect-square overflow-hidden rounded-lg bg-muted hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary"
                           >
-                            <img
-                              src={photo.url}
-                              alt={photo.caption ?? ""}
-                              className="w-full h-full object-cover"
-                            />
+                            <img src={photo.url} alt={photo.caption ?? ""} className="w-full h-full object-cover" />
                             {photo.caption && (
                               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-1.5 py-1">
                                 <p className="text-[9px] text-white line-clamp-1">{photo.caption}</p>
@@ -406,6 +461,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
           </>
         )}
       </div>
-    </>
+    </>,
+    document.body
   );
 }
