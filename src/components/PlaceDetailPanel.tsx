@@ -670,9 +670,16 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
         )}
 
         <div className="p-4 space-y-4">
-          <Badge className={`${categoryBgColors[place.category] || "bg-gray-500"} text-white`}>
-            {categoryLabels[place.category] || place.category}
-          </Badge>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge className={`${categoryBgColors[place.category] || "bg-gray-500"} text-white`}>
+              {categoryLabels[place.category] || place.category}
+            </Badge>
+            {localVerified && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-semibold border border-green-300 dark:border-green-700">
+                ✅ Vérifié
+              </span>
+            )}
+          </div>
 
           {localVerified && <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
             <p className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">✅ Lieu vérifié pet-friendly</p>

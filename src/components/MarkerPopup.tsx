@@ -222,14 +222,15 @@ export default function MarkerPopup({
   }, [place.placeId, place.name, place.category]);
 
   useEffect(() => {
+    if (!dbId) return;
+    supabase.from("pet_friendly_places").select("verified").eq("id", dbId).maybeSingle()
+      .then(({ data }) => { if (data) setLocalVerified((data as any).verified ?? false); });
+  }, [dbId]);
+
+  useEffect(() => {
     if (!isAdmin || !dbId) return;
-    supabase.from("pet_friendly_places").select("verified, is_flagged").eq("id", dbId).maybeSingle()
-      .then(({ data }) => {
-        if (data) {
-          setLocalVerified((data as any).verified ?? false);
-          setLocalFlagged((data as any).is_flagged ?? false);
-        }
-      });
+    supabase.from("pet_friendly_places").select("is_flagged").eq("id", dbId).maybeSingle()
+      .then(({ data }) => { if (data) setLocalFlagged((data as any).is_flagged ?? false); });
   }, [isAdmin, dbId]);
 
   async function quickSaveCategory(val: string) {
@@ -691,12 +692,19 @@ export default function MarkerPopup({
           )}
 
           <div className="p-4 space-y-4">
-            {/* 3. Badge pet-friendly */}
-            {place.isPetFriendly && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-semibold">
-                🐾 Pet-friendly
-              </span>
-            )}
+            {/* 3. Badges pet-friendly + vérifié */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {place.isPetFriendly && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-semibold">
+                  🐾 Pet-friendly
+                </span>
+              )}
+              {localVerified && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-semibold border border-green-300 dark:border-green-700">
+                  ✅ Vérifié
+                </span>
+              )}
+            </div>
 
             {/* 4. Note Google */}
             {place.rating && (
