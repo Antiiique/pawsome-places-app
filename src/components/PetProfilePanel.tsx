@@ -226,14 +226,6 @@ function PhotoDetail({
 
 // ─── Main panel ───────────────────────────────────────────────────────────────
 
-const glassStyle: React.CSSProperties = {
-  background: "color-mix(in srgb, var(--card) 25%, transparent)",
-  border: "1px solid color-mix(in srgb, var(--border) 40%, transparent)",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
-  backdropFilter: "blur(32px) saturate(180%)",
-  WebkitBackdropFilter: "blur(32px) saturate(180%)",
-  touchAction: "manipulation",
-};
 
 export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps) {
   const [pet, setPet] = useState<Pet | null>(null);
@@ -279,24 +271,20 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
 
   return (
     <>
-      {/* Overlay transparente — capter le clic sans cacher le fond */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-[10002]"
-          onClick={onClose}
-        />
-      )}
-
-      {/* Panel — bottom sheet */}
+      {/* Overlay — identique à SubmitPlaceModal / StrayReportModal */}
       <div
-        className="fixed bottom-0 left-1/2 z-[10003] flex flex-col overflow-hidden rounded-t-2xl"
+        className="fixed inset-0 z-[700] bg-black/50"
+        style={{ opacity: isOpen ? 1 : 0, transition: "opacity 0.3s ease", pointerEvents: isOpen ? "auto" : "none" }}
+        onClick={onClose}
+      />
+
+      {/* Panel — bottom sheet identique à SubmitPlaceModal */}
+      <div
+        className="fixed left-0 right-0 bottom-0 z-[701] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
-          ...glassStyle,
-          width: "min(480px, 100vw)",
           maxHeight: "85dvh",
-          transform: isOpen ? "translate(-50%, 0)" : "translate(-50%, 100%)",
-          transition: "transform 0.30s cubic-bezier(0.4,0,0.2,1)",
-          pointerEvents: isOpen ? "auto" : "none",
+          transform: isOpen ? "translateY(0)" : "translateY(100%)",
+          transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
         }}
       >
         {selectedPhoto && pet ? (
@@ -308,8 +296,8 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
         ) : (
           <>
             {/* Drag handle */}
-            <div className="flex justify-center pt-2.5 pb-1 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-border opacity-60" />
+            <div className="shrink-0 flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-border" />
             </div>
 
             {/* Header */}
