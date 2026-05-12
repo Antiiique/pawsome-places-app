@@ -212,6 +212,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  const markerCirclesRef = useRef<Map<string, HTMLElement>>(new Map());
+  const glowedIdRef = useRef<string | null>(null);
   const strayMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const lostPetMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const itineraryMarkersRef = useRef<mapboxgl.Marker[]>([]);
@@ -389,7 +391,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         const color = place.accepts_dogs ? (CATEGORY_COLORS[place.category] || "#4CAF50") : "#9E9E9E";
         const emoji = CATEGORY_EMOJIS[place.category] || "📍";
         el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));";
-        el.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:${color};border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;">${emoji}</div><div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid ${color};margin-top:-1px;"></div>`;
+        el.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:${color};border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transition:box-shadow 0.2s ease;">${emoji}</div><div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid ${color};margin-top:-1px;"></div>`;
+        const circleEl = el.firstElementChild as HTMLElement | null;
+        if (circleEl) {
+          markerCirclesRef.current.set(id, circleEl);
+          if (glowedIdRef.current === id) circleEl.classList.add("marker-selected-glow");
+        }
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           markerClickedRef.current = true;
@@ -441,13 +448,14 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
     // Remove invisible markers
     markersRef.current.forEach((marker, id) => {
-      if (!visible.has(id)) { marker.remove(); markersRef.current.delete(id); }
+      if (!visible.has(id)) { marker.remove(); markersRef.current.delete(id); markerCirclesRef.current.delete(id); }
     });
   }, []);
 
   const clearPlaceMarkers = useCallback(() => {
     markersRef.current.forEach((m) => m.remove());
     markersRef.current.clear();
+    markerCirclesRef.current.clear();
   }, []);
 
   // ── Load places ──
@@ -944,6 +952,40 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     if (selectedPlace) setTimeout(() => setPanelVisible(true), 10);
     else setPanelVisible(false);
   }, [selectedPlace?.id]);
+
+  // ── Inject golden glow CSS once ──
+  useEffect(() => {
+    if (document.getElementById("marker-glow-style")) return;
+    const style = document.createElement("style");
+    style.id = "marker-glow-style";
+    style.textContent = `
+      @keyframes markerGoldGlow {
+        0%, 100% { box-shadow: 0 0 0 3px rgba(251,191,36,0.55), 0 0 10px 3px rgba(251,191,36,0.2); }
+        50%       { box-shadow: 0 0 0 5px rgba(251,191,36,0.40), 0 0 18px 6px rgba(251,191,36,0.3); }
+      }
+      .marker-selected-glow { animation: markerGoldGlow 2s ease-in-out infinite; }
+    `;
+    document.head.appendChild(style);
+  }, []);
+
+  // ── Apply / remove glow when active marker changes ──
+  useEffect(() => {
+    const activeId = popupData?.petPlace?.id
+      ? `place-${popupData.petPlace.id}`
+      : selectedPlace?.id
+        ? `place-${selectedPlace.id}`
+        : null;
+
+    if (glowedIdRef.current === activeId) return;
+
+    if (glowedIdRef.current) {
+      markerCirclesRef.current.get(glowedIdRef.current)?.classList.remove("marker-selected-glow");
+    }
+    if (activeId) {
+      markerCirclesRef.current.get(activeId)?.classList.add("marker-selected-glow");
+    }
+    glowedIdRef.current = activeId;
+  }, [popupData, selectedPlace]);
 
   const handleLocateMe = () => {
     if (locating) return;
