@@ -85,6 +85,7 @@ function PhotoLightbox({
 }) {
   const { user } = useAuthContext();
   const [index, setIndex] = useState(initialIndex);
+  const [zoomed, setZoomed] = useState(false);
   const [comments, setComments] = useState<PhotoComment[]>([]);
   const [loadingComments, setLoadingComments] = useState(true);
   const [body, setBody] = useState("");
@@ -114,6 +115,7 @@ function PhotoLightbox({
     if (newIndex < 0 || newIndex >= photos.length) return;
     setIndex(newIndex);
     setBody("");
+    setZoomed(false);
   };
 
   const send = async () => {
@@ -133,13 +135,41 @@ function PhotoLightbox({
     setSending(false);
   };
 
+  // ── Zoom plein écran ──
+  if (zoomed) return createPortal(
+    <div
+      className="fixed inset-0 z-[900] bg-black flex items-center justify-center"
+      onClick={() => setZoomed(false)}
+    >
+      <button
+        className="absolute top-4 left-4 w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
+        onClick={() => setZoomed(false)}
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+      <img
+        src={photo.url}
+        alt={photo.caption ?? ""}
+        className="max-w-full max-h-full object-contain"
+        onClick={e => e.stopPropagation()}
+      />
+    </div>,
+    document.body
+  );
+
   return createPortal(
     <div
       className="fixed inset-0 z-[800] bg-black/90 flex flex-col"
       onClick={onClose}
     >
-      {/* Header */}
+      {/* Header — ← retour à gauche, compteur au centre, X à droite */}
       <div className="shrink-0 flex items-center justify-between px-4 py-3" onClick={e => e.stopPropagation()}>
+        <button
+          onClick={onClose}
+          className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
         <span className="text-white/70 text-sm">{index + 1} / {photos.length}</span>
         <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
           <X className="w-4 h-4" />
@@ -164,8 +194,9 @@ function PhotoLightbox({
           key={photo.id}
           src={photo.url}
           alt={photo.caption ?? ""}
-          className="max-w-full object-contain"
+          className="max-w-full object-contain cursor-zoom-in"
           style={{ maxHeight: "50vh" }}
+          onClick={() => setZoomed(true)}
         />
         {index > 0 && (
           <button
