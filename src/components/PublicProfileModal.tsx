@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -59,7 +60,7 @@ export default function PublicProfileModal({ userId, onClose }: PublicProfileMod
     load();
   }, [userId]);
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[10001] bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
       <div
         className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
@@ -140,6 +141,7 @@ export default function PublicProfileModal({ userId, onClose }: PublicProfileMod
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
