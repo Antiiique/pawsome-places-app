@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, ChevronLeft, ChevronUp, Send, Loader2 } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, ChevronUp, Send, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -72,39 +72,49 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
 
-// ─── Photo detail view ────────────────────────────────────────────────────────
+// ─── Photo lightbox ───────────────────────────────────────────────────────────
 
-function PhotoDetail({
-  photo,
-  petName,
-  onBack,
+function PhotoLightbox({
+  photos,
+  initialIndex,
+  onClose,
 }: {
-  photo: PetPhoto;
-  petName: string;
-  onBack: () => void;
+  photos: PetPhoto[];
+  initialIndex: number;
+  onClose: () => void;
 }) {
   const { user } = useAuthContext();
+  const [index, setIndex] = useState(initialIndex);
   const [comments, setComments] = useState<PhotoComment[]>([]);
   const [loadingComments, setLoadingComments] = useState(true);
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const swipeStartX = useRef<number | null>(null);
+
+  const photo = photos[index];
 
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      setLoadingComments(true);
-      const { data } = await supabase
-        .from("pet_photo_comments" as any)
-        .select("id, body, created_at, user_id, profiles(display_name, avatar_url)")
-        .eq("photo_id", photo.id)
-        .order("created_at", { ascending: true });
-      if (!cancelled && data) setComments(data as unknown as PhotoComment[]);
-      setLoadingComments(false);
-    }
-    load();
+    setLoadingComments(true);
+    setComments([]);
+    supabase
+      .from("pet_photo_comments" as any)
+      .select("id, body, created_at, user_id, profiles(display_name, avatar_url)")
+      .eq("photo_id", photo.id)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        if (!cancelled && data) setComments(data as unknown as PhotoComment[]);
+        if (!cancelled) setLoadingComments(false);
+      });
     return () => { cancelled = true; };
   }, [photo.id]);
+
+  const goTo = (newIndex: number) => {
+    if (newIndex < 0 || newIndex >= photos.length) return;
+    setIndex(newIndex);
+    setBody("");
+  };
 
   const send = async () => {
     if (!user || !body.trim()) return;
@@ -114,9 +124,8 @@ function PhotoDetail({
       .insert({ photo_id: photo.id, user_id: user.id, body: body.trim() })
       .select("id, body, created_at, user_id, profiles(display_name, avatar_url)")
       .single();
-    if (error) {
-      toast.error("Impossible d'envoyer le commentaire");
-    } else if (data) {
+    if (error) { toast.error("Impossible d'envoyer le commentaire"); }
+    else if (data) {
       setComments(prev => [...prev, data as unknown as PhotoComment]);
       setBody("");
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
@@ -124,80 +133,134 @@ function PhotoDetail({
     setSending(false);
   };
 
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border shrink-0">
-        <button
-          onClick={onBack}
-          className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4" />
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[800] bg-black/90 flex flex-col"
+      onClick={onClose}
+    >
+      {/* Header */}
+      <div className="shrink-0 flex items-center justify-between px-4 py-3" onClick={e => e.stopPropagation()}>
+        <span className="text-white/70 text-sm">{index + 1} / {photos.length}</span>
+        <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+          <X className="w-4 h-4" />
         </button>
-        <span className="text-sm font-bold text-foreground flex-1 truncate">Photo de {petName}</span>
       </div>
 
-      <div className="relative bg-black shrink-0" style={{ maxHeight: "40vh" }}>
-        <img src={photo.url} alt={photo.caption ?? ""} className="w-full object-contain" style={{ maxHeight: "40vh" }} />
+      {/* Photo + nav */}
+      <div
+        className="relative flex items-center justify-center shrink-0"
+        style={{ maxHeight: "50vh" }}
+        onClick={e => e.stopPropagation()}
+        onTouchStart={e => { swipeStartX.current = e.touches[0].clientX; }}
+        onTouchEnd={e => {
+          if (swipeStartX.current === null) return;
+          const dx = e.changedTouches[0].clientX - swipeStartX.current;
+          if (dx < -50) goTo(index + 1);
+          else if (dx > 50) goTo(index - 1);
+          swipeStartX.current = null;
+        }}
+      >
+        <img
+          key={photo.id}
+          src={photo.url}
+          alt={photo.caption ?? ""}
+          className="max-w-full object-contain"
+          style={{ maxHeight: "50vh" }}
+        />
+        {index > 0 && (
+          <button
+            onClick={() => goTo(index - 1)}
+            className="absolute left-2 w-8 h-8 rounded-full bg-black/40 flex items-center justify-center text-white hover:bg-black/60 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        )}
+        {index < photos.length - 1 && (
+          <button
+            onClick={() => goTo(index + 1)}
+            className="absolute right-2 w-8 h-8 rounded-full bg-black/40 flex items-center justify-center text-white hover:bg-black/60 transition-colors"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
-      {photo.caption && (
-        <div className="px-4 py-2 text-xs text-muted-foreground border-b border-border italic shrink-0">{photo.caption}</div>
+      {/* Dots */}
+      {photos.length > 1 && (
+        <div className="flex justify-center gap-1.5 py-2 shrink-0" onClick={e => e.stopPropagation()}>
+          {photos.map((_, i) => (
+            <button key={i} onClick={() => goTo(i)} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === index ? "bg-white" : "bg-white/30"}`} />
+          ))}
+        </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-        {loadingComments ? (
-          <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
-        ) : comments.length === 0 ? (
-          <div className="text-center py-8 text-xs text-muted-foreground">
-            <span className="text-2xl opacity-30">💬</span>
-            <p className="mt-2">Aucun commentaire — soyez le premier !</p>
+      {/* Caption */}
+      {photo.caption && (
+        <p className="text-center text-xs text-white/60 italic px-6 pb-2 shrink-0" onClick={e => e.stopPropagation()}>{photo.caption}</p>
+      )}
+
+      {/* Comments */}
+      <div
+        className="flex-1 overflow-y-auto bg-card rounded-t-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="px-4 pt-3 pb-1">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Commentaires</p>
+        </div>
+        <div className="px-4 py-2 space-y-3">
+          {loadingComments ? (
+            <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>
+          ) : comments.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-4">Aucun commentaire — soyez le premier !</p>
+          ) : (
+            comments.map(c => (
+              <div key={c.id} className="flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                  {c.profiles?.avatar_url
+                    ? <img src={c.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                    : <span className="text-xs font-bold text-muted-foreground">{(c.profiles?.display_name?.[0] ?? "?").toUpperCase()}</span>
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-semibold text-foreground truncate">{c.profiles?.display_name ?? "Anonyme"}</span>
+                    <span className="text-[10px] text-muted-foreground shrink-0">{timeAgo(c.created_at)}</span>
+                  </div>
+                  <p className="text-xs text-foreground mt-0.5 leading-relaxed">{c.body}</p>
+                </div>
+              </div>
+            ))
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Input */}
+        {user ? (
+          <div className="sticky bottom-0 border-t border-border px-4 py-3 flex items-center gap-2 bg-card">
+            <input
+              value={body}
+              onChange={e => setBody(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+              placeholder="Ajouter un commentaire…"
+              maxLength={500}
+              className="flex-1 text-sm bg-muted rounded-full px-3 py-1.5 outline-none placeholder:text-muted-foreground"
+            />
+            <button
+              onClick={send}
+              disabled={!body.trim() || sending}
+              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center disabled:opacity-40 transition-opacity"
+            >
+              {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary-foreground" /> : <Send className="w-3.5 h-3.5 text-primary-foreground" />}
+            </button>
           </div>
         ) : (
-          comments.map(c => (
-            <div key={c.id} className="flex items-start gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                {c.profiles?.avatar_url
-                  ? <img src={c.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
-                  : <span className="text-xs font-bold text-muted-foreground">{(c.profiles?.display_name?.[0] ?? "?").toUpperCase()}</span>
-                }
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xs font-semibold text-foreground truncate">{c.profiles?.display_name ?? "Anonyme"}</span>
-                  <span className="text-[10px] text-muted-foreground shrink-0">{timeAgo(c.created_at)}</span>
-                </div>
-                <p className="text-xs text-foreground mt-0.5 leading-relaxed">{c.body}</p>
-              </div>
-            </div>
-          ))
+          <div className="border-t border-border px-4 py-3 text-xs text-muted-foreground text-center bg-card">
+            Connecte-toi pour commenter
+          </div>
         )}
-        <div ref={bottomRef} />
       </div>
-
-      {user ? (
-        <div className="shrink-0 border-t border-border px-4 py-3 flex items-center gap-2">
-          <input
-            value={body}
-            onChange={e => setBody(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder="Ajouter un commentaire…"
-            maxLength={500}
-            className="flex-1 text-sm bg-muted rounded-full px-3 py-1.5 outline-none placeholder:text-muted-foreground"
-          />
-          <button
-            onClick={send}
-            disabled={!body.trim() || sending}
-            className="w-8 h-8 rounded-full bg-primary flex items-center justify-center disabled:opacity-40 transition-opacity"
-          >
-            {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary-foreground" /> : <Send className="w-3.5 h-3.5 text-primary-foreground" />}
-          </button>
-        </div>
-      ) : (
-        <div className="shrink-0 border-t border-border px-4 py-3 text-xs text-muted-foreground text-center">
-          Connecte-toi pour commenter
-        </div>
-      )}
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -216,7 +279,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
   const [pet, setPet] = useState<Pet | null>(null);
   const [photos, setPhotos] = useState<PetPhoto[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<PetPhoto | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   // ── Drag state (same pattern as StrayReportModal) ──
   const [dragging, setDragging] = useState(false);
@@ -274,7 +337,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
     if (!petId) return;
     setVisible(true);
     setSnapState("half");
-    setSelectedPhoto(null);
+    setLightboxIndex(null);
     let cancelled = false;
     async function load() {
       setLoading(true);
@@ -327,18 +390,19 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
       />
 
       {/* Bottom sheet — identique StrayReportModal */}
+      {lightboxIndex !== null && photos.length > 0 && (
+        <PhotoLightbox
+          photos={photos}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
+
       <div
         className="fixed left-0 right-0 bottom-0 z-[700] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={panelStyle}
       >
-        {selectedPhoto && pet ? (
-          <PhotoDetail
-            photo={selectedPhoto}
-            petName={pet.name}
-            onBack={() => setSelectedPhoto(null)}
-          />
-        ) : (
-          <>
+        <>
             {/* Drag handle */}
             <div
               className="shrink-0 flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
@@ -438,10 +502,10 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
                       </div>
                     ) : (
                       <div className="grid grid-cols-3 gap-1">
-                        {photos.map(photo => (
+                        {photos.map((photo, i) => (
                           <button
                             key={photo.id}
-                            onClick={() => setSelectedPhoto(photo)}
+                            onClick={() => setLightboxIndex(i)}
                             className="relative aspect-square overflow-hidden rounded-lg bg-muted hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary"
                           >
                             <img src={photo.url} alt={photo.caption ?? ""} className="w-full h-full object-cover" />
@@ -458,8 +522,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
                 </div>
               )}
             </div>
-          </>
-        )}
+        </>
       </div>
     </>,
     document.body
