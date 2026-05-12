@@ -423,7 +423,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
               style={{ touchAction: "none" }}
             >
               <h2 className="font-bold text-foreground text-lg">
-                {pet ? `${speciesEmoji(pet.species)} ${pet.name}` : "Profil animal"}
+                {pet ? pet.name : "Profil animal"}
               </h2>
               <div className="flex items-center gap-1 shrink-0">
                 <button
@@ -449,20 +449,11 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
               ) : (
                 <div>
                   {/* Hero */}
-                  <div className="relative w-full bg-muted" style={{ height: 160 }}>
+                  <div className="w-full bg-muted" style={{ height: 160 }}>
                     {pet.avatar_url
                       ? <img src={pet.avatar_url} alt={pet.name} className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center text-7xl">{speciesEmoji(pet.species)}</div>
                     }
-                    <span className="absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-black/50 text-white backdrop-blur-sm">
-                      {speciesEmoji(pet.species)} {pet.species}
-                    </span>
-                    {pet.sex === "M" && (
-                      <span className="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/80 text-white backdrop-blur-sm">♂ Mâle</span>
-                    )}
-                    {pet.sex === "F" && (
-                      <span className="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-pink-500/80 text-white backdrop-blur-sm">♀ Femelle</span>
-                    )}
                   </div>
 
                   {/* Info */}
