@@ -59,6 +59,8 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
       window.dispatchEvent(new CustomEvent("open-stray", { detail: { strayId: n.related_id } }));
     } else if (n.type === "new_place" && n.related_id) {
       window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: n.related_id } }));
+    } else if (n.type === "new_user" && n.related_id) {
+      window.dispatchEvent(new CustomEvent("open-user-profile", { detail: { userId: n.related_id } }));
     }
   };
 
@@ -109,7 +111,7 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
           ) : (
             notifications.map((n) => {
               const cfg = typeConfig[n.type] || typeConfig.report_dismissed;
-              const isClickable = !!n.related_id && ["new_review", "lost_pet", "new_stray", "new_place"].includes(n.type);
+              const isClickable = !!n.related_id && ["new_review", "lost_pet", "new_stray", "new_place", "new_user"].includes(n.type);
               return (
                 <button
                   key={n.id}
@@ -131,6 +133,7 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
                         {n.type === "lost_pet" && isClickable && <span className="text-[10px] text-amber-600 font-medium">→ Voir l'annonce</span>}
                         {n.type === "new_stray" && isClickable && <span className="text-[10px] text-red-600 font-medium">→ Voir le signalement</span>}
                         {n.type === "new_place" && isClickable && <span className="text-[10px] text-primary font-medium">→ Ouvrir le lieu</span>}
+                        {n.type === "new_user" && isClickable && <span className="text-[10px] text-violet-600 font-medium">→ Voir le profil</span>}
                       </div>
                     </div>
                     {!n.is_read && <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />}

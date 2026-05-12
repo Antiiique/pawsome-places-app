@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface UserNotification {
   id: string;
-  type: "submission_approved" | "submission_rejected" | "report_reviewed" | "report_dismissed" | "new_review" | "mention" | "lost_pet" | "new_stray" | "new_place";
+  type: "submission_approved" | "submission_rejected" | "report_reviewed" | "report_dismissed" | "new_review" | "mention" | "lost_pet" | "new_stray" | "new_place" | "new_user" | "new_message" | "zone_alert";
   title: string;
   message: string;
   related_id: string | null;
