@@ -173,7 +173,7 @@ const glassStyle: React.CSSProperties = {
 
 export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserProfilePanelProps) {
   const { user: me } = useAuthContext();
-  const [compact, setCompact] = useState(false);
+  const [compact, setCompact] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [starting, setStarting] = useState(false);
