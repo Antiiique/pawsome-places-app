@@ -227,11 +227,11 @@ function PhotoDetail({
 // ─── Main panel ───────────────────────────────────────────────────────────────
 
 const glassStyle: React.CSSProperties = {
-  background: "color-mix(in srgb, var(--card) 55%, transparent)",
-  border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
-  boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
-  backdropFilter: "blur(24px)",
-  WebkitBackdropFilter: "blur(24px)",
+  background: "color-mix(in srgb, var(--card) 25%, transparent)",
+  border: "1px solid color-mix(in srgb, var(--border) 40%, transparent)",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+  backdropFilter: "blur(32px) saturate(180%)",
+  WebkitBackdropFilter: "blur(32px) saturate(180%)",
   touchAction: "manipulation",
 };
 
