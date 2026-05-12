@@ -413,9 +413,17 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
               ) : (
                 <MessageCircle className="w-5 h-5 text-primary" />
               )}
-              <h2 className="font-bold text-foreground text-sm">
-                {activeConv ? (activeConv.other.display_name || "Conversation") : "Messages"}
-              </h2>
+              {activeConv ? (
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-user-profile", { detail: { userId: activeConv.other.id } }))}
+                  className="flex items-center gap-2 hover:opacity-75 transition-opacity"
+                >
+                  <Avatar user={activeConv.other} size={28} />
+                  <span className="font-bold text-foreground text-sm">{activeConv.other.display_name || "Conversation"}</span>
+                </button>
+              ) : (
+                <h2 className="font-bold text-foreground text-sm">Messages</h2>
+              )}
             </div>
             <div className={`flex items-center gap-1 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
               <button
@@ -456,19 +464,22 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
                       {filteredConvs.map((conv) => {
                         const match = msgMatches.find(m => m.convId === conv.id);
                         return (
-                          <button
+                          <div
                             key={conv.id}
                             onClick={() => setActiveConv({ id: conv.id, other: conv.other })}
-                            className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/60 transition-colors text-left"
+                            className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/60 transition-colors cursor-pointer"
                           >
-                            <div className="relative">
+                            <button
+                              onClick={e => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("open-user-profile", { detail: { userId: conv.other.id } })); }}
+                              className="relative shrink-0"
+                            >
                               <Avatar user={conv.other} />
                               {conv.unread > 0 && (
                                 <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
                                   {conv.unread}
                                 </span>
                               )}
-                            </div>
+                            </button>
                             <div className="flex-1 min-w-0">
                               <div className="flex justify-between items-baseline">
                                 <p className={`text-sm truncate ${conv.unread > 0 ? "font-bold text-foreground" : "font-medium text-foreground"}`}>
@@ -482,7 +493,7 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
                                   : conv.lastMessage || "Démarrez la conversation…"}
                               </p>
                             </div>
-                          </button>
+                          </div>
                         );
                       })}
                     </div>
@@ -580,8 +591,16 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
                           <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">{day}</span>
                         </div>
                       )}
-                      <div className={`flex ${isMine ? "justify-end" : "justify-start"} mb-1`}>
-                        <div className={`max-w-[78%] ${isMine ? "items-end" : "items-start"} flex flex-col`}>
+                      <div className={`flex ${isMine ? "justify-end" : "justify-start"} mb-1 items-end gap-1.5`}>
+                        {!isMine && (
+                          <button
+                            onClick={() => window.dispatchEvent(new CustomEvent("open-user-profile", { detail: { userId: activeConv.other.id } }))}
+                            className="shrink-0 mb-1"
+                          >
+                            <Avatar user={activeConv.other} size={24} />
+                          </button>
+                        )}
+                        <div className={`max-w-[72%] ${isMine ? "items-end" : "items-start"} flex flex-col`}>
                           <div className={`px-3.5 py-2 rounded-2xl text-sm leading-relaxed ${
                             isMine
                               ? "bg-primary text-primary-foreground rounded-br-sm"

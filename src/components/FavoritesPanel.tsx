@@ -342,7 +342,13 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
 
         {/* Chips (only in favorites tab) */}
         {activeTab === "favorites" && (
-          <div className="px-3 pt-3 pb-1 flex gap-1.5 overflow-x-auto scrollbar-hide">
+          <div
+            className="px-3 pt-3 pb-1 flex gap-1.5 overflow-x-auto scrollbar-hide"
+            style={{ touchAction: "pan-x" }}
+            onTouchStart={e => e.stopPropagation()}
+            onTouchMove={e => e.stopPropagation()}
+            onTouchEnd={e => e.stopPropagation()}
+          >
             {CATEGORY_FILTERS.map((cf) => (
               <button
                 key={cf.label}
