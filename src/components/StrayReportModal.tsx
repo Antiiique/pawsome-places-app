@@ -43,7 +43,6 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
   useEffect(() => {
     if (!open) return;
     setVisible(true);
-    setSnapState("half");
     setStep("source");
     setPhoto(null);
     setPreview(null);
