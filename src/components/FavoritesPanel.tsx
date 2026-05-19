@@ -82,6 +82,12 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
   }, [open]);
 
   useEffect(() => {
+    if (!open) return;
+    window.dispatchEvent(new Event("map-freeze"));
+    return () => { window.dispatchEvent(new Event("map-unfreeze")); };
+  }, [open]);
+
+  useEffect(() => {
     if (!open || !user) return;
     setLoadingMyPlaces(true);
     supabase
@@ -233,7 +239,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
       {/* ── Tabs + contenu ── */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "favorites" | "myplaces")} className="flex flex-col flex-1 min-h-0">
 
-      <TabsContent value="favorites" className="flex-1 min-h-0 m-0 overflow-y-auto" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
+      <TabsContent value="favorites" className="flex-1 min-h-0 m-0 overflow-y-auto" style={{ overflowY: snapState === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
 
         <div className="p-3 space-y-3">
             {filteredFavs.length === 0 && (
@@ -286,7 +292,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
         </div>
       </TabsContent>
 
-      <TabsContent value="myplaces" className="flex-1 min-h-0 m-0 overflow-y-auto" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
+      <TabsContent value="myplaces" className="flex-1 min-h-0 m-0 overflow-y-auto" style={{ overflowY: snapState === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
           <div className="p-3 space-y-3">
             {loadingMyPlaces ? (
               <p className="text-sm text-muted-foreground text-center py-12">Chargement…</p>

@@ -349,6 +349,11 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
     setTimeout(onClose, 300);
   };
 
+  useEffect(() => {
+    window.dispatchEvent(new Event("map-freeze"));
+    return () => { window.dispatchEvent(new Event("map-unfreeze")); };
+  }, []);
+
   const handleDragStart = (e: React.TouchEvent) => {
     isDragging.current = true;
     dragStartY.current = e.touches[0].clientY;
@@ -532,7 +537,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
             </div>
 
             {/* Scrollable content — only in full mode */}
-            <div className="flex-1" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
+            <div className="flex-1" style={{ overflowY: snapState === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
               {loading ? (
                 <div className="flex justify-center items-center py-16">
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />

@@ -283,6 +283,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
     const state = {
       frozen:      false,
+      count:       0,   // stacked freeze counter — map stays frozen until all panels close
       isResetting: false,
       center:      map.getCenter(),
       zoom:        map.getZoom(),
@@ -291,13 +292,13 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     };
 
     const onFreeze = () => {
+      state.count++;
+      if (state.count > 1) return; // already frozen by another panel
       state.frozen  = true;
       state.center  = map.getCenter();
       state.zoom    = map.getZoom();
       state.bearing = map.getBearing();
       state.pitch   = map.getPitch();
-      // pointer-events: none is the most reliable block — no events reach the canvas
-      // regardless of Mapbox's internal handler state
       map.getCanvas().style.pointerEvents = "none";
       map.dragPan.disable();
       map.dragRotate.disable();
@@ -307,6 +308,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     };
 
     const onUnfreeze = () => {
+      state.count = Math.max(0, state.count - 1);
+      if (state.count > 0) return; // other panels still open
       state.frozen = false;
       map.getCanvas().style.pointerEvents = "";
       map.dragPan.enable();

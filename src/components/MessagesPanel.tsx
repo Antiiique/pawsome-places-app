@@ -130,6 +130,12 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
     }
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    window.dispatchEvent(new Event("map-freeze"));
+    return () => { window.dispatchEvent(new Event("map-unfreeze")); };
+  }, [open]);
+
   /* Data */
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loadingConvs, setLoadingConvs] = useState(false);

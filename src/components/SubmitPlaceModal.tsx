@@ -148,6 +148,12 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
   }, [open]);
 
   useEffect(() => {
+    if (!open) return;
+    window.dispatchEvent(new Event("map-freeze"));
+    return () => { window.dispatchEvent(new Event("map-unfreeze")); };
+  }, [open]);
+
+  useEffect(() => {
     if (open && (window as any).google?.maps?.places) {
       autocompleteRef.current = new google.maps.places.AutocompleteService();
     }
@@ -369,7 +375,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
         </div>
 
         {/* Scrollable content — only scrolls in full mode */}
-        <div className="flex-1" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
+        <div className="flex-1" style={{ overflowY: snapState === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
           {!user ? (
             <div className="flex flex-col items-center text-center gap-4 p-8">
               <span className="text-6xl">📍</span>

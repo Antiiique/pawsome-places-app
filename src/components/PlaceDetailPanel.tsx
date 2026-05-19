@@ -249,6 +249,11 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     return () => clearTimeout(t);
   }, [place?.id]);
 
+  useEffect(() => {
+    window.dispatchEvent(new Event("map-freeze"));
+    return () => { window.dispatchEvent(new Event("map-unfreeze")); };
+  }, []);
+
   const baseOffset = snap === "half" ? 55 : 0; // % translateY
   const currentOffset = isClosing ? 100 : entered ? Math.max(0, baseOffset + dragDelta) : 100;
 

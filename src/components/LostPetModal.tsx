@@ -50,6 +50,13 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
   const lastTouchTime = useRef(0);
   const lastVelocity  = useRef(0);
 
+  // Freeze map while open
+  useEffect(() => {
+    if (!open) return;
+    window.dispatchEvent(new Event("map-freeze"));
+    return () => { window.dispatchEvent(new Event("map-unfreeze")); };
+  }, [open]);
+
   // Sync visible with open
   const prevOpen = useRef(false);
   if (open !== prevOpen.current) {
@@ -260,7 +267,7 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
         </div>
 
         {/* Scrollable content — only scrolls in full mode */}
-        <div className="flex-1 p-5 space-y-4 pb-24" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
+        <div className="flex-1 p-5 space-y-4 pb-24" style={{ overflowY: snapState === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
           {/* Photos */}
           <div className="space-y-2">
             <p className="text-xs font-semibold text-foreground uppercase tracking-wide">Photos <span className="text-muted-foreground font-normal normal-case">(jusqu'à 5)</span></p>

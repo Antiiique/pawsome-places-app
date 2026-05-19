@@ -225,6 +225,12 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
     }
   }, [userId]);
 
+  useEffect(() => {
+    if (!userId) return;
+    window.dispatchEvent(new Event("map-freeze"));
+    return () => { window.dispatchEvent(new Event("map-unfreeze")); };
+  }, [userId]);
+
   // Data loading
   useEffect(() => {
     if (!userId) {

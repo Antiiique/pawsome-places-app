@@ -50,6 +50,13 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
   const lastTouchTime = useRef(0);
   const lastVelocity  = useRef(0);
 
+  // Freeze map while open
+  useEffect(() => {
+    if (!open) return;
+    window.dispatchEvent(new Event("map-freeze"));
+    return () => { window.dispatchEvent(new Event("map-unfreeze")); };
+  }, [open]);
+
   // Open / reset — same prevOpen pattern as LostPetModal
   const prevOpen = useRef(false);
   if (open !== prevOpen.current) {
