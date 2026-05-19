@@ -270,6 +270,21 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [panelVisible, setPanelVisible] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
 
+  // Track map-freeze/unfreeze events from panels to drive the touch-blocker overlay.
+  // Independent of isLoaded so it works the moment any panel dispatches the event.
+  const [panelFrozen, setPanelFrozen] = useState(false);
+  useEffect(() => {
+    let count = 0;
+    const onFreeze   = () => { count++;                           if (count === 1) setPanelFrozen(true);  };
+    const onUnfreeze = () => { count = Math.max(0, count - 1);   if (count === 0) setPanelFrozen(false); };
+    window.addEventListener("map-freeze",   onFreeze);
+    window.addEventListener("map-unfreeze", onUnfreeze);
+    return () => {
+      window.removeEventListener("map-freeze",   onFreeze);
+      window.removeEventListener("map-unfreeze", onUnfreeze);
+    };
+  }, []);
+
   // Freeze map camera while panels are open/dragging.
   // Two-layer defence:
   //   1. disable() Mapbox handlers on freeze (prevents most panning)
@@ -1077,7 +1092,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           Positioned above the canvas (z-10) but below all UI controls (z-20+).
           pointer-events captures any touch that would otherwise reach the Mapbox canvas,
           preventing pan/zoom even if Mapbox handlers are still technically enabled. */}
-      {frozen && (
+      {(frozen || panelFrozen) && (
         <div
           className="absolute inset-0 z-10"
           style={{ touchAction: "none" }}
