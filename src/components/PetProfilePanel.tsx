@@ -475,6 +475,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
     const currentPct = Math.max(0, Math.min(100, snapBase + dragPct));
     return {
       top: 0,
+      paddingTop: "env(safe-area-inset-top)",
       transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
       transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
     };

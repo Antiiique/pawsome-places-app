@@ -170,6 +170,7 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
         className="fixed left-0 right-0 bottom-0 z-[650] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
           top: 0,
+          paddingTop: "env(safe-area-inset-top)",
           transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
           transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
         }}

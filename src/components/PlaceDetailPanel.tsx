@@ -471,6 +471,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
       className="fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-2xl shadow-2xl flex flex-col"
       style={{
         height: "100dvh",
+        paddingTop: "env(safe-area-inset-top)",
         transform: `translateY(${currentOffset}%)`,
         transition: (isDragging.current && !isClosing) ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
         willChange: "transform",
