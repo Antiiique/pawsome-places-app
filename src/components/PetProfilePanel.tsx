@@ -47,6 +47,8 @@ interface VisitedPlace {
   photo_url: string | null;
   category: string;
   review_rating: number;
+  lat: number | null;
+  lng: number | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -438,7 +440,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
 
           const { data: placesData } = await supabase
             .from("pet_friendly_places")
-            .select("id, name, photo_url, category")
+            .select("id, name, photo_url, category, latitude, longitude")
             .in("id", placeIds);
 
           if (!cancelled) {
@@ -447,7 +449,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
             for (const p of (placesData as any[]) || []) {
               if (!seen.has(p.id)) {
                 seen.add(p.id);
-                result.push({ id: p.id, name: p.name, photo_url: p.photo_url, category: p.category, review_rating: ratingMap[p.id] ?? 0 });
+                result.push({ id: p.id, name: p.name, photo_url: p.photo_url, category: p.category, review_rating: ratingMap[p.id] ?? 0, lat: p.latitude ?? null, lng: p.longitude ?? null });
               }
             }
             setVisitedPlaces(result);
@@ -619,7 +621,13 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
                         {visitedPlaces.map(place => (
                           <button
                             key={place.id}
-                            onClick={() => window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: place.id } }))}
+                            onClick={() => {
+                              window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: place.id } }));
+                              if (place.lat != null && place.lng != null) {
+                                window.dispatchEvent(new CustomEvent("map-pan-to", { detail: { lat: place.lat, lng: place.lng } }));
+                              }
+                              handleClose();
+                            }}
                             className="w-full text-left flex gap-3 p-3 rounded-xl border border-border bg-card hover:bg-muted/60 active:scale-[0.99] transition-all"
                           >
                             <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-muted border border-border">

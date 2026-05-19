@@ -654,7 +654,13 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
                       return (
                         <div
                           key={place.id}
-                          onClick={isClickable ? () => window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: place.linked_place_id } })) : undefined}
+                          onClick={isClickable ? () => {
+                            window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: place.linked_place_id } }));
+                            if (place.linked_lat != null && place.linked_lng != null) {
+                              window.dispatchEvent(new CustomEvent("map-pan-to", { detail: { lat: place.linked_lat, lng: place.linked_lng } }));
+                            }
+                            onClose();
+                          } : undefined}
                           className={`rounded-xl border border-border overflow-hidden bg-card ${isClickable ? "hover:bg-muted/60 active:scale-[0.99] cursor-pointer transition-all" : ""}`}
                         >
                           <div className="flex gap-3 p-3">
@@ -685,20 +691,6 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
                               {place.dogs_on_leash_only && <span className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">🪢 Laisse</span>}
                               {place.outdoor_seating    && <span className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">🌿 Terrasse</span>}
                               {place.water_bowl_provided && <span className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">🥤 Gamelle</span>}
-                            </div>
-                          )}
-                          {isClickable && place.linked_lat != null && place.linked_lng != null && (
-                            <div className="px-3 pb-3" onClick={e => e.stopPropagation()}>
-                              <button
-                                onClick={() => {
-                                  window.dispatchEvent(new CustomEvent("map-pan-to", { detail: { lat: place.linked_lat, lng: place.linked_lng } }));
-                                  onClose();
-                                }}
-                                className="flex items-center gap-1 text-[11px] text-primary font-semibold hover:underline active:opacity-70 transition-opacity"
-                              >
-                                <MapPin className="w-3 h-3 shrink-0" />
-                                Voir sur la carte
-                              </button>
                             </div>
                           )}
                         </div>
