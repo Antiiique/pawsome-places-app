@@ -352,9 +352,10 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
   };
 
   useEffect(() => {
+    if (!petId) return;
     window.dispatchEvent(new Event("map-freeze"));
     return () => { window.dispatchEvent(new Event("map-unfreeze")); };
-  }, []);
+  }, [petId]);
 
   const handleDragStart = (e: React.TouchEvent) => {
     isDragging.current = true;

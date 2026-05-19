@@ -112,9 +112,10 @@ export default function StrayDetailPanel({ report, onClose, onDeleted }: StrayDe
   }, [report?.user_id]);
 
   useEffect(() => {
+    if (!report) return;
     window.dispatchEvent(new Event("map-freeze"));
     return () => { window.dispatchEvent(new Event("map-unfreeze")); };
-  }, []);
+  }, [report?.id]);
 
   if (!report) return null;
 

@@ -114,9 +114,10 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
   }, [lostPet?.id]);
 
   useEffect(() => {
+    if (!lostPet) return;
     window.dispatchEvent(new Event("map-freeze"));
     return () => { window.dispatchEvent(new Event("map-unfreeze")); };
-  }, []);
+  }, [lostPet?.id]);
 
   const handleMarkFound = async () => {
     if (!lostPet || user?.id !== lostPet.user_id) return;
