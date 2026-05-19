@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Camera, FolderOpen, Loader2, MapPin, X, ChevronRight } from "lucide-react";
+import { Camera, FolderOpen, Loader2, MapPin, X, ChevronRight, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
   const galleryRef = useRef<HTMLInputElement>(null);
 
   const [visible, setVisible] = useState(false);
+  const [snapState, setSnapState] = useState<"half" | "full">("half");
   const [step, setStep]               = useState<Step>("source");
   const [photo, setPhoto]             = useState<File | null>(null);
   const [preview, setPreview]         = useState<string | null>(null);
@@ -40,9 +41,27 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
   const [locating, setLocating]       = useState(false);
   const [loading, setLoading]         = useState(false);
 
+  // Drag state — identical to LostPetModal
+  const [dragging, setDragging]   = useState(false);
+  const [dragDelta, setDragDelta] = useState(0);
+  const isDragging    = useRef(false);
+  const dragStartY    = useRef(0);
+  const lastTouchY    = useRef(0);
+  const lastTouchTime = useRef(0);
+  const lastVelocity  = useRef(0);
+
+  // Open / reset — same prevOpen pattern as LostPetModal
+  const prevOpen = useRef(false);
+  if (open !== prevOpen.current) {
+    prevOpen.current = open;
+    if (open) {
+      setSnapState("half");
+      setTimeout(() => setVisible(true), 10);
+    }
+  }
+
   useEffect(() => {
     if (!open) return;
-    setVisible(true);
     setStep("source");
     setPhoto(null);
     setPreview(null);
@@ -83,6 +102,44 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
   const handleClose = () => {
     setVisible(false);
     setTimeout(onClose, 300);
+  };
+
+  // Drag handlers — identical to LostPetModal
+  const handleDragStart = (e: React.TouchEvent) => {
+    isDragging.current = true;
+    dragStartY.current = e.touches[0].clientY;
+    lastTouchY.current = e.touches[0].clientY;
+    lastTouchTime.current = Date.now();
+    lastVelocity.current = 0;
+    setDragging(true);
+    setDragDelta(0);
+  };
+
+  const handleDragMove = (e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    const y = e.touches[0].clientY;
+    const now = Date.now();
+    const dt = now - lastTouchTime.current;
+    if (dt > 0) lastVelocity.current = (y - lastTouchY.current) / dt;
+    lastTouchY.current = y;
+    lastTouchTime.current = now;
+    setDragDelta(y - dragStartY.current);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    setDragging(false);
+    const h = window.innerHeight - 56;
+    const deltaPct = h > 0 ? (dragDelta / h) * 100 : 0;
+    const vel = lastVelocity.current;
+    if (snapState === "half") {
+      if (vel < -0.3 || deltaPct < -15) { setSnapState("full"); }
+      else if (vel > 0.3 || deltaPct > 15) { handleClose(); }
+    } else {
+      if (vel > 0.5 || deltaPct > 25) { setSnapState("half"); }
+    }
+    setDragDelta(0);
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,29 +210,48 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
 
   return createPortal(
     <>
-      {/* Scrim */}
+      {/* Scrim — identique LostPetModal */}
       <div
-        className="fixed inset-0 z-[700] bg-black/50"
+        className="fixed inset-0 z-[700] bg-black/60"
         style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease" }}
         onClick={handleClose}
       />
 
-      {/* Bottom sheet — fixed height, no snap */}
+      {/* Bottom sheet — identique LostPetModal */}
       <div
         className="fixed left-0 right-0 bottom-0 z-[700] bg-card rounded-t-2xl shadow-2xl flex flex-col"
-        style={{
-          top: "var(--header-h, 56px)",
-          transform: `translateY(${visible ? "0%" : "100%"})`,
-          transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
-        }}
+        style={(() => {
+          const snapBase = snapState === "full" ? 0 : 55;
+          const headerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 56;
+          const h = window.innerHeight - headerH;
+          const dragPct = dragging && h > 0 ? (dragDelta / h) * 100 : 0;
+          const currentPct = Math.max(0, Math.min(100, snapBase + dragPct));
+          return {
+            top: "var(--header-h, 56px)",
+            transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
+            transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+          };
+        })()}
       >
-        {/* Decorative handle (non-interactive) */}
-        <div className="shrink-0 flex justify-center pt-3 pb-1">
+        {/* Drag handle — identique LostPetModal */}
+        <div
+          className="shrink-0 flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+          style={{ touchAction: "none" }}
+        >
           <div className="w-10 h-1 rounded-full bg-border" />
         </div>
 
-        {/* Header */}
-        <div className={`flex items-center justify-between px-5 pt-3 pb-3 border-b border-border shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
+        {/* Header — identique LostPetModal */}
+        <div
+          className={`flex items-center justify-between px-5 pt-3 pb-3 border-b border-border shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+          style={{ touchAction: "none" }}
+        >
           <div>
             <h2 className="font-bold text-foreground text-lg">🐾 Signaler un chien errant</h2>
             <div className="flex items-center gap-1.5 mt-0.5">
@@ -188,13 +264,18 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
               )}
             </div>
           </div>
-          <button onClick={handleClose} className="p-1.5 rounded-full hover:bg-muted transition-colors shrink-0">
-            <X className="w-5 h-5 text-muted-foreground" />
-          </button>
+          <div className={`flex items-center gap-1 shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
+            <button onClick={() => setSnapState(s => s === "half" ? "full" : "half")} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snapState === "full" ? "rotate-180" : ""}`} />
+            </button>
+            <button onClick={handleClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
         </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto" style={{ touchAction: "pan-y" }}>
+        {/* Scrollable content — identique LostPetModal */}
+        <div className="flex-1" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
           {/* Step 1 — Source choice */}
           {step === "source" && (
             <div className="p-5 space-y-3">
@@ -266,14 +347,14 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Couleur</label>
                 <input type="text" value={color} onChange={(e) => setColor(e.target.value)}
                   placeholder="Ex : fauve, noir, blanc et marron…"
-                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground outline-none" />
+                  className="w-full mt-1 h-10 bg-muted rounded-lg px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary" />
               </div>
 
               <div>
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Race (si connue)</label>
                 <input type="text" value={breed} onChange={(e) => setBreed(e.target.value)}
                   placeholder="Ex : Labrador, Berger allemand…"
-                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground outline-none" />
+                  className="w-full mt-1 h-10 bg-muted rounded-lg px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary" />
               </div>
 
               <div>
@@ -294,7 +375,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Comportement</label>
                 <input type="text" value={behavior} onChange={(e) => setBehavior(e.target.value)}
                   placeholder="Ex : cherche de la nourriture, se cache…"
-                  className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground outline-none" />
+                  className="w-full mt-1 h-10 bg-muted rounded-lg px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary" />
               </div>
 
               <div>
@@ -302,7 +383,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
                 <textarea value={description} onChange={(e) => setDescription(e.target.value)}
                   placeholder="Tout autre détail utile pour l'identifier…"
                   rows={3}
-                  className="w-full mt-1 border border-border rounded-xl px-3 py-2 text-sm bg-background text-foreground outline-none resize-none" />
+                  className="w-full mt-1 bg-muted rounded-xl px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary resize-none" />
               </div>
 
               <Button onClick={handleSubmit} disabled={loading || locating || !coords}
@@ -314,7 +395,6 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
           )}
         </div>
       </div>
-
     </>,
     document.body
   );
