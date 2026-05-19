@@ -268,7 +268,7 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
         </div>
 
         {/* Scrollable content — only scrolls in full mode */}
-        <div className="flex-1 p-5 space-y-4 pb-24" style={{ overflowY: snapState === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
+        <div className="flex-1 p-5 space-y-4 pb-24" style={{ overflowY: "auto", touchAction: "pan-y" }}>
           {/* Photos */}
           <div className="space-y-2">
             <p className="text-xs font-semibold text-foreground uppercase tracking-wide">Photos <span className="text-muted-foreground font-normal normal-case">(jusqu'à 5)</span></p>

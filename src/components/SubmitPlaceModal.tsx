@@ -376,7 +376,7 @@ export default function SubmitPlaceModal({ open, onClose, onLoginRequired, initi
         </div>
 
         {/* Scrollable content — only scrolls in full mode */}
-        <div className="flex-1" style={{ overflowY: snapState === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
+        <div className="flex-1" style={{ overflowY: "auto", touchAction: "pan-y" }}>
           {!user ? (
             <div className="flex flex-col items-center text-center gap-4 p-8">
               <span className="text-6xl">📍</span>

@@ -205,7 +205,7 @@ export default function StrayDetailPanel({ report, onClose, onDeleted }: StrayDe
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-5 space-y-4 pb-24" style={{ overflowY: snapState === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
+        <div className="flex-1 p-5 space-y-4 pb-24" style={{ overflowY: "auto", touchAction: "pan-y" }}>
 
           {/* Photo */}
           {report.photo_url && (

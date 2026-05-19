@@ -283,7 +283,7 @@ export default function StrayReportModal({ open, onClose, onReported }: StrayRep
         </div>
 
         {/* Scrollable content — identique LostPetModal */}
-        <div className="flex-1" style={{ overflowY: snapState === "full" ? "auto" : "hidden" }}>
+        <div className="flex-1" style={{ overflowY: "auto", touchAction: "pan-y" }}>
           {/* Step 1 — Source choice */}
           {step === "source" && (
             <div className="p-5 space-y-3">

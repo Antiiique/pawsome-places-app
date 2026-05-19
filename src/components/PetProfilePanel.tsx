@@ -540,7 +540,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
             </div>
 
             {/* Scrollable content — only in full mode */}
-            <div className="flex-1" style={{ overflowY: snapState === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
+            <div className="flex-1" style={{ overflowY: "auto", touchAction: "pan-y" }}>
               {loading ? (
                 <div className="flex justify-center items-center py-16">
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />

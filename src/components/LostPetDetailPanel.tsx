@@ -220,7 +220,7 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
         </div>
 
         {/* Content */}
-        <div className="flex-1 pb-24" style={{ overflowY: snapState === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
+        <div className="flex-1 pb-24" style={{ overflowY: "auto", touchAction: "pan-y" }}>
           {/* Photo gallery */}
           {photos.length > 0 && (
             <div className="relative w-full h-52 bg-muted shrink-0">

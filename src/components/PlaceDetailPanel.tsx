@@ -599,7 +599,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
       )}
 
       {/* Scrollable content — scroll uniquement en mode full comme les autres panels */}
-      <div className="flex-1" style={{ overflowY: snap === "full" ? "auto" : "hidden", touchAction: "pan-y" }}>
+      <div className="flex-1" style={{ overflowY: "auto", touchAction: "pan-y" }}>
         {adminEditOpen ? (
           <div className="p-4 space-y-4">
             {publisher ? (
