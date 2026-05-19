@@ -384,7 +384,7 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
       <div
         className="fixed left-0 right-0 bottom-0 z-[691] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
-          top: "var(--header-h, 56px)",
+          top: 0,
           transform: `translateY(${visible ? currentOffset : 100}%)`,
           transition: isDragging.current ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
           willChange: "transform",

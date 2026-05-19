@@ -380,7 +380,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
       <div
         className="fixed inset-x-0 bottom-0 z-[699]"
         style={{
-          top: "var(--header-h, 56px)",
+          top: 0,
           background: "rgba(0,0,0,0.45)",
           opacity: visible ? 1 : 0,
           transition: "opacity 0.3s ease",
@@ -393,7 +393,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
       <div
         className="fixed left-0 right-0 bottom-0 z-[700] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
-          top: "var(--header-h, 56px)",
+          top: 0,
           transform: `translateY(${visible ? currentOffset : 100}%)`,
           transition: isDragging.current ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
           willChange: "transform",

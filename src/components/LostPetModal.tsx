@@ -220,7 +220,7 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
           const dragPct = dragging && h > 0 ? (dragDelta / h) * 100 : 0;
           const currentPct = Math.max(0, Math.min(100, snapBase + dragPct));
           return {
-            top: "var(--header-h, 56px)",
+            top: 0,
             transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
             transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
           };

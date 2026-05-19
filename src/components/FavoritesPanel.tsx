@@ -189,7 +189,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
       data-panel
       className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col rounded-t-2xl"
       style={{
-        top: "var(--header-h, 56px)",
+        top: 0,
         transform: `translateY(${open ? currentPct : 100}%)`,
         transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
       }}
