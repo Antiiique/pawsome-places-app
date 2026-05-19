@@ -370,9 +370,8 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
     <>
       {/* Scrim */}
       <div
-        className="fixed inset-x-0 bottom-0 z-[690]"
+        className="fixed inset-0 z-[690]"
         style={{
-          top: "var(--header-h, 56px)",
           background: "rgba(0,0,0,0.4)",
           opacity: open ? 1 : 0,
           transition: "opacity 0.3s ease",
