@@ -56,6 +56,8 @@ interface SubmittedPlace {
   linked_place_id: string | null;
   linked_photo_url: string | null;
   linked_rating: number | null;
+  linked_lat: number | null;
+  linked_lng: number | null;
 }
 
 interface StrayReport {
@@ -270,20 +272,22 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
       // Enrich approved submissions with photo + rating from pet_friendly_places
       const rawSubs = (subsData as any[]) || [];
       const approvedIds = rawSubs.map(s => s.id);
-      let linkedMap: Record<string, { id: string; photo_url: string | null; rating: number | null }> = {};
+      let linkedMap: Record<string, { id: string; photo_url: string | null; rating: number | null; latitude: number | null; longitude: number | null }> = {};
       if (approvedIds.length > 0) {
         const { data: linked } = await supabase
           .from("pet_friendly_places")
-          .select("id, photo_url, rating, source_id")
+          .select("id, photo_url, rating, source_id, latitude, longitude")
           .eq("source", "user_submission")
           .in("source_id", approvedIds);
-        for (const p of (linked as any[]) || []) linkedMap[p.source_id] = { id: p.id, photo_url: p.photo_url, rating: p.rating };
+        for (const p of (linked as any[]) || []) linkedMap[p.source_id] = { id: p.id, photo_url: p.photo_url, rating: p.rating, latitude: p.latitude, longitude: p.longitude };
       }
       setSubmittedPlaces(rawSubs.map(s => ({
         ...s,
         linked_place_id:  linkedMap[s.id]?.id ?? null,
         linked_photo_url: linkedMap[s.id]?.photo_url ?? null,
         linked_rating:    linkedMap[s.id]?.rating ?? null,
+        linked_lat:       linkedMap[s.id]?.latitude ?? null,
+        linked_lng:       linkedMap[s.id]?.longitude ?? null,
       })));
 
       // Enrich reviews with place name + photo
@@ -675,6 +679,20 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
                               {place.dogs_on_leash_only && <span className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">🪢 Laisse</span>}
                               {place.outdoor_seating    && <span className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">🌿 Terrasse</span>}
                               {place.water_bowl_provided && <span className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">🥤 Gamelle</span>}
+                            </div>
+                          )}
+                          {isClickable && place.linked_lat != null && place.linked_lng != null && (
+                            <div className="px-3 pb-3" onClick={e => e.stopPropagation()}>
+                              <button
+                                onClick={() => {
+                                  window.dispatchEvent(new CustomEvent("map-pan-to", { detail: { lat: place.linked_lat, lng: place.linked_lng } }));
+                                  onClose();
+                                }}
+                                className="flex items-center gap-1 text-[11px] text-primary font-semibold hover:underline active:opacity-70 transition-opacity"
+                              >
+                                <MapPin className="w-3 h-3 shrink-0" />
+                                Voir sur la carte
+                              </button>
                             </div>
                           )}
                         </div>

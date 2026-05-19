@@ -39,7 +39,29 @@ interface PhotoComment {
   profiles: { display_name: string | null; avatar_url: string | null } | null;
 }
 
+// ─── Types (visited places) ───────────────────────────────────────────────────
+
+interface VisitedPlace {
+  id: string;
+  name: string;
+  photo_url: string | null;
+  category: string;
+  review_rating: number;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function categoryLabel(cat: string): string {
+  const map: Record<string, string> = {
+    restaurant: "🍽️ Restaurant", hotel: "🏨 Hôtel", shop: "🛍️ Commerce",
+    park: "🌳 Parc", vet: "🏥 Vétérinaire", cafe: "☕ Café", other: "📍 Autre",
+    veterinaire: "🏥 Vétérinaire", outdoor: "🌿 Parc", parc_chiens: "🐕 Parc chiens",
+    animalerie: "🐾 Animalerie", pension: "🏠 Pension", toiletteur: "🛁 Toiletteur",
+    educateur: "🎓 Éducateur", osteopathe: "🦴 Ostéopathe", masseur: "💆 Masseur",
+    pet_sitter: "🏡 Pet Sitter", dog_walker: "🦮 Dog Walker",
+  };
+  return map[cat] ?? `📍 ${cat}`;
+}
 
 function speciesEmoji(s: string | null): string {
   if (!s) return "🐾";
@@ -311,6 +333,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
   const [photos, setPhotos] = useState<PetPhoto[]>([]);
   const [loading, setLoading] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [visitedPlaces, setVisitedPlaces] = useState<VisitedPlace[]>([]);
 
   // ── Drag state (same pattern as StrayReportModal) ──
   const [dragging, setDragging] = useState(false);
@@ -369,6 +392,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
     setVisible(true);
     setSnapState("half");
     setLightboxIndex(null);
+    setVisitedPlaces([]);
     let cancelled = false;
     async function load() {
       setLoading(true);
@@ -387,8 +411,46 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
       if (!cancelled) {
         setPet((petRes.data ?? null) as unknown as Pet | null);
         setPhotos((photosRes.data ?? []) as unknown as PetPhoto[]);
-        setLoading(false);
       }
+
+      // Load visited places via review_pets → place_reviews → pet_friendly_places
+      const { data: reviewPetsData } = await (supabase as any)
+        .from("review_pets")
+        .select("review_id")
+        .eq("pet_id", petId);
+
+      if (!cancelled && reviewPetsData && reviewPetsData.length > 0) {
+        const reviewIds = reviewPetsData.map((r: any) => r.review_id);
+        const { data: reviewsData } = await supabase
+          .from("place_reviews")
+          .select("id, place_id, rating")
+          .in("id", reviewIds);
+
+        if (reviewsData && reviewsData.length > 0) {
+          const placeIds = (reviewsData as any[]).map(r => r.place_id);
+          const ratingMap: Record<string, number> = {};
+          for (const r of (reviewsData as any[])) ratingMap[r.place_id] = r.rating;
+
+          const { data: placesData } = await supabase
+            .from("pet_friendly_places")
+            .select("id, name, photo_url, category")
+            .in("id", placeIds);
+
+          if (!cancelled) {
+            const seen = new Set<string>();
+            const result: VisitedPlace[] = [];
+            for (const p of (placesData as any[]) || []) {
+              if (!seen.has(p.id)) {
+                seen.add(p.id);
+                result.push({ id: p.id, name: p.name, photo_url: p.photo_url, category: p.category, review_rating: ratingMap[p.id] ?? 0 });
+              }
+            }
+            setVisitedPlaces(result);
+          }
+        }
+      }
+
+      if (!cancelled) setLoading(false);
     }
     load();
     return () => { cancelled = true; };
@@ -541,6 +603,40 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
                       </div>
                     )}
                   </div>
+
+                  {/* Visited places */}
+                  {visitedPlaces.length > 0 && (
+                    <div className="px-5 py-4 border-t border-border">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                        Lieux visités · {visitedPlaces.length}
+                      </p>
+                      <div className="space-y-2">
+                        {visitedPlaces.map(place => (
+                          <button
+                            key={place.id}
+                            onClick={() => window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: place.id } }))}
+                            className="w-full text-left flex gap-3 p-3 rounded-xl border border-border bg-card hover:bg-muted/60 active:scale-[0.99] transition-all"
+                          >
+                            <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-muted border border-border">
+                              {place.photo_url
+                                ? <img src={place.photo_url} alt={place.name} className="w-full h-full object-cover" />
+                                : <div className="w-full h-full flex items-center justify-center text-xl">📍</div>
+                              }
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-foreground text-sm truncate">{place.name}</p>
+                              <p className="text-[10px] text-muted-foreground">{categoryLabel(place.category)}</p>
+                              {place.review_rating > 0 && (
+                                <p className="text-[10px] text-yellow-500 font-medium mt-0.5">
+                                  {"★".repeat(place.review_rating)}{"☆".repeat(5 - place.review_rating)}
+                                </p>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
