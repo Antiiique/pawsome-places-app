@@ -560,7 +560,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
                         <div
                           key={pet.id}
                           className="rounded-2xl border border-border overflow-hidden bg-card cursor-pointer hover:border-primary/50 active:scale-[0.99] transition-all"
-                          onClick={() => window.dispatchEvent(new CustomEvent("open-pet-profile", { detail: { petId: pet.id } }))}
+                          onClick={() => { window.dispatchEvent(new CustomEvent("open-pet-profile", { detail: { petId: pet.id } })); onClose(); }}
                         >
                           <div className="relative w-full h-32 bg-muted">
                             {pet.avatar_url
@@ -609,7 +609,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
                     {reviews.map(r => (
                       <button
                         key={r.id}
-                        onClick={() => window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: r.place_id } }))}
+                        onClick={() => { window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: r.place_id } })); onClose(); }}
                         className="w-full text-left rounded-xl border border-border bg-card hover:bg-muted/60 active:scale-[0.99] transition-all overflow-hidden"
                       >
                         <div className="flex gap-3 p-3">
@@ -709,7 +709,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
                   {activeLostPets.map(pet => (
                     <button
                       key={pet.id}
-                      onClick={() => window.dispatchEvent(new CustomEvent("open-lost-pet", { detail: { petId: pet.id } }))}
+                      onClick={() => { window.dispatchEvent(new CustomEvent("open-lost-pet", { detail: { petId: pet.id } })); onClose(); }}
                       className="w-full text-left p-3 rounded-xl border border-border hover:bg-muted transition-colors"
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -725,7 +725,11 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
                   ))}
 
                   {recentStrays.map(r => (
-                    <div key={r.id} className="p-3 rounded-xl border border-border bg-muted/50">
+                    <button
+                      key={r.id}
+                      className="w-full text-left p-3 rounded-xl border border-border bg-muted/50 hover:bg-muted active:scale-[0.99] transition-all"
+                      onClick={() => { window.dispatchEvent(new CustomEvent("open-stray", { detail: { strayId: r.id } })); onClose(); }}
+                    >
                       <div className="flex items-center gap-2">
                         <span className="text-base">{speciesEmoji(r.species)}</span>
                         <div className="min-w-0">
@@ -737,7 +741,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
                           )}
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
@@ -749,7 +753,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
                   {lostPets.filter(p => p.status !== "active").map(pet => (
                     <button
                       key={pet.id}
-                      onClick={() => window.dispatchEvent(new CustomEvent("open-lost-pet", { detail: { petId: pet.id } }))}
+                      onClick={() => { window.dispatchEvent(new CustomEvent("open-lost-pet", { detail: { petId: pet.id } })); onClose(); }}
                       className="w-full text-left p-3 rounded-xl border border-border hover:bg-muted transition-colors"
                     >
                       <div className="flex items-center justify-between gap-2">
