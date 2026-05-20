@@ -173,6 +173,8 @@ interface UserProfilePanelProps {
   onClose: () => void;
   onOpenChat: (convId: string, other: { id: string; display_name: string | null; avatar_url: string | null }) => void;
   onBack?: () => void;
+  onNavigateAway?: () => void;
+  initialSnap?: "half" | "full";
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -182,7 +184,7 @@ const SNAP_VELOCITY = 0.4;
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack }: UserProfilePanelProps) {
+export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, onNavigateAway, initialSnap }: UserProfilePanelProps) {
   const { user: me } = useAuthContext();
 
   // Mount / visibility animation
@@ -217,7 +219,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack }
   useEffect(() => {
     if (userId) {
       setMounted(true);
-      setSnap("half");
+      setSnap(initialSnap ?? "half");
       setAvatarZoomed(false);
       requestAnimationFrame(() => setVisible(true));
     } else {
@@ -684,7 +686,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack }
                     {reviews.map(r => (
                       <button
                         key={r.id}
-                        onClick={() => { window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: r.place_id } })); onClose(); }}
+                        onClick={() => { window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: r.place_id } })); (onNavigateAway ?? onClose)(); }}
                         className="w-full text-left rounded-xl border border-border bg-card hover:bg-muted/60 active:scale-[0.99] transition-all overflow-hidden"
                       >
                         <div className="flex gap-3 p-3">
@@ -735,7 +737,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack }
                               window.dispatchEvent(new CustomEvent("map-jump-to-frozen", { detail: { lat: place.linked_lat, lng: place.linked_lng } }));
                             }
                             window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: place.linked_place_id } }));
-                            onClose();
+                            (onNavigateAway ?? onClose)();
                           } : undefined}
                           className={`rounded-xl border border-border overflow-hidden bg-card ${isClickable ? "hover:bg-muted/60 active:scale-[0.99] cursor-pointer transition-all" : ""}`}
                         >

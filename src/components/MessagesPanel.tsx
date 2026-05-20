@@ -662,6 +662,8 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
         onClose={() => setViewingProfileId(null)}
         onBack={() => setViewingProfileId(null)}
         onOpenChat={(convId, other) => { setViewingProfileId(null); setActiveConv({ id: convId, other }); }}
+        initialSnap="full"
+        onNavigateAway={() => { setViewingProfileId(null); onClose(); }}
       />
     </>,
     document.body
