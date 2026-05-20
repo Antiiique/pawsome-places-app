@@ -897,7 +897,21 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       const placeId = (e as CustomEvent).detail?.placeId;
       if (!placeId) return;
       const { data } = await supabase.from("pet_friendly_places").select("id, name, category, subcategory, address, city, country, latitude, longitude, phone, website, opening_hours, accepts_dogs, accepts_cats, dogs_on_leash_only, outdoor_seating, rating, description, photo_url, verified, is_flagged, google_place_id").eq("id", placeId).maybeSingle();
-      if (data) setSelectedPlace(data as any);
+      if (!data) return;
+      // Pan map to place — update savedCenter so camera-reset stays at new pos
+      const lat = (data as any).latitude as number | null;
+      const lng = (data as any).longitude as number | null;
+      const map = mapRef.current;
+      if (map && lat != null && lng != null) {
+        savedCenterRef.current = new mapboxgl.LngLat(lng, lat);
+        savedZoomRef.current = 15;
+        savedBearingRef.current = 0;
+        savedPitchRef.current = 0;
+        isResettingRef.current = true;
+        map.jumpTo({ center: [lng, lat], zoom: 15 });
+        isResettingRef.current = false;
+      }
+      setSelectedPlace(data as any);
     };
     window.addEventListener("global-search-open-place", handler);
     return () => window.removeEventListener("global-search-open-place", handler);
