@@ -245,14 +245,11 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const filterLastVelocity  = useRef(0);
   const prevModalOpenRef    = useRef(false);
 
-  // Freeze map while filter sheet is open; reset snap to "half" on each open
+  // Reset filter sheet snap on each open
   useEffect(() => {
     if (showFilterSheet) {
       setFilterSnap("half");
       setFilterDragDelta(0);
-      window.dispatchEvent(new Event("map-freeze"));
-    } else {
-      window.dispatchEvent(new Event("map-unfreeze"));
     }
   }, [showFilterSheet]);
   const [radiusKm, setRadiusKm] = useState(20);
@@ -271,27 +268,34 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [panelVisible, setPanelVisible] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
 
-  // Track map-freeze/unfreeze events from panels to drive the touch-blocker overlay.
-  // Independent of isLoaded so it works the moment any panel dispatches the event.
-  const [panelFrozen, setPanelFrozen] = useState(false);
-  useEffect(() => {
-    let count = 0;
-    const onFreeze   = () => { count++;                           if (count === 1) setPanelFrozen(true);  };
-    const onUnfreeze = () => { count = Math.max(0, count - 1);   if (count === 0) setPanelFrozen(false); };
-    window.addEventListener("map-freeze",   onFreeze);
-    window.addEventListener("map-unfreeze", onUnfreeze);
-    return () => {
-      window.removeEventListener("map-freeze",   onFreeze);
-      window.removeEventListener("map-unfreeze", onUnfreeze);
-    };
-  }, []);
+  // Refs pour le freeze Mapbox direct (pas d'events, pas de compteur)
+  const mapFrozenRef     = useRef(false);
+  const isResettingRef   = useRef(false);
+  const savedCenterRef   = useRef<mapboxgl.LngLat | null>(null);
+  const savedZoomRef     = useRef(0);
+  const savedBearingRef  = useRef(0);
+  const savedPitchRef    = useRef(0);
+
+  // Source unique de vérité pour le freeze : dérivé du state React pur.
+  // Impossible à désynchroniser — pas de compteur, pas d'événements.
+  const mapboxShouldBeFrozen = (
+    frozen          ||   // panneaux gérés par Index.tsx (itinerary, favorites, profile, messages, petProfile)
+    !!selectedPlace ||   // PlaceDetailPanel
+    !!popupData     ||   // MarkerPopup
+    showFilterSheet ||   // Filter sheet
+    !!selectedStray ||   // StrayDetailPanel
+    !!selectedLostPet || // LostPetDetailPanel
+    strayModal      ||   // Modal signalement errant
+    reportModal.open||   // Modal signalement lieu
+    lostPetModal         // Modal animal perdu
+  );
 
   // Document-level touch blocker — tied to React state so cleanup is guaranteed.
   // Prevents iOS Safari elastic-scroll / viewport drift that makes the map appear to move.
   // Calls e.preventDefault() for ALL touches when frozen, EXCEPT those that started
   // inside a native scroll container (overflow: auto/scroll) so panel lists still scroll.
   useEffect(() => {
-    if (!frozen && !panelFrozen) return;
+    if (!mapboxShouldBeFrozen) return;
     let touchStartEl: Element | null = null;
 
     const isInsideScrollable = (el: Element | null): boolean => {
@@ -330,98 +334,56 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       document.removeEventListener("touchstart", onStart, { capture: true });
       document.removeEventListener("touchmove",  onMove,  { capture: true });
     };
-  }, [frozen, panelFrozen]);
+  }, [mapboxShouldBeFrozen]);
 
-  // Freeze map camera while panels are open/dragging.
-  // Two-layer defence:
-  //   1. disable() Mapbox handlers on freeze (prevents most panning)
-  //   2. onMove compensation: if camera still moves, jumpTo saved position instantly.
-  //      isResetting flag prevents the jumpTo from triggering another reset loop
-  //      (jumpTo fires 'move' synchronously, so isResetting is still true when it fires).
+  // Compensation camera : si la carte bouge malgré le freeze, on remet la position sauvegardée.
   useEffect(() => {
     if (!isLoaded) return;
     const map = mapRef.current;
     if (!map) return;
-
-    const state = {
-      frozen:      false,
-      count:       0,   // stacked freeze counter — map stays frozen until all panels close
-      isResetting: false,
-      center:      map.getCenter(),
-      zoom:        map.getZoom(),
-      bearing:     map.getBearing(),
-      pitch:       map.getPitch(),
+    const onMove = () => {
+      if (!mapFrozenRef.current || isResettingRef.current) return;
+      isResettingRef.current = true;
+      map.stop();
+      map.jumpTo({
+        center:  savedCenterRef.current ?? map.getCenter(),
+        zoom:    savedZoomRef.current,
+        bearing: savedBearingRef.current,
+        pitch:   savedPitchRef.current,
+      });
+      isResettingRef.current = false;
     };
+    map.on("move", onMove);
+    return () => { map.off("move", onMove); };
+  }, [isLoaded]);
 
-    const onFreeze = () => {
-      state.count++;
-      if (state.count > 1) return; // already frozen by another panel
-      state.frozen  = true;
-      state.center  = map.getCenter();
-      state.zoom    = map.getZoom();
-      state.bearing = map.getBearing();
-      state.pitch   = map.getPitch();
+  // Contrôle direct des handlers Mapbox — dérivé du state React, sans compteur ni événements.
+  useEffect(() => {
+    if (!isLoaded) return;
+    const map = mapRef.current;
+    if (!map) return;
+    mapFrozenRef.current = mapboxShouldBeFrozen;
+    if (mapboxShouldBeFrozen) {
+      savedCenterRef.current  = map.getCenter();
+      savedZoomRef.current    = map.getZoom();
+      savedBearingRef.current = map.getBearing();
+      savedPitchRef.current   = map.getPitch();
       map.getCanvas().style.pointerEvents = "none";
       map.dragPan.disable();
       map.dragRotate.disable();
       map.touchZoomRotate.disable();
       map.doubleClickZoom.disable();
       map.scrollZoom.disable();
-    };
-
-    const onUnfreeze = () => {
-      state.count = Math.max(0, state.count - 1);
-      if (state.count > 0) return; // other panels still open
-      state.frozen = false;
+    } else {
       map.getCanvas().style.pointerEvents = "";
       map.dragPan.enable();
       map.dragRotate.enable();
       map.touchZoomRotate.enable();
       map.doubleClickZoom.enable();
       map.scrollZoom.enable();
-    };
-
-    const onMove = () => {
-      if (!state.frozen || state.isResetting) return;
-      state.isResetting = true;
-      map.stop();
-      map.jumpTo({
-        center:  state.center,
-        zoom:    state.zoom,
-        bearing: state.bearing,
-        pitch:   state.pitch,
-      });
-      state.isResetting = false;
-    };
-
-    window.addEventListener("map-freeze",   onFreeze);
-    window.addEventListener("map-unfreeze", onUnfreeze);
-    map.on("move", onMove);
-
-    return () => {
-      window.removeEventListener("map-freeze",   onFreeze);
-      window.removeEventListener("map-unfreeze", onUnfreeze);
-      map.off("move", onMove);
-    };
-  }, [isLoaded]);
-
-  // Freeze map while MarkerPopup is open so the camera never drifts during panel animation or drag
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (popupData) {
-      window.dispatchEvent(new Event("map-freeze"));
-    } else {
-      window.dispatchEvent(new Event("map-unfreeze"));
     }
-  }, [popupData, isLoaded]);
+  }, [mapboxShouldBeFrozen, isLoaded]);
 
-  // Freeze map while any internal modal (report, stray, lost pet) is open
-  useEffect(() => {
-    const anyOpen = strayModal || reportModal.open || lostPetModal;
-    if (anyOpen === prevModalOpenRef.current) return;
-    prevModalOpenRef.current = anyOpen;
-    window.dispatchEvent(new Event(anyOpen ? "map-freeze" : "map-unfreeze"));
-  }, [strayModal, reportModal.open, lostPetModal]);
 
   // ── Render clusters ──
   const renderClusters = useCallback((currentPlaces: PetPlace[]) => {
@@ -1010,7 +972,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
   // ── Helpers ──
   const closePanel = useCallback(() => {
-    window.dispatchEvent(new Event("map-unfreeze")); // unfreeze immédiat, avant animation
     setPanelVisible(false);
     setClosingPanel(true);
     setTimeout(() => {
@@ -1024,10 +985,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   useEffect(() => { closePanelRef.current = closePanel; }, [closePanel]);
   useEffect(() => {
     if (selectedPlace) {
-      window.dispatchEvent(new Event("map-freeze"));
       setShowFilterSheet(false);
       setTimeout(() => setPanelVisible(true), 10);
-      return () => { window.dispatchEvent(new Event("map-unfreeze")); };
     } else {
       setPanelVisible(false);
     }
@@ -1153,7 +1112,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       {/* Touch-blocker overlay: provides a touch-action:none surface above the canvas.
           pointer-events:none so it never intercepts clicks on FABs/buttons below z-[48].
           The actual freeze is handled by the document-level touchmove listener above. */}
-      {(frozen || panelFrozen) && (
+      {mapboxShouldBeFrozen && (
         <div
           className="fixed inset-0 z-[48]"
           style={{ touchAction: "none", pointerEvents: "none" }}
