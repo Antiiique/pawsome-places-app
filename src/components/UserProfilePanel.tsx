@@ -211,6 +211,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack }
   const [submittedPlaces, setSubmittedPlaces] = useState<SubmittedPlace[]>([]);
   const [recentStrays, setRecentStrays] = useState<StrayReport[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [petPhotos, setPetPhotos] = useState<Record<string, Array<{ id: string; url: string }>>>({});
 
   // Mount / unmount effect
   useEffect(() => {
@@ -238,6 +239,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack }
       setProfile(null);
       setReviews([]);
       setPets([]);
+      setPetPhotos({});
       setSubmittedPlaces([]);
       setRecentStrays([]);
       setLostPets([]);
@@ -272,9 +274,26 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack }
       setStrayCount(strays || 0);
       setReviewCount(revCount || 0);
       setApprovedSubCount(approvedSubs || 0);
-      setPets((petsData as Pet[]) || []);
+      const petsArr = (petsData as Pet[]) || [];
+      setPets(petsArr);
       setRecentStrays((straysData as StrayReport[]) || []);
       setLostPets((lostPetsData as LostPet[]) || []);
+
+      // Load pet photos
+      if (petsArr.length > 0) {
+        const petIds = petsArr.map(p => p.id);
+        const { data: photosRaw } = await (supabase as any)
+          .from("pet_photos")
+          .select("id, url, pet_id")
+          .in("pet_id", petIds)
+          .order("created_at", { ascending: false });
+        const byPet: Record<string, Array<{ id: string; url: string }>> = {};
+        for (const photo of (photosRaw as any[]) || []) {
+          if (!byPet[photo.pet_id]) byPet[photo.pet_id] = [];
+          byPet[photo.pet_id].push({ id: photo.id, url: photo.url });
+        }
+        setPetPhotos(byPet);
+      }
 
       // Enrich approved submissions with photo + rating from pet_friendly_places
       const rawSubs = (subsData as any[]) || [];
@@ -553,8 +572,10 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack }
 
               {/* ── Pets ── */}
               {pets.length > 0 && (
-                <div className="space-y-2.5">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Animaux de compagnie</p>
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Animaux de compagnie · {pets.length}
+                  </p>
                   <div className="space-y-3">
                     {pets.map(pet => {
                       const age = (() => {
@@ -565,36 +586,50 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack }
                         const y = Math.floor(months / 12);
                         return `${y} an${y > 1 ? "s" : ""}`;
                       })();
+                      const photos = petPhotos[pet.id] ?? [];
                       return (
                         <div
                           key={pet.id}
-                          className="rounded-2xl border border-border overflow-hidden bg-card cursor-pointer hover:border-primary/50 active:scale-[0.99] transition-all"
+                          className="rounded-2xl border border-border overflow-hidden bg-card cursor-pointer hover:border-primary/40 active:scale-[0.99] transition-all"
                           onClick={() => { window.dispatchEvent(new CustomEvent("open-pet-profile", { detail: { petId: pet.id } })); onClose(); }}
                         >
+                          {/* Hero photo */}
                           <div className="relative w-full h-32 bg-muted">
                             {pet.avatar_url
                               ? <img src={pet.avatar_url} alt={pet.name} className="w-full h-full object-cover" />
                               : <div className="w-full h-full flex items-center justify-center text-5xl">{speciesEmoji(pet.species)}</div>
                             }
-                            <span className="absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white backdrop-blur-sm">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                            {/* Species badge top-left */}
+                            <span className="absolute top-2 left-2 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white backdrop-blur-sm">
                               {speciesEmoji(pet.species)} {pet.species}
                             </span>
-                          </div>
-                          <div className="p-3 space-y-1.5">
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="font-bold text-foreground text-base">{pet.name}</p>
-                              <div className="flex gap-1">
-                                {pet.sex === "M" && <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-medium">♂ Mâle</span>}
-                                {pet.sex === "F" && <span className="text-[10px] bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300 px-1.5 py-0.5 rounded-full font-medium">♀ Femelle</span>}
+                            {/* Album count badge top-right */}
+                            {photos.length > 0 && (
+                              <span className="absolute top-2 right-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-black/40 text-white backdrop-blur-sm">
+                                📷 {photos.length}
+                              </span>
+                            )}
+                            {/* Name + sex overlay bottom */}
+                            <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between gap-2">
+                              <p className="font-bold text-white text-base leading-tight drop-shadow">{pet.name}</p>
+                              <div className="flex gap-1 shrink-0">
+                                {pet.sex === "M" && <span className="text-[10px] bg-blue-500/80 text-white px-1.5 py-0.5 rounded-full font-medium backdrop-blur-sm">♂ Mâle</span>}
+                                {pet.sex === "F" && <span className="text-[10px] bg-pink-500/80 text-white px-1.5 py-0.5 rounded-full font-medium backdrop-blur-sm">♀ Femelle</span>}
                               </div>
                             </div>
-                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                              {pet.breed && <span>{pet.breed}</span>}
-                              {pet.color && <span>· {pet.color}</span>}
-                              {age && <span>· {age}</span>}
-                              {pet.size_class && <span>· {({ petit: "Petit", moyen: "Moyen", grand: "Grand", tres_grand: "Très grand" } as Record<string, string>)[pet.size_class] ?? pet.size_class}</span>}
-                            </div>
-                            {pet.bio && <p className="text-xs text-muted-foreground italic">"{pet.bio}"</p>}
+                          </div>
+
+                          {/* Info */}
+                          <div className="px-3 pt-2.5 pb-2 space-y-1.5">
+                            {(pet.breed || pet.color || age || pet.size_class) && (
+                              <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                                {pet.breed && <span>{pet.breed}</span>}
+                                {pet.color && <span className="before:content-['·'] before:mr-1">{pet.color}</span>}
+                                {age && <span className="before:content-['·'] before:mr-1">{age}</span>}
+                                {pet.size_class && <span className="before:content-['·'] before:mr-1">{({ petit: "Petit", moyen: "Moyen", grand: "Grand", tres_grand: "Très grand" } as Record<string, string>)[pet.size_class] ?? pet.size_class}</span>}
+                              </div>
+                            )}
                             {(pet.is_vaccinated || pet.is_sterilized || pet.is_microchipped) && (
                               <div className="flex gap-1.5 flex-wrap">
                                 {pet.is_vaccinated   && <span className="text-[9px] bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 px-1.5 py-0.5 rounded-full font-medium">💉 Vacciné</span>}
@@ -602,6 +637,37 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack }
                                 {pet.is_microchipped && <span className="text-[9px] bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 px-1.5 py-0.5 rounded-full font-medium">📡 Pucé</span>}
                               </div>
                             )}
+                            {pet.bio && (
+                              <p className="text-xs text-muted-foreground italic line-clamp-2">"{pet.bio}"</p>
+                            )}
+                          </div>
+
+                          {/* Album strip */}
+                          {photos.length > 0 && (
+                            <div className="px-3 pb-3">
+                              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Album</p>
+                              <div className="flex gap-1.5" style={{ overflowX: "auto", scrollbarWidth: "none" }}>
+                                {photos.slice(0, 7).map(photo => (
+                                  <img
+                                    key={photo.id}
+                                    src={photo.url}
+                                    alt=""
+                                    className="w-14 h-14 shrink-0 rounded-lg object-cover border border-border"
+                                  />
+                                ))}
+                                {photos.length > 7 && (
+                                  <div className="w-14 h-14 shrink-0 rounded-lg bg-muted border border-border flex flex-col items-center justify-center gap-0.5">
+                                    <span className="text-sm font-bold text-muted-foreground">+{photos.length - 7}</span>
+                                    <span className="text-[9px] text-muted-foreground">photos</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Footer CTA */}
+                          <div className="px-3 pb-2.5 flex items-center justify-end">
+                            <span className="text-[10px] font-semibold text-primary">Voir le profil →</span>
                           </div>
                         </div>
                       );
