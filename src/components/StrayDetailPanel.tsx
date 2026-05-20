@@ -155,7 +155,7 @@ export default function StrayDetailPanel({ report, onClose, onDeleted }: StrayDe
       {/* Scrim */}
       <div
         className="fixed inset-0 z-[599] bg-black/50"
-        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease" }}
+        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease", touchAction: "none" }}
         onClick={handleClose}
       />
 

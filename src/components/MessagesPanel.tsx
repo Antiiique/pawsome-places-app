@@ -382,6 +382,7 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
           opacity: open ? 1 : 0,
           transition: "opacity 0.3s ease",
           pointerEvents: open ? "auto" : "none",
+          touchAction: "none",
         }}
         onClick={onClose}
       />

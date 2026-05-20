@@ -391,6 +391,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
           opacity: visible ? 1 : 0,
           transition: "opacity 0.3s ease",
           pointerEvents: visible ? "auto" : "none",
+          touchAction: "none",
         }}
         onClick={onClose}
       />

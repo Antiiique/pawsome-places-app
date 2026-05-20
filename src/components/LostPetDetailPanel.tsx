@@ -162,7 +162,7 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
       {/* Scrim */}
       <div
         className="fixed inset-0 z-[649] bg-black/50"
-        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease" }}
+        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease", touchAction: "none" }}
         onClick={handleClose}
       />
 

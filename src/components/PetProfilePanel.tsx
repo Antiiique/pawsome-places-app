@@ -487,7 +487,7 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
       {/* Scrim — identique StrayReportModal */}
       <div
         className="fixed inset-0 z-[700] bg-black/50"
-        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease" }}
+        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease", touchAction: "none" }}
         onClick={handleClose}
       />
 

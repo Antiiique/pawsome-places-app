@@ -1094,7 +1094,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           preventing pan/zoom even if Mapbox handlers are still technically enabled. */}
       {(frozen || panelFrozen) && (
         <div
-          className="absolute inset-0 z-10"
+          className="fixed inset-0 z-[48]"
           style={{ touchAction: "none" }}
         />
       )}
@@ -1157,6 +1157,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             opacity: showFilterSheet ? 1 : 0,
             transition: "opacity 0.3s ease",
             pointerEvents: showFilterSheet ? "auto" : "none",
+            touchAction: "none",
           }}
           onClick={() => setShowFilterSheet(false)}
         />
@@ -1363,7 +1364,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         <>
           <div
             className="fixed inset-0 z-[49] bg-black/50"
-            style={{ opacity: panelVisible ? 1 : 0, transition: "opacity 0.3s ease" }}
+            style={{ opacity: panelVisible ? 1 : 0, transition: "opacity 0.3s ease", touchAction: "none" }}
             onClick={closePanel}
           />
           <PlaceDetailPanel
