@@ -597,11 +597,11 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
   return (
     <>
       {/* Mobile backdrop */}
-      <div data-panel className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-r-2xl" style={{
+      <div data-panel className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-t-2xl" style={{
         top: "var(--header-h, 56px)",
         ...(dragProgress !== undefined
-          ? { transform: `translateX(${-(1 - dragProgress) * 100}%)`, transition: "none" }
-          : { transform: open ? "translateX(0%)" : "translateX(-100%)" }),
+          ? { transform: `translateY(${(1 - dragProgress) * 100}%)`, transition: "none" }
+          : { transform: open ? "translateY(0%)" : "translateY(100%)" }),
       }}>
 
         <div className={`flex items-center justify-between p-4 border-b border-border shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}>

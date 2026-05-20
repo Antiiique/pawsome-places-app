@@ -35,6 +35,7 @@ const Index = () => {
   const velPrevT = useRef<number | null>(null);
   const velCurrX = useRef<number | null>(null);
   const velCurrT = useRef<number | null>(null);
+  const prevShouldFreezeRef = useRef(false);
 
   useEffect(() => { activePanelRef.current = activePanel; }, [activePanel]);
 
@@ -56,9 +57,11 @@ const Index = () => {
     return () => window.removeEventListener("open-pet-profile", handler);
   }, []);
 
-  // Freeze map whenever a panel is open OR being dragged
+  // Freeze map whenever a panel is open OR being dragged — only dispatch on actual state change
   useEffect(() => {
     const shouldFreeze = activePanel !== null || panelDrag !== null;
+    if (shouldFreeze === prevShouldFreezeRef.current) return;
+    prevShouldFreezeRef.current = shouldFreeze;
     window.dispatchEvent(new Event(shouldFreeze ? "map-freeze" : "map-unfreeze"));
   }, [activePanel, panelDrag]);
 
@@ -136,6 +139,7 @@ const Index = () => {
     // Freeze map synchronously — before any setState/re-render — so the canvas
     // has pointer-events:none before the first touchmove fires.
     window.dispatchEvent(new Event("map-freeze"));
+    prevShouldFreezeRef.current = true; // prevent double dispatch from [activePanel, panelDrag] effect
     const x = e.touches[0].clientX;
     touchStartX.current = x;
     touchStartY.current = e.touches[0].clientY;
@@ -149,8 +153,7 @@ const Index = () => {
   const handleOuterStart = (e: React.TouchEvent) => {
     const current = activePanelRef.current;
     if (!current) return;
-    // Freeze map synchronously before any setState
-    window.dispatchEvent(new Event("map-freeze"));
+    // Panel is already frozen (activePanel !== null), no need to dispatch again
     const x = e.touches[0].clientX;
     touchStartX.current = x;
     touchStartY.current = e.touches[0].clientY;
