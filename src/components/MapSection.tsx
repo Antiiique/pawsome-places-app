@@ -1131,14 +1131,13 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         <div ref={mapContainerRef} className="w-full h-full" />
       )}
 
-      {/* Touch-blocker overlay: covers the canvas when a panel is open or being dragged.
-          Positioned above the canvas (z-10) but below all UI controls (z-20+).
-          pointer-events captures any touch that would otherwise reach the Mapbox canvas,
-          preventing pan/zoom even if Mapbox handlers are still technically enabled. */}
+      {/* Touch-blocker overlay: provides a touch-action:none surface above the canvas.
+          pointer-events:none so it never intercepts clicks on FABs/buttons below z-[48].
+          The actual freeze is handled by the document-level touchmove listener above. */}
       {(frozen || panelFrozen) && (
         <div
           className="fixed inset-0 z-[48]"
-          style={{ touchAction: "none" }}
+          style={{ touchAction: "none", pointerEvents: "none" }}
         />
       )}
 
