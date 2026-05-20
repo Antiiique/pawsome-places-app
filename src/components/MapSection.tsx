@@ -306,28 +306,22 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       pitch:       map.getPitch(),
     };
 
-    // Track the element where each touch sequence started (for scroll detection)
+    // Track the element where each touch sequence started.
     let touchStartEl: Element | null = null;
-
-    const isInsideScrollable = (el: Element | null): boolean => {
-      while (el && el !== document.documentElement) {
-        const oy = window.getComputedStyle(el).overflowY;
-        if (oy === "auto" || oy === "scroll") return true;
-        el = el.parentElement;
-      }
-      return false;
-    };
 
     const onTouchStartCapture = (e: TouchEvent) => {
       touchStartEl = e.target as Element;
     };
 
     // Blocks native iOS pan on the map canvas. Called in capture mode so it
-    // fires before Mapbox or any element handler. Skipped for touches that
-    // started inside a scrollable panel so panel content can still scroll.
+    // fires before Mapbox or any element handler.
+    // Only prevents default when the touch started INSIDE the Mapbox container
+    // (the actual canvas area). Touches on panels, scrims, and other fixed
+    // overlays — which are DOM siblings of the map container, not children —
+    // are left alone; their own touchAction:none handles them.
     const onTouchMoveCapture = (e: TouchEvent) => {
       if (!state.frozen) return;
-      if (isInsideScrollable(touchStartEl)) return;
+      if (!mapContainerRef.current?.contains(touchStartEl)) return;
       e.preventDefault();
     };
 
