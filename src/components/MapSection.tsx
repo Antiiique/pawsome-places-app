@@ -1010,8 +1010,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   useEffect(() => { selectedPlaceRef.current = selectedPlace; }, [selectedPlace]);
   useEffect(() => { closePanelRef.current = closePanel; }, [closePanel]);
   useEffect(() => {
-    if (selectedPlace) setTimeout(() => setPanelVisible(true), 10);
-    else setPanelVisible(false);
+    if (selectedPlace) {
+      setShowFilterSheet(false); // ferme le filter sheet pour libérer son freeze
+      setTimeout(() => setPanelVisible(true), 10);
+    } else {
+      setPanelVisible(false);
+    }
   }, [selectedPlace?.id]);
 
   // ── Inject golden glow CSS once ──
