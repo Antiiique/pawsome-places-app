@@ -306,6 +306,31 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       pitch:       map.getPitch(),
     };
 
+    // Track the element where each touch sequence started (for scroll detection)
+    let touchStartEl: Element | null = null;
+
+    const isInsideScrollable = (el: Element | null): boolean => {
+      while (el && el !== document.documentElement) {
+        const oy = window.getComputedStyle(el).overflowY;
+        if (oy === "auto" || oy === "scroll") return true;
+        el = el.parentElement;
+      }
+      return false;
+    };
+
+    const onTouchStartCapture = (e: TouchEvent) => {
+      touchStartEl = e.target as Element;
+    };
+
+    // Blocks native iOS pan on the map canvas. Called in capture mode so it
+    // fires before Mapbox or any element handler. Skipped for touches that
+    // started inside a scrollable panel so panel content can still scroll.
+    const onTouchMoveCapture = (e: TouchEvent) => {
+      if (!state.frozen) return;
+      if (isInsideScrollable(touchStartEl)) return;
+      e.preventDefault();
+    };
+
     const onFreeze = () => {
       state.count++;
       if (state.count > 1) return; // already frozen by another panel
@@ -320,6 +345,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       map.touchZoomRotate.disable();
       map.doubleClickZoom.disable();
       map.scrollZoom.disable();
+      map.getContainer().style.touchAction = "none";
+      document.addEventListener("touchstart", onTouchStartCapture, { capture: true });
+      document.addEventListener("touchmove",  onTouchMoveCapture,  { capture: true, passive: false });
     };
 
     const onUnfreeze = () => {
@@ -327,11 +355,14 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       if (state.count > 0) return; // other panels still open
       state.frozen = false;
       map.getCanvas().style.pointerEvents = "";
+      map.getContainer().style.touchAction = "";
       map.dragPan.enable();
       map.dragRotate.enable();
       map.touchZoomRotate.enable();
       map.doubleClickZoom.enable();
       map.scrollZoom.enable();
+      document.removeEventListener("touchstart", onTouchStartCapture, { capture: true });
+      document.removeEventListener("touchmove",  onTouchMoveCapture,  { capture: true });
     };
 
     const onMove = () => {
@@ -355,6 +386,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       window.removeEventListener("map-freeze",   onFreeze);
       window.removeEventListener("map-unfreeze", onUnfreeze);
       map.off("move", onMove);
+      document.removeEventListener("touchstart", onTouchStartCapture, { capture: true });
+      document.removeEventListener("touchmove",  onTouchMoveCapture,  { capture: true });
     };
   }, [isLoaded]);
 
