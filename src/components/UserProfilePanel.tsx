@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, MapPin, User, Calendar, MessageCircle, Loader2, ChevronUp, Star } from "lucide-react";
+import { X, MapPin, User, Calendar, MessageCircle, Loader2, ChevronUp, Star, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -172,6 +172,7 @@ interface UserProfilePanelProps {
   userId: string | null;
   onClose: () => void;
   onOpenChat: (convId: string, other: { id: string; display_name: string | null; avatar_url: string | null }) => void;
+  onBack?: () => void;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -181,7 +182,7 @@ const SNAP_VELOCITY = 0.4;
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserProfilePanelProps) {
+export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack }: UserProfilePanelProps) {
   const { user: me } = useAuthContext();
 
   // Mount / visibility animation
@@ -417,7 +418,14 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat }: UserPr
         >
           <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mb-2" />
           <div className="w-full flex items-center justify-between px-4 pb-2">
-            <span className="font-bold text-foreground text-sm">Profil</span>
+            <div className="flex items-center gap-1">
+              {onBack && (
+                <button onClick={onBack} className="p-1.5 rounded-full hover:bg-muted transition-colors mr-1">
+                  <ArrowLeft className="w-5 h-5 text-muted-foreground" />
+                </button>
+              )}
+              <span className="font-bold text-foreground text-sm">Profil</span>
+            </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setSnap(s => s === "half" ? "full" : "half")}

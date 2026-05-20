@@ -4,6 +4,7 @@ import { X, MessageCircle, User, Search, ArrowLeft, Send, Loader2, ChevronUp } f
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useHandedness } from "@/contexts/HandednessContext";
+import UserProfilePanel from "@/components/UserProfilePanel";
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
 
@@ -145,6 +146,9 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const chatChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  /* Inline user profile */
+  const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
 
   /* Search */
   const [search, setSearch] = useState("");
@@ -422,7 +426,7 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
               )}
               {activeConv ? (
                 <button
-                  onClick={() => window.dispatchEvent(new CustomEvent("open-user-profile", { detail: { userId: activeConv.other.id } }))}
+                  onClick={() => setViewingProfileId(activeConv.other.id)}
                   className="flex items-center gap-2 hover:opacity-75 transition-opacity"
                 >
                   <Avatar user={activeConv.other} size={28} />
@@ -477,7 +481,7 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
                             className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/60 transition-colors cursor-pointer"
                           >
                             <button
-                              onClick={e => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("open-user-profile", { detail: { userId: conv.other.id } })); }}
+                              onClick={e => { e.stopPropagation(); setViewingProfileId(conv.other.id); }}
                               className="relative shrink-0"
                             >
                               <Avatar user={conv.other} />
@@ -601,7 +605,7 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
                       <div className={`flex ${isMine ? "justify-end" : "justify-start"} mb-1 items-end gap-1.5`}>
                         {!isMine && (
                           <button
-                            onClick={() => window.dispatchEvent(new CustomEvent("open-user-profile", { detail: { userId: activeConv.other.id } }))}
+                            onClick={() => setViewingProfileId(activeConv.other.id)}
                             className="shrink-0 mb-1"
                           >
                             <Avatar user={activeConv.other} size={24} />
@@ -652,6 +656,13 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
           </>
         )}
       </div>
+
+      <UserProfilePanel
+        userId={viewingProfileId}
+        onClose={() => setViewingProfileId(null)}
+        onBack={() => setViewingProfileId(null)}
+        onOpenChat={(convId, other) => { setViewingProfileId(null); setActiveConv({ id: convId, other }); }}
+      />
     </>,
     document.body
   );
