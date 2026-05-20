@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, ArrowUpDown, Loader2, MapPin, ExternalLink, Share2, Save, Navigation, Check, Trash2, Play, GripVertical, Plus, Heart } from "lucide-react";
+import { X, ArrowUpDown, Loader2, MapPin, ExternalLink, Share2, Save, Navigation, Check, Trash2, Play, GripVertical, Plus, Heart, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -266,6 +266,15 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [stepFilter, setStepFilter] = useState<string | null>(null);
 
+  // Bottom sheet snap (mirrors FavoritesPanel)
+  const [snapState, setSnapState] = useState<"half" | "full">("half");
+  const [sheetDragging, setSheetDragging] = useState(false);
+  const [sheetDragDelta, setSheetDragDelta] = useState(0);
+  const isSheetDragging = useRef(false);
+  const sheetDragStartY = useRef(0);
+  const sheetDragDeltaRef = useRef(0);
+  const sheetGestureStart = useRef(0);
+
   const { itineraries, save, remove, count: savedCount } = useSavedItineraries();
 
 
@@ -310,6 +319,57 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
     window.addEventListener("marker-set-itinerary" as any, handler as any);
     return () => window.removeEventListener("marker-set-itinerary" as any, handler as any);
   }, []);
+
+  useEffect(() => { if (!open) setSnapState("half"); }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    window.dispatchEvent(new Event("map-freeze"));
+    return () => { window.dispatchEvent(new Event("map-unfreeze")); };
+  }, [open]);
+
+  const snapBase = snapState === "full" ? 0 : 55;
+  const sheetH = typeof window !== "undefined" ? window.innerHeight - 56 : 600;
+  const sheetDragPct = sheetDragging && sheetH > 0 ? (sheetDragDelta / sheetH) * 100 : 0;
+  const currentPct = Math.max(0, Math.min(100, snapBase + sheetDragPct));
+
+  const handleSheetTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    isSheetDragging.current = true;
+    sheetDragStartY.current = e.touches[0].clientY;
+    sheetDragDeltaRef.current = 0;
+    sheetGestureStart.current = Date.now();
+    setSheetDragging(true);
+    setSheetDragDelta(0);
+  };
+
+  const handleSheetTouchMove = (e: React.TouchEvent) => {
+    if (!isSheetDragging.current) return;
+    e.stopPropagation();
+    const delta = e.touches[0].clientY - sheetDragStartY.current;
+    sheetDragDeltaRef.current = delta;
+    setSheetDragDelta(delta);
+  };
+
+  const handleSheetTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    isSheetDragging.current = false;
+    setSheetDragging(false);
+    const delta = sheetDragDeltaRef.current;
+    const h = window.innerHeight - 56;
+    const deltaPct = h > 0 ? (delta / h) * 100 : 0;
+    const elapsed = Date.now() - sheetGestureStart.current;
+    const vel = elapsed > 0 ? delta / elapsed : 0;
+    if (snapState === "half") {
+      if (delta < 0 && (deltaPct < -15 || vel < -0.3)) setSnapState("full");
+      else if (delta > 0 && (deltaPct > 25 || vel > 0.5)) onClose();
+    } else {
+      if (delta > 0 && (deltaPct > 25 || vel > 0.5)) onClose();
+      else if (delta > 0 && (deltaPct > 15 || vel > 0.3)) setSnapState("half");
+    }
+    sheetDragDeltaRef.current = 0;
+    setSheetDragDelta(0);
+  };
 
   const handleSwap = () => {
     const tmpO = origin, tmpT = originText;
@@ -597,19 +657,46 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
   return (
     <>
       {/* Mobile backdrop */}
-      <div data-panel className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-t-2xl" style={{
-        top: "var(--header-h, 56px)",
-        ...(dragProgress !== undefined
-          ? { transform: `translateY(${(1 - dragProgress) * 100}%)`, transition: "none" }
-          : { transform: open ? "translateY(0%)" : "translateY(100%)" }),
-      }}>
+      <div
+        data-panel
+        className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col rounded-t-2xl"
+        style={{
+          top: 0,
+          paddingTop: snapState === "full" ? "env(safe-area-inset-top)" : 0,
+          transform: `translateY(${open ? currentPct : 100}%)`,
+          transition: sheetDragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
+        }}
+      >
+        {/* Drag handle */}
+        <div
+          className="shrink-0 flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleSheetTouchStart}
+          onTouchMove={handleSheetTouchMove}
+          onTouchEnd={handleSheetTouchEnd}
+          style={{ touchAction: "none" }}
+        >
+          <div className="w-10 h-1 rounded-full bg-border" />
+        </div>
 
-        <div className={`flex items-center justify-between p-4 border-b border-border shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
+        {/* Header */}
+        <div
+          className={`flex items-center justify-between px-4 pb-3 border-b border-border shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}
+          onTouchStart={handleSheetTouchStart}
+          onTouchMove={handleSheetTouchMove}
+          onTouchEnd={handleSheetTouchEnd}
+          style={{ touchAction: "none" }}
+        >
           <div className="flex items-center gap-2">
             <Navigation className="w-5 h-5 text-primary" />
-            <h2 className="font-heading font-bold text-foreground">Itinéraire Pet-Friendly</h2>
+            <h2 className="font-heading font-bold text-foreground text-sm">Itinéraire Pet-Friendly</h2>
           </div>
-          <div className="flex items-center gap-1">
+          <div className={`flex items-center gap-1 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
+            <button
+              onClick={() => setSnapState(s => s === "half" ? "full" : "half")}
+              className="p-1.5 rounded-full hover:bg-muted transition-colors"
+            >
+              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snapState === "full" ? "rotate-180" : ""}`} />
+            </button>
             <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
