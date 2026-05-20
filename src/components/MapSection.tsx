@@ -308,9 +308,21 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       return false;
     };
 
-    const onStart = (e: TouchEvent) => { touchStartEl = e.target as Element; };
-    const onMove  = (e: TouchEvent) => {
-      if (!isInsideScrollable(touchStartEl)) e.preventDefault();
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const onStart = (e: TouchEvent) => {
+      touchStartEl = e.target as Element;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    };
+    const onMove = (e: TouchEvent) => {
+      if (isInsideScrollable(touchStartEl)) return;
+      const dx = e.touches[0].clientX - touchStartX;
+      const dy = e.touches[0].clientY - touchStartY;
+      // Ne bloquer que les vrais glissements (> 8px) — les taps légèrement glissants
+      // ne doivent pas perdre leur click event (comportement iOS Safari).
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      e.preventDefault();
     };
     document.addEventListener("touchstart", onStart, { capture: true });
     document.addEventListener("touchmove",  onMove,  { capture: true, passive: false });
