@@ -243,6 +243,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const filterLastTouchY    = useRef(0);
   const filterLastTouchTime = useRef(0);
   const filterLastVelocity  = useRef(0);
+  const prevModalOpenRef    = useRef(false);
 
   // Freeze map while filter sheet is open; reset snap to "half" on each open
   useEffect(() => {
@@ -286,15 +287,30 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   }, []);
 
   // Document-level touch blocker — tied to React state so cleanup is guaranteed.
-  // Uses capture mode + preventDefault to stop iOS Safari's native WebGL canvas pan.
-  // Only blocks touches that START inside the Mapbox container (mapContainerRef);
-  // touches on panels/scrims (DOM siblings of the container) are left alone.
+  // Prevents iOS Safari elastic-scroll / viewport drift that makes the map appear to move.
+  // Calls e.preventDefault() for ALL touches when frozen, EXCEPT those that started
+  // inside a native scroll container (overflow: auto/scroll) so panel lists still scroll.
   useEffect(() => {
     if (!frozen && !panelFrozen) return;
     let touchStartEl: Element | null = null;
+
+    const isInsideScrollable = (el: Element | null): boolean => {
+      let node = el;
+      while (node && node !== document.documentElement) {
+        if (node === mapContainerRef.current) return false; // map canvas — never allow
+        if (node.scrollHeight > node.clientHeight + 1 || node.scrollWidth > node.clientWidth + 1) {
+          const { overflowY, overflowX } = getComputedStyle(node);
+          if (overflowY === "auto" || overflowY === "scroll" || overflowX === "auto" || overflowX === "scroll")
+            return true;
+        }
+        node = node.parentElement;
+      }
+      return false;
+    };
+
     const onStart = (e: TouchEvent) => { touchStartEl = e.target as Element; };
     const onMove  = (e: TouchEvent) => {
-      if (mapContainerRef.current?.contains(touchStartEl)) e.preventDefault();
+      if (!isInsideScrollable(touchStartEl)) e.preventDefault();
     };
     document.addEventListener("touchstart", onStart, { capture: true });
     document.addEventListener("touchmove",  onMove,  { capture: true, passive: false });
@@ -386,6 +402,14 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       window.dispatchEvent(new Event("map-unfreeze"));
     }
   }, [popupData, isLoaded]);
+
+  // Freeze map while any internal modal (report, stray, lost pet) is open
+  useEffect(() => {
+    const anyOpen = strayModal || reportModal.open || lostPetModal;
+    if (anyOpen === prevModalOpenRef.current) return;
+    prevModalOpenRef.current = anyOpen;
+    window.dispatchEvent(new Event(anyOpen ? "map-freeze" : "map-unfreeze"));
+  }, [strayModal, reportModal.open, lostPetModal]);
 
   // ── Render clusters ──
   const renderClusters = useCallback((currentPlaces: PetPlace[]) => {

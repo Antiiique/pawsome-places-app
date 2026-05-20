@@ -210,7 +210,7 @@ const Index = () => {
         isFavorite={isFavorite}
         onToggleFavorite={toggleFavorite}
         onOpenItinerary={() => setActivePanel("itinerary")}
-        frozen={!!panelDrag || activePanel !== null}
+        frozen={!!panelDrag || activePanel !== null || showMessages || !!profileUserId || !!petProfileId}
       />
 
       {/*
