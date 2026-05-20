@@ -1012,8 +1012,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   useEffect(() => { closePanelRef.current = closePanel; }, [closePanel]);
   useEffect(() => {
     if (selectedPlace) {
-      setShowFilterSheet(false); // ferme le filter sheet pour libérer son freeze
+      window.dispatchEvent(new Event("map-freeze"));
+      setShowFilterSheet(false);
       setTimeout(() => setPanelVisible(true), 10);
+      return () => { window.dispatchEvent(new Event("map-unfreeze")); };
     } else {
       setPanelVisible(false);
     }
