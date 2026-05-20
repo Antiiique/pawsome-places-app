@@ -624,10 +624,10 @@ export default function PetProfilePanel({ petId, onClose }: PetProfilePanelProps
                           <button
                             key={place.id}
                             onClick={() => {
-                              window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: place.id } }));
                               if (place.lat != null && place.lng != null) {
-                                window.dispatchEvent(new CustomEvent("map-pan-to", { detail: { lat: place.lat, lng: place.lng } }));
+                                window.dispatchEvent(new CustomEvent("map-jump-to-frozen", { detail: { lat: place.lat, lng: place.lng } }));
                               }
+                              window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: place.id } }));
                               handleClose();
                             }}
                             className="w-full text-left flex gap-3 p-3 rounded-xl border border-border bg-card hover:bg-muted/60 active:scale-[0.99] transition-all"

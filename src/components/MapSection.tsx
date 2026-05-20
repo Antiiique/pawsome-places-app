@@ -701,6 +701,24 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     return () => window.removeEventListener("map-pan-to" as any, handler as any);
   }, []);
 
+  // ── jump-to while frozen (updates savedCenter so camera-reset stays at new pos) ──
+  useEffect(() => {
+    const handler = (e: CustomEvent<{ lat: number; lng: number; zoom?: number }>) => {
+      const map = mapRef.current;
+      if (!map) return;
+      const { lat, lng, zoom = 15 } = e.detail;
+      savedCenterRef.current = new mapboxgl.LngLat(lng, lat);
+      savedZoomRef.current = zoom;
+      savedBearingRef.current = 0;
+      savedPitchRef.current = 0;
+      isResettingRef.current = true;
+      map.jumpTo({ center: [lng, lat], zoom });
+      isResettingRef.current = false;
+    };
+    window.addEventListener("map-jump-to-frozen" as any, handler as any);
+    return () => window.removeEventListener("map-jump-to-frozen" as any, handler as any);
+  }, []);
+
   // ── community reviews event ──
   useEffect(() => {
     const handler = (e: Event) => {

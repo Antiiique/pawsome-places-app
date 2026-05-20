@@ -665,10 +665,10 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack }
                         <div
                           key={place.id}
                           onClick={isClickable ? () => {
-                            window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: place.linked_place_id } }));
                             if (place.linked_lat != null && place.linked_lng != null) {
-                              window.dispatchEvent(new CustomEvent("map-pan-to", { detail: { lat: place.linked_lat, lng: place.linked_lng } }));
+                              window.dispatchEvent(new CustomEvent("map-jump-to-frozen", { detail: { lat: place.linked_lat, lng: place.linked_lng } }));
                             }
+                            window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: place.linked_place_id } }));
                             onClose();
                           } : undefined}
                           className={`rounded-xl border border-border overflow-hidden bg-card ${isClickable ? "hover:bg-muted/60 active:scale-[0.99] cursor-pointer transition-all" : ""}`}
