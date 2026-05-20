@@ -998,6 +998,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
   // ── Helpers ──
   const closePanel = useCallback(() => {
+    window.dispatchEvent(new Event("map-unfreeze")); // unfreeze immédiat, avant animation
     setPanelVisible(false);
     setClosingPanel(true);
     setTimeout(() => {
