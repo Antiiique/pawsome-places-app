@@ -1267,7 +1267,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           {/* Scrollable grid */}
           <div className="overflow-y-auto flex-1 px-3 pt-3 pb-2">
             <button
-              onClick={() => setActiveCategories([])}
+              onClick={() => { setActiveCategories([]); setShowFilterSheet(false); }}
               className={`w-full mb-3 py-3 rounded-xl font-semibold text-sm transition-all active:scale-[0.98] ${
                 activeCategories.length === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
               }`}
@@ -1284,6 +1284,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
                       setActiveCategories(prev =>
                         prev.includes(cf.key!) ? prev.filter(c => c !== cf.key) : [...prev, cf.key!]
                       );
+                      setShowFilterSheet(false);
                     }}
                     className={`py-3 px-1 rounded-xl flex flex-col items-center gap-1.5 transition-all active:scale-95 ${
                       active ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
