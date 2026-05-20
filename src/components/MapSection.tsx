@@ -285,6 +285,25 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     };
   }, []);
 
+  // Document-level touch blocker — tied to React state so cleanup is guaranteed.
+  // Uses capture mode + preventDefault to stop iOS Safari's native WebGL canvas pan.
+  // Only blocks touches that START inside the Mapbox container (mapContainerRef);
+  // touches on panels/scrims (DOM siblings of the container) are left alone.
+  useEffect(() => {
+    if (!frozen && !panelFrozen) return;
+    let touchStartEl: Element | null = null;
+    const onStart = (e: TouchEvent) => { touchStartEl = e.target as Element; };
+    const onMove  = (e: TouchEvent) => {
+      if (mapContainerRef.current?.contains(touchStartEl)) e.preventDefault();
+    };
+    document.addEventListener("touchstart", onStart, { capture: true });
+    document.addEventListener("touchmove",  onMove,  { capture: true, passive: false });
+    return () => {
+      document.removeEventListener("touchstart", onStart, { capture: true });
+      document.removeEventListener("touchmove",  onMove,  { capture: true });
+    };
+  }, [frozen, panelFrozen]);
+
   // Freeze map camera while panels are open/dragging.
   // Two-layer defence:
   //   1. disable() Mapbox handlers on freeze (prevents most panning)
@@ -306,25 +325,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       pitch:       map.getPitch(),
     };
 
-    // Track the element where each touch sequence started.
-    let touchStartEl: Element | null = null;
-
-    const onTouchStartCapture = (e: TouchEvent) => {
-      touchStartEl = e.target as Element;
-    };
-
-    // Blocks native iOS pan on the map canvas. Called in capture mode so it
-    // fires before Mapbox or any element handler.
-    // Only prevents default when the touch started INSIDE the Mapbox container
-    // (the actual canvas area). Touches on panels, scrims, and other fixed
-    // overlays — which are DOM siblings of the map container, not children —
-    // are left alone; their own touchAction:none handles them.
-    const onTouchMoveCapture = (e: TouchEvent) => {
-      if (!state.frozen) return;
-      if (!mapContainerRef.current?.contains(touchStartEl)) return;
-      e.preventDefault();
-    };
-
     const onFreeze = () => {
       state.count++;
       if (state.count > 1) return; // already frozen by another panel
@@ -339,9 +339,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       map.touchZoomRotate.disable();
       map.doubleClickZoom.disable();
       map.scrollZoom.disable();
-      map.getContainer().style.touchAction = "none";
-      document.addEventListener("touchstart", onTouchStartCapture, { capture: true });
-      document.addEventListener("touchmove",  onTouchMoveCapture,  { capture: true, passive: false });
     };
 
     const onUnfreeze = () => {
@@ -349,14 +346,11 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       if (state.count > 0) return; // other panels still open
       state.frozen = false;
       map.getCanvas().style.pointerEvents = "";
-      map.getContainer().style.touchAction = "";
       map.dragPan.enable();
       map.dragRotate.enable();
       map.touchZoomRotate.enable();
       map.doubleClickZoom.enable();
       map.scrollZoom.enable();
-      document.removeEventListener("touchstart", onTouchStartCapture, { capture: true });
-      document.removeEventListener("touchmove",  onTouchMoveCapture,  { capture: true });
     };
 
     const onMove = () => {
@@ -380,8 +374,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       window.removeEventListener("map-freeze",   onFreeze);
       window.removeEventListener("map-unfreeze", onUnfreeze);
       map.off("move", onMove);
-      document.removeEventListener("touchstart", onTouchStartCapture, { capture: true });
-      document.removeEventListener("touchmove",  onTouchMoveCapture,  { capture: true });
     };
   }, [isLoaded]);
 
