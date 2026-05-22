@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { fetchGoogleGasStation } from "@/lib/googlePlaces";
 
 export interface PetPlace {
   id: string;
@@ -343,28 +344,20 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
   // On-demand Google Places lookup for gas stations without a cached place_id
   useEffect(() => {
     if (!place || place.category !== "station_carburant" || place.google_place_id) return;
-    const g = (window as any).google;
-    if (!g?.maps?.places) return;
-    const service = new g.maps.places.PlacesService(document.createElement("div"));
-    service.nearbySearch(
-      { location: { lat: place.latitude, lng: place.longitude }, radius: 150, type: "gas_station" },
-      (results: any[], status: string) => {
-        if (status !== "OK" || !results?.[0]) return;
-        const r = results[0];
-        const placeId: string = r.place_id;
-        const rating: number | null = r.rating ?? null;
-        const photoUrl: string | null = r.photos?.[0]?.getUrl({ maxWidth: 800 }) ?? null;
-        supabase.from("pet_friendly_places" as any).update({
-          google_place_id: placeId,
-          ...(rating !== null ? { rating } : {}),
-          ...(photoUrl ? { photo_url: photoUrl } : {}),
-        }).eq("id", place.id).then(() => {});
-        setGoogleData({
-          ...(rating !== null ? { rating } : {}),
-          ...(photoUrl ? { photo_url: photoUrl } : {}),
-        });
-      }
-    );
+    let cancelled = false;
+    fetchGoogleGasStation(place.latitude, place.longitude).then((result) => {
+      if (cancelled) return;
+      if (!result.placeId) return;
+      const update: Record<string, any> = { google_place_id: result.placeId };
+      if (result.rating != null) update.rating = result.rating;
+      if (result.photos?.[0]) update.photo_url = result.photos[0];
+      supabase.from("pet_friendly_places" as any).update(update).eq("id", place.id).then(() => {});
+      setGoogleData({
+        rating: result.rating,
+        photo_url: result.photos?.[0],
+      });
+    });
+    return () => { cancelled = true; };
   }, [place?.id, place?.google_place_id, place?.category]);
 
   useEffect(() => {
