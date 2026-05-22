@@ -18,7 +18,7 @@ import type { FavoritePlace } from "@/hooks/useFavorites";
 import { detectCategoryFromTypes } from "@/hooks/useFavorites";
 import type { ItineraryMapData } from "./itinerary/types";
 import type { PickMode } from "./itinerary/ItineraryPanel";
-import { fetchGooglePlaceDetails, fetchGooglePlaceByLocation, type GooglePlaceResult } from "@/lib/googlePlaces";
+import { fetchGooglePlaceDetails, fetchGooglePlaceByLocation, fetchGoogleGasStation, type GooglePlaceResult } from "@/lib/googlePlaces";
 
 const MAPBOX_TOKEN = (import.meta.env.VITE_MAPBOX_TOKEN as string) || "pk.eyJ1IjoiZWx2aW5hZ2QiLCJhIjoiY21vcjMwNHU5MmFodzJxc2FnOTc1bHVsYiJ9.zkIqku9ZIn5_h674NQLX3w";
 
@@ -153,6 +153,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [center, setCenter] = useState({ lat: 48.8566, lng: 2.3522 });
   const [searching, setSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PetPlace | null>(null);
+  const [stationGoogleData, setStationGoogleData] = useState<{ rating?: number; photo_url?: string } | null>(null);
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [itineraryFilter, setItineraryFilter] = useState<string | null>(null);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
@@ -974,6 +975,25 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     }
   }, [selectedPlace?.id]);
 
+  // Google Places enrichment for gas stations
+  useEffect(() => {
+    setStationGoogleData(null);
+  }, [selectedPlace?.id]);
+
+  useEffect(() => {
+    if (!selectedPlace || selectedPlace.category !== "station_carburant" || selectedPlace.google_place_id) return;
+    let cancelled = false;
+    fetchGoogleGasStation(selectedPlace.latitude, selectedPlace.longitude).then((result) => {
+      if (cancelled || !result.placeId) return;
+      const update: Record<string, any> = { google_place_id: result.placeId };
+      if (result.rating != null) update.rating = result.rating;
+      if (result.photos?.[0]) update.photo_url = result.photos[0];
+      supabase.from("pet_friendly_places" as any).update(update).eq("id", selectedPlace.id).then(() => {});
+      setStationGoogleData({ rating: result.rating, photo_url: result.photos?.[0] });
+    });
+    return () => { cancelled = true; };
+  }, [selectedPlace?.id, selectedPlace?.google_place_id, selectedPlace?.category]);
+
   // ── Inject golden glow CSS once ──
   useEffect(() => {
     if (document.getElementById("marker-glow-style")) return;
@@ -1372,6 +1392,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           />
           <PlaceDetailPanel
             place={selectedPlace}
+            googleData={stationGoogleData}
             isClosing={closingPanel}
             onClose={closePanel}
             onBack={prevPopupDataRef.current ? () => { setSelectedPlace(null); setPopupData(prevPopupDataRef.current); prevPopupDataRef.current = null; } : undefined}

@@ -6,7 +6,6 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { fetchGoogleGasStation } from "@/lib/googlePlaces";
 
 export interface PetPlace {
   id: string;
@@ -101,6 +100,7 @@ const VELOCITY_THRESHOLD = 0.4; // px/ms
 
 interface PlaceDetailPanelProps {
   place: PetPlace | null;
+  googleData?: { rating?: number; photo_url?: string } | null;
   onClose: () => void;
   onBack?: () => void;
   isFavorite?: boolean;
@@ -141,7 +141,7 @@ const CATS = [
   { value: "other",          label: "Autres 📍" },
 ];
 
-const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite, onReport, isClosing }: PlaceDetailPanelProps) => {
+const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onToggleFavorite, onReport, isClosing }: PlaceDetailPanelProps) => {
   const { user, profile } = useAuthContext();
   const [isAdmin, setIsAdmin] = useState(false);
   const [localCategory, setLocalCategory] = useState(place?.category ?? "");
@@ -339,30 +339,6 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     outdoor_seating: false, water_bowl_provided: false, verified: false,
   });
   const [publisher, setPublisher] = useState<{display_name: string | null; avatar_url: string | null; id: string} | null>(null);
-  const [googleData, setGoogleData] = useState<{ rating?: number; photo_url?: string } | null>(null);
-
-  // On-demand Google Places lookup for gas stations without a cached place_id
-  useEffect(() => {
-    if (!place || place.category !== "station_carburant" || place.google_place_id) return;
-    let cancelled = false;
-    fetchGoogleGasStation(place.latitude, place.longitude).then((result) => {
-      if (cancelled) return;
-      if (!result.placeId) return;
-      const update: Record<string, any> = { google_place_id: result.placeId };
-      if (result.rating != null) update.rating = result.rating;
-      if (result.photos?.[0]) update.photo_url = result.photos[0];
-      supabase.from("pet_friendly_places" as any).update(update).eq("id", place.id).then(() => {});
-      setGoogleData({
-        rating: result.rating,
-        photo_url: result.photos?.[0],
-      });
-    });
-    return () => { cancelled = true; };
-  }, [place?.id, place?.google_place_id, place?.category]);
-
-  useEffect(() => {
-    setGoogleData(null);
-  }, [place?.id]);
 
   const userReview = reviews.find(r => r.user_id === user?.id);
   const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
