@@ -506,6 +506,38 @@ export type Database = {
         }
         Relationships: []
       }
+      pet_photo_comments: {
+        Row: {
+          body: string
+          created_at: string | null
+          id: string
+          photo_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          id?: string
+          photo_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          id?: string
+          photo_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_photo_comments_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "pet_photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_photos: {
         Row: {
           caption: string | null
@@ -836,6 +868,11 @@ export type Database = {
           location_lng: number | null
           points: number
           postal_code: string | null
+          streak_current: number | null
+          streak_last_date: string | null
+          streak_max: number | null
+          streak_shield_available: boolean | null
+          streak_shield_used_at: string | null
         }
         Insert: {
           age?: number | null
@@ -854,6 +891,11 @@ export type Database = {
           location_lng?: number | null
           points?: number
           postal_code?: string | null
+          streak_current?: number | null
+          streak_last_date?: string | null
+          streak_max?: number | null
+          streak_shield_available?: boolean | null
+          streak_shield_used_at?: string | null
         }
         Update: {
           age?: number | null
@@ -872,6 +914,38 @@ export type Database = {
           location_lng?: number | null
           points?: number
           postal_code?: string | null
+          streak_current?: number | null
+          streak_last_date?: string | null
+          streak_max?: number | null
+          streak_shield_available?: boolean | null
+          streak_shield_used_at?: string | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          keys: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          keys: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          keys?: Json
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1073,38 +1147,7 @@ export type Database = {
         }[]
       }
       flag_review: { Args: { review_id: string }; Returns: undefined }
-      get_nearby_pet_places: {
-        Args: {
-          cat_filter?: string
-          dogs_only?: boolean
-          radius_km?: number
-          user_lat: number
-          user_lon: number
-        }
-        Returns: {
-          accepts_cats: boolean
-          accepts_dogs: boolean
-          address: string
-          category: string
-          city: string
-          country: string
-          description: string
-          distance_km: number
-          dogs_on_leash_only: boolean
-          id: string
-          latitude: number
-          longitude: number
-          name: string
-          opening_hours: string
-          outdoor_seating: boolean
-          phone: string
-          photo_url: string
-          rating: number
-          subcategory: string
-          verified: boolean
-          website: string
-        }[]
-      }
+      handle_user_action: { Args: { p_user_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
