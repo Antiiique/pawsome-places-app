@@ -149,6 +149,13 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
   const [localName, setLocalName] = useState(place?.name ?? "");
   const [savingName, setSavingName] = useState(false);
   const [localVerified, setLocalVerified] = useState(place?.verified ?? false);
+  const [localDescription, setLocalDescription] = useState<string | null>(place?.description ?? null);
+  const [localPetFlags, setLocalPetFlags] = useState({
+    accepts_dogs: place?.accepts_dogs ?? false,
+    accepts_cats: place?.accepts_cats ?? false,
+    outdoor_seating: place?.outdoor_seating ?? false,
+    dogs_on_leash_only: place?.dogs_on_leash_only ?? false,
+  });
   const [localFlagged, setLocalFlagged] = useState(place?.is_flagged ?? false);
   const [savingMeta, setSavingMeta] = useState(false);
 
@@ -167,6 +174,13 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
     setLocalCategory(place?.category ?? "");
     setLocalName(place?.name ?? "");
     setLocalVerified(place?.verified ?? false);
+    setLocalDescription(place?.description ?? null);
+    setLocalPetFlags({
+      accepts_dogs: place?.accepts_dogs ?? false,
+      accepts_cats: place?.accepts_cats ?? false,
+      outdoor_seating: place?.outdoor_seating ?? false,
+      dogs_on_leash_only: place?.dogs_on_leash_only ?? false,
+    });
     setLocalFlagged(place?.is_flagged ?? false);
   }, [place?.id]);
 
