@@ -79,12 +79,14 @@ function timeAgo(dateStr: string): string {
 
 const categoryLabels: Record<string, string> = {
   restaurant: "Restaurant 🍽️", hotel: "Hôtel 🛏️", outdoor: "Parc & Nature 🌿",
-  services: "Services ❤️", animalerie: "Animalerie 🐾", other: "Autre",
+  services: "Services ❤️", animalerie: "Animalerie 🐾",
+  station_carburant: "Station essence ⛽", other: "Autre",
 };
 
 const categoryBgColors: Record<string, string> = {
   restaurant: "bg-orange-500", hotel: "bg-blue-500", outdoor: "bg-green-500",
-  services: "bg-red-500", animalerie: "bg-purple-500", other: "bg-gray-500",
+  services: "bg-red-500", animalerie: "bg-purple-500",
+  station_carburant: "bg-yellow-500", other: "bg-gray-500",
 };
 
 const KNOWN_CATEGORIES = [
@@ -132,6 +134,7 @@ const CATS = [
   { value: "cafe_animalier", label: "Cafés animaux ☕" },
   { value: "aeroport",       label: "Aéroports ✈️" },
   { value: "aire_repos",     label: "Aires de repos 🛣️" },
+  { value: "station_carburant", label: "Stations essence ⛽" },
   { value: "transport",      label: "Transport 🚇" },
   { value: "evenement",      label: "Événements 📅" },
   { value: "other",          label: "Autres 📍" },
