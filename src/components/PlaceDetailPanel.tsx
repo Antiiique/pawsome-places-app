@@ -711,22 +711,24 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
             )}
           </div>
 
-          {(localCategory || place.category) === "station_carburant" && localDescription && (
+          {place.category === "station_carburant" && (
             <div className="rounded-lg border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700 p-3 space-y-2">
-              <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2"><span className="text-lg">⛽</span> Carburants & services</p>
-              <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">{localDescription}</p>
+              <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
+                <span className="text-lg">⛽</span> Carburants & services
+              </p>
+              {place.description
+                ? <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">{place.description}</p>
+                : <p className="text-sm text-yellow-700 dark:text-yellow-400">Chiens acceptés en laisse obligatoire</p>
+              }
             </div>
           )}
 
-          {localVerified && (
+          {place.category === "station_carburant" && (
             <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
-              <p className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">✅ Lieu vérifié pet-friendly</p>
+              <p className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">✅ Animaux acceptés</p>
               <div className="flex flex-wrap gap-2">
-                {localPetFlags.accepts_dogs && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Dog className="w-3.5 h-3.5" /> 🐕 Chiens acceptés</Badge>}
-                {localPetFlags.accepts_cats && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Cat className="w-3.5 h-3.5" /> 🐱 Chats acceptés</Badge>}
-                {localPetFlags.outdoor_seating && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><TreePine className="w-3.5 h-3.5" /> Terrasse extérieure</Badge>}
-                {!localPetFlags.outdoor_seating && (localCategory || place.category) !== "station_carburant" && <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 gap-1"><Home className="w-3.5 h-3.5" /> Animaux OK en intérieur</Badge>}
-                {localPetFlags.dogs_on_leash_only && <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 gap-1">🐕‍🦺 Laisse obligatoire</Badge>}
+                <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Dog className="w-3.5 h-3.5" /> 🐕 Chiens acceptés</Badge>
+                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 gap-1">🐕‍🦺 Laisse obligatoire</Badge>
               </div>
             </div>
           )}
