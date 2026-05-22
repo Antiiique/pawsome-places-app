@@ -687,7 +687,7 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
             )}
           </div>
 
-          {!adminEditOpen && place.category === "station_carburant" && place.description && (
+          {place.category === "station_carburant" && place.description && (
             <div className="rounded-lg border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700 p-3 space-y-2">
               <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
                 <span className="text-lg">⛽</span> Carburants & services
@@ -696,16 +696,18 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
             </div>
           )}
 
-          {!adminEditOpen && localVerified && <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
-            <p className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">✅ Lieu vérifié pet-friendly</p>
-            <div className="flex flex-wrap gap-2">
-              {place.accepts_dogs && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Dog className="w-3.5 h-3.5" /> 🐕 Chiens acceptés</Badge>}
-              {place.accepts_cats && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Cat className="w-3.5 h-3.5" /> 🐱 Chats acceptés</Badge>}
-              {place.outdoor_seating && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><TreePine className="w-3.5 h-3.5" /> Terrasse extérieure</Badge>}
-              {!place.outdoor_seating && place.category !== "station_carburant" && <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 gap-1"><Home className="w-3.5 h-3.5" /> Animaux OK en intérieur</Badge>}
-              {place.dogs_on_leash_only && <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 gap-1">🐕‍🦺 Laisse obligatoire</Badge>}
+          {localVerified && (
+            <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
+              <p className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">✅ Lieu vérifié pet-friendly</p>
+              <div className="flex flex-wrap gap-2">
+                {place.accepts_dogs && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Dog className="w-3.5 h-3.5" /> 🐕 Chiens acceptés</Badge>}
+                {place.accepts_cats && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Cat className="w-3.5 h-3.5" /> 🐱 Chats acceptés</Badge>}
+                {place.outdoor_seating && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><TreePine className="w-3.5 h-3.5" /> Terrasse extérieure</Badge>}
+                {!place.outdoor_seating && place.category !== "station_carburant" && <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 gap-1"><Home className="w-3.5 h-3.5" /> Animaux OK en intérieur</Badge>}
+                {place.dogs_on_leash_only && <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 gap-1">🐕‍🦺 Laisse obligatoire</Badge>}
+              </div>
             </div>
-          </div>}
+          )}
 
           {/* Tabs */}
           <div className="flex rounded-xl border border-border overflow-hidden">
