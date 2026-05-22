@@ -132,9 +132,10 @@ export function fetchGoogleGasStation(lat: number, lng: number): Promise<GoogleP
         const g = (window as any).google;
         const service = new g.maps.places.PlacesService(div);
         service.nearbySearch(
-          { location: { lat, lng }, radius: 150, type: "gas_station" },
+          { location: { lat, lng }, radius: 200, type: "gas_station" },
           (results: any[], status: string) => {
             if (status !== g.maps.places.PlacesServiceStatus.OK || !results?.[0]?.place_id) {
+              console.warn("[GooglePlaces] nearbySearch gas_station:", status, "at", lat, lng);
               document.body.removeChild(div);
               resolve({ photos: [], reviews: [] });
               return;
@@ -148,6 +149,7 @@ export function fetchGoogleGasStation(lat: number, lng: number): Promise<GoogleP
               (place: any, detailStatus: string) => {
                 document.body.removeChild(div);
                 if (detailStatus !== g.maps.places.PlacesServiceStatus.OK || !place) {
+                  console.warn("[GooglePlaces] getDetails:", detailStatus, placeId);
                   resolve({ photos: [], reviews: [] });
                   return;
                 }

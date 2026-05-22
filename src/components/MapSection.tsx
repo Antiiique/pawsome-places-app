@@ -18,10 +18,9 @@ import type { FavoritePlace } from "@/hooks/useFavorites";
 import { detectCategoryFromTypes } from "@/hooks/useFavorites";
 import type { ItineraryMapData } from "./itinerary/types";
 import type { PickMode } from "./itinerary/ItineraryPanel";
+import { fetchGooglePlaceDetails, fetchGooglePlaceByLocation, type GooglePlaceResult } from "@/lib/googlePlaces";
 
 const MAPBOX_TOKEN = (import.meta.env.VITE_MAPBOX_TOKEN as string) || "pk.eyJ1IjoiZWx2aW5hZ2QiLCJhIjoiY21vcjMwNHU5MmFodzJxc2FnOTc1bHVsYiJ9.zkIqku9ZIn5_h674NQLX3w";
-
-import { fetchGooglePlaceDetails, fetchGooglePlaceByLocation, type GooglePlaceResult } from "@/lib/googlePlaces";
 
 const PANEL_EDGE_ZONE = 44; // px from screen edge that triggers panel swipe
 
