@@ -158,7 +158,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   cafe_animalier: "#6D4C41",
   aeroport:       "#455A64",
   aire_repos:     "#546E7A",
-  station_carburant: "#FBC02D",
+  station_carburant: "#EAB308",
   transport:      "#1565C0",
   comportementaliste: "#5C6BC0",
   evenement:      "#7B1FA2",
