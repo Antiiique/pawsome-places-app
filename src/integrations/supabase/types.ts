@@ -1147,6 +1147,40 @@ export type Database = {
         }[]
       }
       flag_review: { Args: { review_id: string }; Returns: undefined }
+      get_nearby_pet_places: {
+        Args: {
+          cat_filter?: string
+          dogs_only?: boolean
+          radius_km?: number
+          user_lat: number
+          user_lon: number
+        }
+        Returns: {
+          accepts_cats: boolean
+          accepts_dogs: boolean
+          address: string
+          category: string
+          city: string
+          country: string
+          description: string
+          distance_km: number
+          dogs_on_leash_only: boolean
+          google_place_id: string
+          id: string
+          is_flagged: boolean
+          latitude: number
+          longitude: number
+          name: string
+          opening_hours: string
+          outdoor_seating: boolean
+          phone: string
+          photo_url: string
+          rating: number
+          subcategory: string
+          verified: boolean
+          website: string
+        }[]
+      }
       handle_user_action: { Args: { p_user_id: string }; Returns: undefined }
       has_role: {
         Args: {
