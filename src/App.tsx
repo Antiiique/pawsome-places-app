@@ -9,6 +9,7 @@ import { HandednessProvider } from "@/contexts/HandednessContext";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
+import AdminImportStationsPage from "./pages/AdminImportStationsPage.tsx";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import { Button } from "@/components/ui/button";
 
@@ -74,6 +75,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/admin" element={<AdminGuard />} />
+              <Route path="/admin/import-stations" element={<AdminImportStationsPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
