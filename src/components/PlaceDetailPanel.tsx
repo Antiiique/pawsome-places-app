@@ -711,13 +711,13 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
             )}
           </div>
 
-          {place.category === "station_carburant" && (
+          {(localCategory || place.category) === "station_carburant" && (
             <div className="rounded-lg border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700 p-3 space-y-2">
               <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
                 <span className="text-lg">⛽</span> Carburants & services
               </p>
-              <p className="text-sm text-yellow-700 dark:text-yellow-400">
-                {place.description ?? "Station-service • Chiens acceptés en laisse"}
+              <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">
+                {localDescription ?? "Station-service · Chiens acceptés en laisse obligatoire"}
               </p>
             </div>
           )}
