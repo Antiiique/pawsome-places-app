@@ -701,8 +701,8 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
 
         <div className="p-4 space-y-4">
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge className={`${categoryBgColors[place.category] || "bg-gray-500"} text-white`}>
-              {categoryLabels[place.category] || place.category}
+            <Badge className={`${categoryBgColors[localCategory || place.category] || "bg-gray-500"} text-white`}>
+              {categoryLabels[localCategory || place.category] || localCategory || place.category}
             </Badge>
             {localVerified && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-semibold border border-green-300 dark:border-green-700">
@@ -711,10 +711,10 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
             )}
           </div>
 
-          {place.category === "station_carburant" && place.description && (
+          {(localCategory || place.category) === "station_carburant" && localDescription && (
             <div className="rounded-lg border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700 p-3 space-y-2">
               <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2"><span className="text-lg">⛽</span> Carburants & services</p>
-              <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">{place.description}</p>
+              <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">{localDescription}</p>
             </div>
           )}
 
@@ -722,11 +722,11 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
             <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
               <p className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-2">✅ Lieu vérifié pet-friendly</p>
               <div className="flex flex-wrap gap-2">
-                {place.accepts_dogs && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Dog className="w-3.5 h-3.5" /> 🐕 Chiens acceptés</Badge>}
-                {place.accepts_cats && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Cat className="w-3.5 h-3.5" /> 🐱 Chats acceptés</Badge>}
-                {place.outdoor_seating && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><TreePine className="w-3.5 h-3.5" /> Terrasse extérieure</Badge>}
-                {!place.outdoor_seating && place.category !== "station_carburant" && <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 gap-1"><Home className="w-3.5 h-3.5" /> Animaux OK en intérieur</Badge>}
-                {place.dogs_on_leash_only && <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 gap-1">🐕‍🦺 Laisse obligatoire</Badge>}
+                {localPetFlags.accepts_dogs && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Dog className="w-3.5 h-3.5" /> 🐕 Chiens acceptés</Badge>}
+                {localPetFlags.accepts_cats && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><Cat className="w-3.5 h-3.5" /> 🐱 Chats acceptés</Badge>}
+                {localPetFlags.outdoor_seating && <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 gap-1"><TreePine className="w-3.5 h-3.5" /> Terrasse extérieure</Badge>}
+                {!localPetFlags.outdoor_seating && (localCategory || place.category) !== "station_carburant" && <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 gap-1"><Home className="w-3.5 h-3.5" /> Animaux OK en intérieur</Badge>}
+                {localPetFlags.dogs_on_leash_only && <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 gap-1">🐕‍🦺 Laisse obligatoire</Badge>}
               </div>
             </div>
           )}
