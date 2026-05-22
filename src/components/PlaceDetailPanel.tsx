@@ -338,6 +338,38 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
     outdoor_seating: false, water_bowl_provided: false, verified: false,
   });
   const [publisher, setPublisher] = useState<{display_name: string | null; avatar_url: string | null; id: string} | null>(null);
+  const [googleData, setGoogleData] = useState<{ rating?: number; photo_url?: string } | null>(null);
+
+  // On-demand Google Places lookup for gas stations without a cached place_id
+  useEffect(() => {
+    if (!place || place.category !== "station_carburant" || place.google_place_id) return;
+    const g = (window as any).google;
+    if (!g?.maps?.places) return;
+    const service = new g.maps.places.PlacesService(document.createElement("div"));
+    service.nearbySearch(
+      { location: { lat: place.latitude, lng: place.longitude }, radius: 150, type: "gas_station" },
+      (results: any[], status: string) => {
+        if (status !== "OK" || !results?.[0]) return;
+        const r = results[0];
+        const placeId: string = r.place_id;
+        const rating: number | null = r.rating ?? null;
+        const photoUrl: string | null = r.photos?.[0]?.getUrl({ maxWidth: 800 }) ?? null;
+        supabase.from("pet_friendly_places" as any).update({
+          google_place_id: placeId,
+          ...(rating !== null ? { rating } : {}),
+          ...(photoUrl ? { photo_url: photoUrl } : {}),
+        }).eq("id", place.id).then(() => {});
+        setGoogleData({
+          ...(rating !== null ? { rating } : {}),
+          ...(photoUrl ? { photo_url: photoUrl } : {}),
+        });
+      }
+    );
+  }, [place?.id, place?.google_place_id, place?.category]);
+
+  useEffect(() => {
+    setGoogleData(null);
+  }, [place?.id]);
 
   const userReview = reviews.find(r => r.user_id === user?.id);
   const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
@@ -670,8 +702,8 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
           </div>
         ) : (
         <>
-        {place.photo_url && (
-          <img src={place.photo_url} alt={place.name} className="w-full h-40 object-cover" />
+        {(place.photo_url || googleData?.photo_url) && (
+          <img src={place.photo_url || googleData!.photo_url} alt={place.name} className="w-full h-40 object-cover" />
         )}
 
         <div className="p-4 space-y-4">
@@ -711,7 +743,7 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
           <div className="flex rounded-xl border border-border overflow-hidden">
             <button onClick={() => setActiveTab("google")}
               className={`flex-1 py-2 text-xs font-semibold transition-colors ${activeTab === "google" ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" : "text-muted-foreground hover:bg-muted"}`}>
-              ⭐ Google{place.rating ? ` · ${place.rating}` : ""}
+              ⭐ Google{(place.rating ?? googleData?.rating) ? ` · ${place.rating ?? googleData?.rating}` : ""}
             </button>
             <button onClick={() => setActiveTab("community")}
               className={`flex-1 py-2 text-xs font-semibold transition-colors ${activeTab === "community" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}>
@@ -719,15 +751,18 @@ const PlaceDetailPanel = ({ place, onClose, onBack, isFavorite, onToggleFavorite
             </button>
           </div>
 
-          {activeTab === "google" && (
-            place.rating ? (
+          {activeTab === "google" && (() => {
+            const displayRating = place.rating ?? googleData?.rating ?? null;
+            return displayRating ? (
               <div className="flex items-center gap-2">
-                {[...Array(5)].map((_, i) => <Star key={i} className={`w-4 h-4 ${i < Math.round(place.rating!) ? "text-amber-400 fill-amber-400" : "text-muted"}`} />)}
-                <span className="text-sm font-semibold text-foreground">{place.rating}</span>
+                {[...Array(5)].map((_, i) => <Star key={i} className={`w-4 h-4 ${i < Math.round(displayRating) ? "text-amber-400 fill-amber-400" : "text-muted"}`} />)}
+                <span className="text-sm font-semibold text-foreground">{displayRating}</span>
                 <span className="text-xs text-muted-foreground">(Google)</span>
               </div>
-            ) : <p className="text-xs text-muted-foreground italic">Aucune note Google disponible.</p>
-          )}
+            ) : place.category === "station_carburant" && !place.google_place_id && !googleData ? (
+              <p className="text-xs text-muted-foreground italic">Recherche de données Google…</p>
+            ) : <p className="text-xs text-muted-foreground italic">Aucune note Google disponible.</p>;
+          })()}
 
           {activeTab === "community" && (
             <div className="space-y-4">
