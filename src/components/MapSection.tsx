@@ -502,10 +502,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     setSearching(true);
     // Single category → pass to RPC; multiple → fetch all then filter client-side
     const rpcCat = categories.length === 1 ? categories[0] : null;
-    const { data, error } = await supabase.rpc("get_nearby_pet_places", { user_lat: lat, user_lon: lng, radius_km: radius, cat_filter: rpcCat, dogs_only: false });
+    const { data, error } = await (supabase.rpc as any)("get_nearby_pet_places", { user_lat: lat, user_lon: lng, radius_km: radius, cat_filter: rpcCat, dogs_only: false });
     if (error) { setSearching(false); return; }
 
-    let results: PetPlace[] = (data || []).map((d: any) => ({ ...d, id: d.id as string }));
+    let results: PetPlace[] = ((data as any[]) || []).map((d: any) => ({ ...d, id: d.id as string }));
     if (categories.length > 1) results = results.filter(p => categories.includes(p.category));
     setPlaces(results);
     clearPlaceMarkers();
