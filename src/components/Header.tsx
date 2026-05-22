@@ -7,6 +7,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import SubmitPlaceModal from "@/components/SubmitPlaceModal";
 import NotificationPanel from "@/components/NotificationPanel";
+import StreakBanner from "@/components/StreakBanner";
 import { useUserNotifications } from "@/hooks/useUserNotifications";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { toast } from "sonner";
@@ -122,6 +123,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
               <NotificationPanel open={showNotifications} onClose={() => setShowNotifications(false)} />,
               document.body
             )}
+            {createPortal(<StreakBanner />, document.body)}
           </div>
         )}
 

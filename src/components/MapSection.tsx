@@ -234,6 +234,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [searching, setSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PetPlace | null>(null);
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [itineraryFilter, setItineraryFilter] = useState<string | null>(null);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [filterSnap, setFilterSnap] = useState<"half" | "full">("half");
   const [filterDragging, setFilterDragging] = useState(false);
@@ -701,6 +702,30 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     return () => window.removeEventListener("map-pan-to" as any, handler as any);
   }, []);
 
+  // ── Itinerary filter (from ItineraryPanel filter pills) ──
+  useEffect(() => {
+    const handler = (e: CustomEvent<{ category: string | null }>) => {
+      setItineraryFilter(e.detail.category);
+    };
+    window.addEventListener("itinerary-filter-change" as any, handler as any);
+    return () => window.removeEventListener("itinerary-filter-change" as any, handler as any);
+  }, []);
+
+  // Reset itinerary filter when itinerary is cleared
+  useEffect(() => {
+    if (!itineraryData) setItineraryFilter(null);
+  }, [itineraryData]);
+
+  // ── Clear A/B markers when itinerary origin/dest cleared ──
+  useEffect(() => {
+    const handler = (e: CustomEvent<{ type: "origin" | "destination" }>) => {
+      if (e.detail.type === "origin") setOriginPoint(null);
+      else setDestPoint(null);
+    };
+    window.addEventListener("itinerary-clear-marker" as any, handler as any);
+    return () => window.removeEventListener("itinerary-clear-marker" as any, handler as any);
+  }, []);
+
   // ── jump-to while frozen (updates savedCenter so camera-reset stays at new pos) ──
   useEffect(() => {
     const handler = (e: CustomEvent<{ lat: number; lng: number; zoom?: number }>) => {
@@ -730,15 +755,16 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     return () => window.removeEventListener("open-community-reviews", handler);
   }, []);
 
-  // ── Reload when center/radius/category changes ──
+  // ── Reload when center/radius/category/itinerary-filter changes ──
   useEffect(() => {
     if (!isLoaded) return;
     const hasSpecial = activeCategories.some(c => c === "__strays__" || c === "__lost__");
     if (hasSpecial) {
       setPlaces([]); clearPlaceMarkers(); scLoadedRef.current = false; setSearching(false); return;
     }
-    loadPlaces(center.lat, center.lng, radiusKm, activeCategories);
-  }, [center, radiusKm, activeCategories, isLoaded, loadPlaces]);
+    const cats = itineraryData && itineraryFilter ? [itineraryFilter] : activeCategories;
+    loadPlaces(center.lat, center.lng, radiusKm, cats);
+  }, [center, radiusKm, activeCategories, isLoaded, loadPlaces, itineraryData, itineraryFilter]);
 
   // ── Search query geocoding ──
   useEffect(() => {
@@ -824,7 +850,11 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     markers.push(new mapboxgl.Marker({ element: mkLabel("🏁 Départ", "#4CAF50"), anchor: "center" }).setLngLat([itineraryData.origin.lng, itineraryData.origin.lat]).addTo(map));
     markers.push(new mapboxgl.Marker({ element: mkLabel("🏁 Arrivée", "#E53935"), anchor: "center" }).setLngLat([itineraryData.destination.lng, itineraryData.destination.lat]).addTo(map));
 
-    itineraryData.steps.forEach((step, i) => {
+    const stepsToShow = itineraryFilter
+      ? itineraryData.steps.filter(s => s.category === itineraryFilter)
+      : itineraryData.steps;
+
+    stepsToShow.forEach((step, i) => {
       const color = catColors[step.category] || "#9E9E9E";
       const el = document.createElement("div");
       el.innerHTML = `<div style="background:${color};color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer">${i + 1}</div>`;
@@ -844,7 +874,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     const lngs = itineraryData.routePath.map((p) => p.lng);
     const lats = itineraryData.routePath.map((p) => p.lat);
     if (lngs.length) map.fitBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]], { padding: 50 });
-  }, [itineraryData, isLoaded, onStepClick]);
+  }, [itineraryData, isLoaded, onStepClick, itineraryFilter]);
 
   // ── Floating search ──
 

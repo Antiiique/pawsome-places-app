@@ -1,6 +1,25 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+
+// Register service worker once at module level
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+  // Forward notification-click messages from SW to the app
+  navigator.serviceWorker.addEventListener("message", (event) => {
+    if (event.data?.type === "notification-click") {
+      const { data } = event.data;
+      if (data.type === "lost_pet" && data.related_id)
+        window.dispatchEvent(new CustomEvent("open-lost-pet", { detail: { petId: data.related_id } }));
+      else if (data.type === "new_stray" && data.related_id)
+        window.dispatchEvent(new CustomEvent("open-stray", { detail: { strayId: data.related_id } }));
+      else if (data.related_id)
+        window.dispatchEvent(new CustomEvent("global-search-open-place", { detail: { placeId: data.related_id } }));
+    }
+  });
+}
+
+const NATIVE_PUSH_TYPES = new Set(["lost_pet", "new_stray", "zone_alert"]);
 
 export interface UserNotification {
   id: string;
@@ -16,6 +35,8 @@ export function useUserNotifications() {
   const { user } = useAuthContext();
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [loading, setLoading] = useState(false);
+  const mountedRef = useRef(true);
+  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
@@ -53,7 +74,22 @@ export function useUserNotifications() {
           filter: "user_id=eq." + user.id,
         },
         (payload) => {
-          setNotifications((prev) => [payload.new as UserNotification, ...prev]);
+          const notif = payload.new as UserNotification;
+          setNotifications((prev) => [notif, ...prev]);
+          // Show native browser notification for high-priority types when app is in focus
+          if (
+            NATIVE_PUSH_TYPES.has(notif.type) &&
+            typeof Notification !== "undefined" &&
+            Notification.permission === "granted" &&
+            document.visibilityState === "visible"
+          ) {
+            new Notification(notif.title, {
+              body: notif.message,
+              icon: "/favicon.ico",
+              tag: notif.type,
+              silent: false,
+            });
+          }
         }
       )
       .subscribe();

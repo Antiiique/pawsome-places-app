@@ -28,6 +28,10 @@ interface ProfileData {
   city: string;
   points: number;
   alert_radius_km: number | null;
+  streak_current: number;
+  streak_max: number;
+  streak_last_date: string | null;
+  streak_shield_available: boolean;
 }
 
 interface LeaderEntry {
@@ -349,6 +353,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
   const skipAutoSave = useRef(true);
   const [profile, setProfile] = useState<ProfileData>({
     display_name: "", avatar_url: null, bio: "", age: null, city: "", points: 0, alert_radius_km: null,
+    streak_current: 0, streak_max: 0, streak_last_date: null, streak_shield_available: true,
   });
   const [reviewCount, setReviewCount] = useState(0);
   const [strayCount, setStrayCount] = useState(0);
@@ -387,7 +392,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
     setLoading(true);
     setLoadingSubmissions(true);
     const [{ data: prof }, { data: petData }, { data: subData }, { count: revCount }, { count: strayC }] = await Promise.all([
-      supabase.from("profiles").select("display_name, avatar_url, bio, age, city, points").eq("id", user.id).maybeSingle(),
+      supabase.from("profiles").select("display_name, avatar_url, bio, age, city, points, alert_radius_km, streak_current, streak_max, streak_last_date, streak_shield_available").eq("id", user.id).maybeSingle(),
       supabase.from("pets" as any).select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
       supabase.from("place_submissions" as any).select("id, name, category, city, address, status, created_at, admin_note").eq("submitted_by", user.id).order("created_at", { ascending: false }),
       supabase.from("place_reviews").select("id", { count: "exact" }).eq("user_id", user.id),
@@ -403,6 +408,10 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
         city: (prof as any).city || "",
         points: (prof as any).points ?? 0,
         alert_radius_km: (prof as any).alert_radius_km ?? null,
+        streak_current: (prof as any).streak_current ?? 0,
+        streak_max: (prof as any).streak_max ?? 0,
+        streak_last_date: (prof as any).streak_last_date ?? null,
+        streak_shield_available: (prof as any).streak_shield_available ?? true,
       });
       setTimeout(() => { skipAutoSave.current = false; }, 100);
     }
@@ -780,31 +789,70 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                   );
                 })()}
 
-                {/* Badges */}
-                {(() => {
-                  const badges = [
-                    { label: "Premier avis", emoji: "💬", desc: "Publier 1 avis", unlocked: reviewCount >= 1 },
-                    { label: "Critique",      emoji: "⭐", desc: "10 avis",        unlocked: reviewCount >= 10 },
-                    { label: "Connaisseur",   emoji: "🌟", desc: "50 avis",        unlocked: reviewCount >= 50 },
-                    { label: "Bâtisseur",     emoji: "🏗️", desc: "1 lieu approuvé", unlocked: approvedSubCount >= 1 },
-                    { label: "Architecte",    emoji: "🏛️", desc: "5 lieux",        unlocked: approvedSubCount >= 5 },
-                    { label: "Veilleur",      emoji: "👀", desc: "1 signalement",   unlocked: strayCount >= 1 },
-                    { label: "Aventurier",    emoji: "🗺️", desc: "100 pts",        unlocked: profile.points >= 100 },
-                    { label: "Héros",         emoji: "🦁", desc: "500 pts",        unlocked: profile.points >= 500 },
-                    { label: "Légende",       emoji: "💎", desc: "1 000 pts",      unlocked: profile.points >= 1000 },
-                  ];
+                {/* Streak widget */}
+                {profile.streak_current > 0 && (() => {
+                  const today = new Date().toISOString().slice(0, 10);
+                  const streakToday = profile.streak_last_date === today;
+                  const mult = profile.streak_current >= 100 ? "x3 🔥" : profile.streak_current >= 30 ? "x2 🔥" : profile.streak_current >= 7 ? "x1.5 🔥" : null;
                   return (
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Badges</p>
-                      <div className="grid grid-cols-3 gap-2">
-                        {badges.map(b => (
-                          <div key={b.label} className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-center transition-all ${b.unlocked ? "bg-secondary border-border" : "opacity-35 bg-muted border-transparent"}`}>
-                            <span className="text-2xl">{b.emoji}</span>
-                            <p className="text-[10px] font-semibold text-foreground leading-tight">{b.label}</p>
-                            <p className="text-[9px] text-muted-foreground leading-tight">{b.desc}</p>
+                    <div className="rounded-xl overflow-hidden border border-border">
+                      <div className="px-4 py-3 flex items-center gap-3" style={{ background: "linear-gradient(135deg,#FF6B35 0%,#FF3D00 100%)" }}>
+                        <div className="relative shrink-0">
+                          <span className="text-3xl" style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,.3))" }}>🔥</span>
+                          {mult && <span className="absolute -bottom-1 -right-2 text-[8px] font-black bg-yellow-400 text-yellow-900 px-1 rounded-full leading-tight whitespace-nowrap">{mult}</span>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-extrabold text-sm">{profile.streak_current} jour{profile.streak_current > 1 ? "s" : ""} de série{streakToday ? " ✓" : ""}</p>
+                          <p className="text-white/70 text-[10px] mt-0.5">Record : {profile.streak_max}j{profile.streak_shield_available ? "  •  🛡️ Bouclier disponible" : ""}</p>
+                        </div>
+                        {!streakToday && <span className="text-[10px] font-bold bg-white/20 text-white px-2 py-1 rounded-full shrink-0 animate-pulse">En danger !</span>}
+                      </div>
+                      <div className="bg-muted/60 px-4 py-2 flex items-center gap-3">
+                        {[7, 30, 100, 365].map(m => (
+                          <div key={m} className="flex items-center gap-1">
+                            <div className={`w-2 h-2 rounded-full ${profile.streak_max >= m ? "bg-orange-500" : "bg-border"}`} />
+                            <span className={`text-[9px] font-semibold ${profile.streak_max >= m ? "text-orange-500" : "text-muted-foreground"}`}>{m}j</span>
                           </div>
                         ))}
                       </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Badges */}
+                {(() => {
+                  const allBadges = [
+                    { label: "Premier avis",  emoji: "🐾", desc: "1 avis",            unlocked: reviewCount >= 1,       cat: "Action" },
+                    { label: "Critique",       emoji: "📝", desc: "10 avis",           unlocked: reviewCount >= 10,      cat: "Action" },
+                    { label: "Connaisseur",    emoji: "🗺️", desc: "50 avis",           unlocked: reviewCount >= 50,      cat: "Action" },
+                    { label: "Bâtisseur",      emoji: "📍", desc: "1 lieu approuvé",   unlocked: approvedSubCount >= 1,  cat: "Action" },
+                    { label: "Architecte",     emoji: "🏛️", desc: "5 lieux",           unlocked: approvedSubCount >= 5,  cat: "Action" },
+                    { label: "Veilleur",       emoji: "🆘", desc: "1 signalement",      unlocked: strayCount >= 1,        cat: "Action" },
+                    { label: "Aventurier",     emoji: "🌟", desc: "500 pts",           unlocked: profile.points >= 500,  cat: "Points" },
+                    { label: "Héros",          emoji: "🦁", desc: "1 000 pts",         unlocked: profile.points >= 1000, cat: "Points" },
+                    { label: "Légende",        emoji: "💎", desc: "1 500 pts",         unlocked: profile.points >= 1500, cat: "Points" },
+                    { label: "Régulier",       emoji: "🔥",  desc: "Série 7j",         unlocked: profile.streak_max >= 7,   cat: "Série" },
+                    { label: "Assidu",         emoji: "🔥🔥",desc: "Série 30j",        unlocked: profile.streak_max >= 30,  cat: "Série" },
+                    { label: "Inarrêtable",    emoji: "💫", desc: "Série 100j",        unlocked: profile.streak_max >= 100, cat: "Série" },
+                    { label: "Légendaire",     emoji: "👑", desc: "Série 365j",        unlocked: profile.streak_max >= 365, cat: "Série" },
+                  ];
+                  return (
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Badges</p>
+                      {(["Action", "Points", "Série"] as const).map(cat => (
+                        <div key={cat} className="space-y-1.5">
+                          <p className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider">{cat}</p>
+                          <div className="grid grid-cols-4 gap-1.5">
+                            {allBadges.filter(b => b.cat === cat).map(b => (
+                              <div key={b.label} className={`flex flex-col items-center gap-1 p-2 rounded-xl border text-center transition-all ${b.unlocked ? "bg-gradient-to-b from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200/60 dark:border-amber-700/40" : "opacity-35 bg-muted border-transparent"}`}>
+                                <span className="text-xl leading-none">{b.emoji}</span>
+                                <p className="text-[9px] font-semibold text-foreground leading-tight">{b.label}</p>
+                                <p className="text-[8px] text-muted-foreground leading-tight">{b.desc}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   );
                 })()}

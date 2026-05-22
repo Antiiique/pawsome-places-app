@@ -37,7 +37,48 @@ function distanceBetween(p1: { lat: number; lng: number }, p2: { lat: number; ln
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+function pointToSegmentDistanceM(
+  p: { lat: number; lng: number },
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number }
+): number {
+  const toRad = (d: number) => d * Math.PI / 180;
+  const cosLat = Math.cos(toRad((a.lat + b.lat) / 2));
+  const ax = a.lng * cosLat, ay = a.lat;
+  const bx = b.lng * cosLat, by = b.lat;
+  const px = p.lng * cosLat, py = p.lat;
+  const dx = bx - ax, dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+  let t = lenSq > 0 ? ((px - ax) * dx + (py - ay) * dy) / lenSq : 0;
+  t = Math.max(0, Math.min(1, t));
+  const nx = ax + t * dx, ny = ay + t * dy;
+  const R = 6371000;
+  const dLat = (ny - p.lat) * toRad(1);
+  const dLng = (nx / cosLat - p.lng) * toRad(1);
+  return R * Math.sqrt(dLat * dLat + Math.cos(toRad(p.lat)) ** 2 * dLng * dLng);
+}
+
+function minDistanceToPolylineM(p: { lat: number; lng: number }, path: { lat: number; lng: number }[]): number {
+  let min = Infinity;
+  for (let i = 0; i < path.length - 1; i++) {
+    const d = pointToSegmentDistanceM(p, path[i], path[i + 1]);
+    if (d < min) min = d;
+  }
+  return min;
+}
+
 const ROUTE_CATEGORIES = ["restaurant", "hotel", "outdoor", "parc_chiens", "veterinaire", "cafe_animalier", "animalerie", "aire_repos"];
+
+const ROUTE_CATEGORY_LABELS: Record<string, string> = {
+  restaurant:     "🍽️ Restaurants",
+  hotel:          "🛏️ Hôtels",
+  outdoor:        "🌿 Parcs & Nature",
+  parc_chiens:    "🐕 Parcs chiens",
+  veterinaire:    "🏥 Vétérinaires",
+  cafe_animalier: "☕ Cafés animaux",
+  animalerie:     "🐾 Animaleries",
+  aire_repos:     "🛣️ Aires de repos",
+};
 
 const CATEGORY_COLORS: Record<string, string> = {
   restaurant: "#FF6B35",
@@ -321,6 +362,10 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
   }, []);
 
   useEffect(() => { if (!open) setSnapState("half"); }, [open]);
+  useEffect(() => { if (!open) setStepFilter(null); }, [open]);
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("itinerary-filter-change", { detail: { category: stepFilter } }));
+  }, [stepFilter]);
 
   useEffect(() => {
     if (!open) return;
@@ -378,18 +423,38 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
   };
 
   const clearRoute = () => {
-    setResult(null); setLegs([]); onRouteCalculated(null);
+    setResult(null); setLegs([]); onRouteCalculated(null); setStepFilter(null);
   };
 
-  const clearOrigin = () => { setOrigin(null); setOriginText(""); clearRoute(); };
-  const clearDestination = () => { setDestination(null); setDestText(""); clearRoute(); };
+  const clearOrigin = () => {
+    setOrigin(null); setOriginText(""); clearRoute();
+    window.dispatchEvent(new CustomEvent("itinerary-clear-marker", { detail: { type: "origin" } }));
+  };
+  const clearDestination = () => {
+    setDestination(null); setDestText(""); clearRoute();
+    window.dispatchEvent(new CustomEvent("itinerary-clear-marker", { detail: { type: "destination" } }));
+  };
   const clearAll = () => { clearOrigin(); clearDestination(); setWaypoints([]); clearRoute(); toast("🗑️ Itinéraire effacé"); };
 
 
   const handleOriginSelect = (sel: PlaceSelection) => { setOrigin(sel); setOriginText(sel.text); setErrors((e) => ({ ...e, origin: undefined })); };
   const handleDestSelect = (sel: PlaceSelection) => { setDestination(sel); setDestText(sel.text); setErrors((e) => ({ ...e, dest: undefined })); };
-  const handleOriginChange = (text: string) => { setOriginText(text); if (origin) setOrigin(null); };
-  const handleDestChange = (text: string) => { setDestText(text); if (destination) setDestination(null); };
+  const handleOriginChange = (text: string) => {
+    setOriginText(text);
+    if (origin) {
+      setOrigin(null);
+      clearRoute();
+      window.dispatchEvent(new CustomEvent("itinerary-clear-marker", { detail: { type: "origin" } }));
+    }
+  };
+  const handleDestChange = (text: string) => {
+    setDestText(text);
+    if (destination) {
+      setDestination(null);
+      clearRoute();
+      window.dispatchEvent(new CustomEvent("itinerary-clear-marker", { detail: { type: "destination" } }));
+    }
+  };
 
   const removeWaypoint = (id: string) => { setWaypoints((prev) => prev.filter((w) => w.id !== id)); clearRoute(); };
 
@@ -549,7 +614,13 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
       const seen = new Set<string>();
       const unique = allPlaces.filter((p) => { if (seen.has(p.id)) return false; seen.add(p.id); return true; });
       unique.sort((a, b) => a.distance_from_start_km - b.distance_from_start_km);
-      const steps = unique.slice(0, 20);
+
+      // Filter by perpendicular distance to route polyline — minimize detour
+      const maxDetourM = Math.min(5000, Math.max(2000, totalDistKm * 15));
+      const polylineFiltered = unique.filter((p) =>
+        minDistanceToPolylineM({ lat: p.latitude, lng: p.longitude }, decodedPath) <= maxDetourM
+      );
+      const steps = polylineFiltered.slice(0, 20);
 
       const pausePoints: { lat: number; lng: number; distance_km: number }[] = [];
       let nextPause = 160000;
@@ -651,7 +722,6 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
     toast.success(`✓ ${step.name} ajouté à l'itinéraire`);
   };
 
-  const stepUniqueCategories = result ? Array.from(new Set(result.steps.map((s) => s.category))) : [];
   const filteredSteps = result ? (stepFilter ? result.steps.filter((s) => s.category === stepFilter) : result.steps) : [];
 
   return (
@@ -850,32 +920,35 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
                       </div>
                     )}
 
-                    {/* Category filter pills */}
-                    {result.steps.length > 0 && stepUniqueCategories.length > 1 && (
-                      <div className="space-y-1.5">
-                        <p className="text-xs font-medium text-muted-foreground">🔍 Filtrer par type</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          <button
-                            onClick={() => setStepFilter(null)}
-                            className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${!stepFilter ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border hover:border-primary/50"}`}
-                          >
-                            Tous ({result.steps.length})
-                          </button>
-                          {stepUniqueCategories.map((cat) => {
-                            const count = result.steps.filter((s) => s.category === cat).length;
-                            return (
-                              <button
-                                key={cat}
-                                onClick={() => setStepFilter(stepFilter === cat ? null : cat)}
-                                className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors capitalize ${stepFilter === cat ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border hover:border-primary/50"}`}
-                              >
-                                {cat} ({count})
-                              </button>
-                            );
-                          })}
-                        </div>
+                    {/* Category filter pills — always show all ROUTE_CATEGORIES */}
+                    <div className="space-y-1.5">
+                      <p className="text-xs font-medium text-muted-foreground">🔍 Filtrer par type</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          onClick={() => setStepFilter(null)}
+                          className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${!stepFilter ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border hover:border-primary/50"}`}
+                        >
+                          Tous ({result.steps.length})
+                        </button>
+                        {ROUTE_CATEGORIES.map((cat) => {
+                          const count = result.steps.filter((s) => s.category === cat).length;
+                          const disabled = count === 0;
+                          return (
+                            <button
+                              key={cat}
+                              onClick={() => { if (!disabled) setStepFilter(stepFilter === cat ? null : cat); }}
+                              className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+                                stepFilter === cat ? "bg-primary text-primary-foreground border-primary" :
+                                disabled ? "bg-muted/40 text-muted-foreground/40 border-border/40 cursor-not-allowed" :
+                                "bg-muted text-muted-foreground border-border hover:border-primary/50"
+                              }`}
+                            >
+                              {ROUTE_CATEGORY_LABELS[cat] || cat} ({count})
+                            </button>
+                          );
+                        })}
                       </div>
-                    )}
+                    </div>
 
                     {/* Pet-friendly steps */}
                     {filteredSteps.map((step, i) => {

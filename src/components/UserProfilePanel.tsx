@@ -18,6 +18,10 @@ interface UserProfile {
   created_at: string | null;
   last_seen_at?: string | null;
   postal_code?: string | null;
+  streak_current?: number;
+  streak_max?: number;
+  streak_last_date?: string | null;
+  streak_shield_available?: boolean;
 }
 
 interface Pet {
@@ -110,17 +114,39 @@ function getLevelProgress(points: number) {
 
 // ─── Badges ──────────────────────────────────────────────────────────────────
 
-function getBadges(reviewCount: number, strayCount: number, approvedSubCount: number, points: number) {
+function getStreakMultiplier(streak: number) {
+  if (streak >= 100) return "x3 🔥";
+  if (streak >= 30)  return "x2 🔥";
+  if (streak >= 7)   return "x1.5 🔥";
+  return null;
+}
+
+function getBadges(
+  reviewCount: number,
+  strayCount: number,
+  approvedSubCount: number,
+  points: number,
+  streakMax: number = 0,
+  lostPetCount: number = 0,
+) {
   return [
-    { id: "first_review", emoji: "🐾", label: "Premier pas",  unlocked: reviewCount >= 1,       tip: "1 avis" },
-    { id: "critic",       emoji: "📝", label: "Critique",     unlocked: reviewCount >= 10,      tip: "10 avis" },
-    { id: "explorer",     emoji: "🗺️", label: "Explorateur",  unlocked: reviewCount >= 50,      tip: "50 avis" },
-    { id: "rescuer1",     emoji: "🆘", label: "Secouriste",   unlocked: strayCount >= 1,        tip: "1 signalement" },
-    { id: "watcher",      emoji: "🐕", label: "Veilleur",     unlocked: strayCount >= 5,        tip: "5 signalements" },
-    { id: "rescuer10",    emoji: "🏆", label: "Sauveteur",    unlocked: strayCount >= 10,       tip: "10 signalements" },
-    { id: "pioneer",      emoji: "📍", label: "Pionnier",     unlocked: approvedSubCount >= 1,  tip: "1 lieu ajouté" },
-    { id: "ambassador",   emoji: "🌟", label: "Ambassadeur",  unlocked: points >= 500,          tip: "500 points" },
-    { id: "legend",       emoji: "💎", label: "Légende",      unlocked: points >= 1500,         tip: "1500 points" },
+    // Action
+    { id: "first_review", emoji: "🐾", label: "Premier pas",   unlocked: reviewCount >= 1,      tip: "1 avis",                 cat: "Action" },
+    { id: "critic",       emoji: "📝", label: "Critique",      unlocked: reviewCount >= 10,     tip: "10 avis",                cat: "Action" },
+    { id: "explorer",     emoji: "🗺️", label: "Explorateur",   unlocked: reviewCount >= 50,     tip: "50 avis",                cat: "Action" },
+    { id: "rescuer1",     emoji: "🆘", label: "Secouriste",    unlocked: strayCount >= 1,       tip: "1 signalement",          cat: "Action" },
+    { id: "watcher",      emoji: "🐕", label: "Veilleur",      unlocked: strayCount >= 5,       tip: "5 signalements",         cat: "Action" },
+    { id: "rescuer10",    emoji: "🏆", label: "Sauveteur",     unlocked: strayCount >= 10,      tip: "10 signalements",        cat: "Action" },
+    { id: "pioneer",      emoji: "📍", label: "Pionnier",      unlocked: approvedSubCount >= 1, tip: "1 lieu ajouté",          cat: "Action" },
+    { id: "guardian",     emoji: "🆘", label: "Gardien",       unlocked: lostPetCount >= 3,     tip: "3 animaux perdus signalés", cat: "Action" },
+    // Points
+    { id: "ambassador",   emoji: "🌟", label: "Ambassadeur",   unlocked: points >= 500,         tip: "500 points",             cat: "Points" },
+    { id: "legend",       emoji: "💎", label: "Légende",       unlocked: points >= 1500,        tip: "1 500 points",           cat: "Points" },
+    // Streak — basés sur streak_max (non-récupérables si série cassée)
+    { id: "streak7",      emoji: "🔥",  label: "Régulier",     unlocked: streakMax >= 7,        tip: "Série de 7 jours",       cat: "Série" },
+    { id: "streak30",     emoji: "🔥🔥", label: "Assidu",      unlocked: streakMax >= 30,       tip: "Série de 30 jours",      cat: "Série" },
+    { id: "streak100",    emoji: "💫",  label: "Inarrêtable",  unlocked: streakMax >= 100,      tip: "Série de 100 jours",     cat: "Série" },
+    { id: "streak365",    emoji: "👑",  label: "Légendaire",   unlocked: streakMax >= 365,      tip: "Série de 365 jours",     cat: "Série" },
   ];
 }
 
@@ -252,7 +278,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, 
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     Promise.all([
-      (supabase as any).from("profiles").select("id, display_name, avatar_url, bio, city, points, created_at, last_seen_at, postal_code").eq("id", userId).maybeSingle(),
+      (supabase as any).from("profiles").select("id, display_name, avatar_url, bio, city, points, created_at, last_seen_at, postal_code, streak_current, streak_max, streak_last_date, streak_shield_available").eq("id", userId).maybeSingle(),
       supabase.from("stray_reports").select("id", { count: "exact", head: true }).eq("user_id", userId),
       supabase.from("place_reviews").select("id", { count: "exact", head: true }).eq("user_id", userId),
       supabase.from("place_submissions").select("id", { count: "exact", head: true }).eq("submitted_by", userId).eq("status", "approved"),
@@ -395,10 +421,14 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, 
   if (!mounted) return null;
 
   const points = profile?.points ?? 0;
+  const streak = profile?.streak_current ?? 0;
+  const streakMax = profile?.streak_max ?? 0;
+  const streakToday = profile?.streak_last_date === new Date().toISOString().slice(0, 10);
+  const streakMult = getStreakMultiplier(streak);
   const level = getLevel(points);
   const progress = getLevelProgress(points);
   const nextLevel = LEVELS[LEVELS.indexOf(level) + 1];
-  const badges = getBadges(reviewCount, strayCount, approvedSubCount, points);
+  const badges = getBadges(reviewCount, strayCount, approvedSubCount, points, streakMax, lostPets.length);
   const seenBadge = lastSeenBadge(profile?.last_seen_at);
   const activeLostPets = lostPets.filter(p => p.status === "active");
 
@@ -532,6 +562,49 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, 
                 </div>
               </div>
 
+              {/* ── Streak widget ── */}
+              {streak > 0 && (
+                <div className="rounded-xl overflow-hidden border border-border">
+                  <div
+                    className="px-4 py-3 flex items-center gap-3"
+                    style={{ background: "linear-gradient(135deg,#FF6B35 0%,#FF3D00 100%)" }}
+                  >
+                    <div className="relative shrink-0">
+                      <span className="text-3xl" style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,.3))" }}>🔥</span>
+                      {streakMult && (
+                        <span className="absolute -bottom-1 -right-2 text-[8px] font-black bg-yellow-400 text-yellow-900 px-1 rounded-full leading-tight whitespace-nowrap">
+                          {streakMult}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-extrabold text-sm leading-tight">
+                        {streak} jour{streak > 1 ? "s" : ""} de série
+                        {streakToday ? " ✓" : ""}
+                      </p>
+                      <p className="text-white/70 text-[10px] mt-0.5">
+                        Record : {streakMax}j
+                        {profile?.streak_shield_available ? "  •  🛡️ Bouclier disponible" : ""}
+                      </p>
+                    </div>
+                    {!streakToday && (
+                      <span className="text-[10px] font-bold bg-white/20 text-white px-2 py-1 rounded-full shrink-0 animate-pulse">
+                        En danger !
+                      </span>
+                    )}
+                  </div>
+                  {/* Milestone track */}
+                  <div className="bg-muted/60 px-4 py-2 flex items-center gap-2">
+                    {[7, 30, 100, 365].map(m => (
+                      <div key={m} className="flex items-center gap-1">
+                        <div className={`w-2 h-2 rounded-full ${streakMax >= m ? "bg-orange-500" : "bg-border"}`} />
+                        <span className={`text-[9px] font-semibold ${streakMax >= m ? "text-orange-500" : "text-muted-foreground"}`}>{m}j</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* ── Stats ── */}
               <div className="grid grid-cols-4 gap-2">
                 {[
@@ -556,20 +629,26 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, 
               )}
 
               {/* ── Badges ── */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Badges</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {badges.map(b => (
-                    <div
-                      key={b.id}
-                      className={`rounded-xl p-2.5 text-center ${b.unlocked ? "bg-muted opacity-100" : "bg-muted/40 opacity-40"}`}
-                    >
-                      <p className="text-xl">{b.emoji}</p>
-                      <p className="text-[10px] font-medium text-foreground mt-0.5 leading-tight">{b.label}</p>
-                      {!b.unlocked && <p className="text-[9px] text-muted-foreground">{b.tip}</p>}
+                {(["Action", "Points", "Série"] as const).map(cat => (
+                  <div key={cat} className="space-y-1.5">
+                    <p className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider pl-0.5">{cat}</p>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {badges.filter(b => b.cat === cat).map(b => (
+                        <div
+                          key={b.id}
+                          title={b.tip}
+                          className={`rounded-xl p-2 text-center transition-all ${b.unlocked ? "bg-gradient-to-b from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200/60 dark:border-amber-700/40" : "bg-muted/40 opacity-35"}`}
+                        >
+                          <p className="text-xl leading-none">{b.emoji}</p>
+                          <p className="text-[9px] font-semibold text-foreground mt-1 leading-tight">{b.label}</p>
+                          {!b.unlocked && <p className="text-[8px] text-muted-foreground leading-tight mt-0.5">{b.tip}</p>}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
 
               {/* ── Pets ── */}
