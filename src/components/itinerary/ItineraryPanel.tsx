@@ -596,14 +596,14 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
 
       const allPlaces: ItineraryStep[] = [];
       for (const cp of checkpoints) {
-        const { data } = await supabase.rpc("get_nearby_pet_places", {
+        const { data } = await (supabase.rpc as any)("get_nearby_pet_places", {
           user_lat: cp.lat, user_lon: cp.lng,
           radius_km: corridorKm,
           cat_filter: null,
           dogs_only: false,
         });
         if (data) {
-          allPlaces.push(...data.slice(0, 5).map((d: any) => ({
+          allPlaces.push(...(data as any[]).slice(0, 5).map((d: any) => ({
             ...d, id: d.id as string,
             distance_from_start_km: cp.dist,
           })));
