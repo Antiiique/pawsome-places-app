@@ -711,6 +711,26 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
             )}
           </div>
 
+          {(localCategory || place.category) === "station_carburant" && (
+            <div className="rounded-lg border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700 p-3 space-y-2">
+              <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2"><span className="text-lg">⛽</span> Carburants & services</p>
+              <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">{localDescription ?? "Station-service · Chiens acceptés en laisse obligatoire"}</p>
+            </div>
+          )}
+          {(localCategory || place.category) === "station_carburant" && (
+            <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
+              <p className="text-sm font-bold text-green-700 dark:text-green-400">✅ Animaux acceptés</p>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">🐕 Chiens acceptés</Badge>
+                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">🐕‍🦺 Laisse obligatoire</Badge>
+              </div>
+            </div>
+          )}
+
+
+
+
+
 
           {/* Tabs */}
           <div className="flex rounded-xl border border-border overflow-hidden">
