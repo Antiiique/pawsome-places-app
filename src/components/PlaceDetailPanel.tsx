@@ -400,6 +400,16 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
     }).eq("id", place.id);
     setEditSaving(false);
     if (error) { toast.error("Erreur : " + error.message); return; }
+    setLocalCategory(editForm.category);
+    setLocalName(editForm.name);
+    setLocalVerified(editForm.verified);
+    setLocalDescription(editForm.description || null);
+    setLocalPetFlags({
+      accepts_dogs: editForm.accepts_dogs,
+      accepts_cats: editForm.accepts_cats,
+      outdoor_seating: editForm.outdoor_seating,
+      dogs_on_leash_only: editForm.dogs_on_leash_only,
+    });
     toast.success(`✅ "${editForm.name}" mis à jour`);
     setAdminEditOpen(false);
   }
