@@ -1,0 +1,1137 @@
+name,category,subcategory,address,city,country,latitude,longitude,accepts_dogs,accepts_cats,dogs_on_leash_only,outdoor_seating,water_bowl_provided,has_toilets,has_shade,has_dog_area,has_fuel,rating,description,verified,source
+Waarloos-Oost,station_carburant,autoroute,,,France,51.0982554,4.4377264,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Waarloos-West,station_carburant,autoroute,,,France,51.0977594,4.4364676,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Folkestone 24 hour Services,station_carburant,autoroute,,,France,51.094939,1.0448082,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Stop24 Folkestone Services,station_carburant,autoroute,,,France,51.0949098,1.0440853,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Stop24 Folkestone Services,station_carburant,autoroute,,,France,51.0948411,1.0450384,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Malsfeld,station_carburant,autoroute,,Malsfeld,France,51.0866287,9.4867184,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Malsfeld),TRUE,osm
+Parking Kalken (Noord),station_carburant,autoroute,,,France,51.0720678,3.9206126,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Tessenderlo,station_carburant,autoroute,,,France,51.0707275,5.1460896,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,51.0704997,5.1479916,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Parking Kalken (Zuid),station_carburant,autoroute,,,France,51.0698744,3.9205767,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Het Anker,station_carburant,autoroute,,,France,51.0576797,5.8255221,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Handcross,station_carburant,autoroute,,,France,51.056485,-0.200801,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,51.0506599,-0.2018822,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rustplaats Gentbrugge-Noord,station_carburant,autoroute,,,France,51.0425148,3.7840178,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rustplaats Gentbrugge-Zuid,station_carburant,autoroute,,,France,51.0417444,3.7834708,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Hasselberg West,station_carburant,autoroute,,,France,51.0360282,9.4861088,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Hasselberg Ost,station_carburant,autoroute,,,France,51.0357551,9.4885294,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Dienstenzone Drongen-Noord,station_carburant,autoroute,,,France,51.0352234,3.6378329,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Dienstenzone Drongen-Zuid,station_carburant,autoroute,,,France,51.0333294,3.6386996,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Halveweg / Zolder,station_carburant,autoroute,,,France,51.0120249,5.3324082,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Swentibold,station_carburant,autoroute,,,France,51.011481,5.8007158,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,51.0077167,2.1183596,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,51.0066142,9.4734092,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Homberg/Efze A7,station_carburant,autoroute,,Knüllwald,France,51.0057068,9.4803688,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Knüllwald),TRUE,osm
+Bedburger Land Ost,station_carburant,autoroute,,,France,51.0054636,6.5209461,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Bedburger Land West,station_carburant,autoroute,,,France,51.0044637,6.5211841,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Grande Synthe,station_carburant,autoroute,,,France,51.004151,2.3041863,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Buck Barn,station_carburant,autoroute,,,France,50.9915733,-0.3413704,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.9852272,5.8441169,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Nazareth-Noord,station_carburant,autoroute,,,France,50.9734385,3.6143902,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Noordelijke Dienstenzone Wetteren,station_carburant,autoroute,,,France,50.970514,3.8434704,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Nazareth-Zuid,station_carburant,autoroute,,,France,50.9703284,3.6080311,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Zuidelijke Dienstenzone Wetteren,station_carburant,autoroute,,,France,50.9697259,3.8421924,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Ricebridge Services (Hickstead),station_carburant,autoroute,,,France,50.9673261,-0.1921132,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aggertal Nord,station_carburant,autoroute,,,France,50.9522551,7.3188422,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aggertal Süd,station_carburant,autoroute,,,France,50.9513851,7.3197504,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Wezemaal,station_carburant,autoroute,,,France,50.9510549,4.7920459,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+La Conciergerie,station_carburant,autoroute,,,France,50.9483414,1.8555984,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Vossedal,station_carburant,autoroute,,,France,50.9363358,5.784031,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Frechen,station_carburant,autoroute,,,France,50.9143275,6.8348492,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.912653,9.1551029,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.9039546,5.9401219,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.9026735,5.966471,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Pyecombe (North) Services,station_carburant,autoroute,,,France,50.9019507,-0.1812305,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Königsforst - Ost,station_carburant,autoroute,,,France,50.8991718,7.1520193,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Schloß Röttgen West,station_carburant,autoroute,,,France,50.8986012,7.0828043,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Königsforst - West,station_carburant,autoroute,,,France,50.8982166,7.152949,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Schloß Röttgen Ost,station_carburant,autoroute,,,France,50.8978696,7.0853669,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Kruishoutem Frankrijk - Antwerpen,station_carburant,autoroute,,,France,50.897462,3.4777395,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.8970826,5.9455243,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Roeselare,station_carburant,autoroute,,,France,50.8963823,3.1766952,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Roeselare,station_carburant,autoroute,,,France,50.8961534,3.1749813,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Pyecombe (South) Services,station_carburant,autoroute,,,France,50.8957541,-0.16315,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+NB Personeel,station_carburant,autoroute,,,France,50.8894022,5.9769061,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+SVG Autohof Köln-Eifeltor,station_carburant,autoroute,,Köln,France,50.8884029,6.9253295,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Köln),TRUE,osm
+Meerssen,station_carburant,autoroute,,,France,50.8863932,5.7395074,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.8796456,0.2306794,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Dienstenzone Groot Bijgaarden-Zuid,station_carburant,autoroute,,,France,50.8795054,4.2541278,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.8752974,5.9757957,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.8710901,6.0161448,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des 2 Caps,station_carburant,autoroute,,,France,50.8613665,1.7354307,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.8585707,6.0014448,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Ville Ost,station_carburant,autoroute,,,France,50.857783,6.8060072,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Ville West,station_carburant,autoroute,,,France,50.8575436,6.8045718,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Heverlee Noord,station_carburant,autoroute,,,France,50.8539355,4.65872,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Heverlee Zuid,station_carburant,autoroute,,,France,50.8523249,4.6583619,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.8347042,9.0377056,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.8342463,9.5734351,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Kirchheim,station_carburant,autoroute,,Kirchheim,France,50.8341083,9.5736112,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Kirchheim),TRUE,osm
+Rasthof Kirchheim,station_carburant,autoroute,,,France,50.8309421,9.5765035,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.8290136,0.2368377,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Éloi,station_carburant,autoroute,,,France,50.8289642,2.5814524,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Laurent,station_carburant,autoroute,,,France,50.8275561,2.5840995,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Langveld,station_carburant,autoroute,,,France,50.8238085,6.0209255,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Tienbaan,station_carburant,autoroute,,,France,50.8229269,6.0194971,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aachener Land Nord,station_carburant,autoroute,,,France,50.8182077,6.2143831,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.8172167,5.9796396,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aachener Land Süd,station_carburant,autoroute,,,France,50.8169535,6.2155625,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.816781,5.7268628,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+MAXI Autohof Wilnsdorf,station_carburant,autoroute,,Wilnsdorf,France,50.8166556,8.0877675,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Wilnsdorf),TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.8110359,5.9165561,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Siegburg Ost,station_carburant,autoroute,,,France,50.8088959,7.2195384,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Siegburg West,station_carburant,autoroute,,,France,50.8067986,7.2204933,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.7937352,8.7607424,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l’Épître,station_carburant,autoroute,,,France,50.7925596,1.685815,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.7893811,-2.0131353,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Knuvelkes,station_carburant,autoroute,,,France,50.7850611,5.7284072,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Dienstenzone Ruisbroek,station_carburant,autoroute,,,France,50.7781494,4.299409,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Patiel,station_carburant,autoroute,,,France,50.7775374,5.7295513,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Berfa,station_carburant,autoroute,,,France,50.7597076,9.3591,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Tienen,station_carburant,autoroute,,,France,50.7524797,4.9522509,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.7386003,-3.9565815,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.7363892,-1.9959328,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.719852,-3.8511505,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bierges,station_carburant,autoroute,,,France,50.7174141,4.5840776,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Waremme,station_carburant,autoroute,,,France,50.7071431,5.2507573,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.7040911,6.0873058,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Hellebecq,station_carburant,autoroute,,,France,50.6836288,3.8977487,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.6720393,5.691522,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Tignée,station_carburant,autoroute,,,France,50.6547145,5.7089726,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Dachsberg,station_carburant,autoroute,,Bad Honnef,France,50.6482544,7.3347116,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Bad Honnef),TRUE,osm
+Aire du Barœul,station_carburant,autoroute,,,France,50.6480531,3.0990228,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.6478963,5.7985205,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.6461491,5.8271822,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+MAXI Autohof Mücke,station_carburant,autoroute,,Mücke,France,50.6459028,8.9887553,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Mücke),TRUE,osm
+Aire de Froyennes,station_carburant,autoroute,,,France,50.619327,3.3400931,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Orival Total Nivelles,station_carburant,autoroute,,,France,50.6153452,4.3001175,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.602338,2.9425935,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Aische-en-Refail,station_carburant,autoroute,,,France,50.5997631,4.7912413,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Fernthal West,station_carburant,autoroute,,,France,50.5989936,7.4349421,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.5968277,5.620487,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Verlaine Nord,station_carburant,autoroute,,,France,50.593879,5.3027957,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Verlaine Sud,station_carburant,autoroute,,,France,50.5916297,5.3032084,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Hilaire-Cottes,station_carburant,autoroute,,,France,50.5723978,2.3799502,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Rely,station_carburant,autoroute,,,France,50.5723931,2.378163,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Urbacher Wald,station_carburant,autoroute,,,France,50.5477441,7.5849588,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.5400911,3.0733498,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Phalempin-Ouest,station_carburant,autoroute,,,France,50.5311346,3.0458796,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Phalempin-Est,station_carburant,autoroute,,,France,50.5302723,3.0462889,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Maxi-Autohof Gießen-Lützellinden,station_carburant,autoroute,,Gießen,France,50.529007,8.6056234,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Gießen),TRUE,osm
+Aire de Sprimont,station_carburant,autoroute,,,France,50.523284,5.6656064,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Landsberg an der Warthe,station_carburant,autoroute,,,France,50.5212652,7.6941102,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Genech Ouest,station_carburant,autoroute,,,France,50.5188618,3.2055068,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+SVG Autohof Merenberg,station_carburant,autoroute,,Merenberg,France,50.498943,8.1845138,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Merenberg),TRUE,osm
+Aire de Spy,station_carburant,autoroute,,,France,50.4948598,4.7017245,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Bois du Gard (Nord),station_carburant,autoroute,,,France,50.491484,3.9841398,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Bois du Gard Sud,station_carburant,autoroute,,,France,50.490898,3.9859141,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Rœulx-Thieu Nord,station_carburant,autoroute,,,France,50.4902673,4.0955763,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Rœulx-Thieu Sud,station_carburant,autoroute,,,France,50.4882513,4.0959801,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+MAXI Autohof Mogendorf,station_carburant,autoroute,,Mogendorf,France,50.4821069,7.7486799,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Mogendorf),TRUE,osm
+Autohof Beselich Nord,station_carburant,autoroute,,Beselich,France,50.469098,8.1374922,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Beselich),TRUE,osm
+Autohof Beselich Süd,station_carburant,autoroute,,Beselich,France,50.4682777,8.1379222,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Beselich),TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.4575842,2.9754034,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Ghislain (Nord),station_carburant,autoroute,,,France,50.4526599,3.8041329,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Ghislain (Sud),station_carburant,autoroute,,,France,50.4515219,3.8062672,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Brohltal-Ost,station_carburant,autoroute,,,France,50.4406955,7.2268172,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Brohltal-West,station_carburant,autoroute,,,France,50.4405933,7.2239841,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.4229117,6.3022377,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Saltash Services,station_carburant,autoroute,,,France,50.4197181,-4.2367906,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Maxinet,station_carburant,autoroute,,Binche,France,50.4097585,4.1701644,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Binche),TRUE,osm
+Aire d'Angres,station_carburant,autoroute,,,France,50.4049615,2.7439144,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Souchez,station_carburant,autoroute,,,France,50.4038631,2.7441137,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Distelrasen Nord,station_carburant,autoroute,,,France,50.3880557,9.5301922,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Mendig,station_carburant,autoroute,,,France,50.3825417,7.2697084,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Petite Forêt,station_carburant,autoroute,,,France,50.3683004,3.4834662,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Wetterau West,station_carburant,autoroute,,,France,50.3565834,8.6936431,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Wetterau Ost,station_carburant,autoroute,,,France,50.3563728,8.6951276,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Koblenz,station_carburant,autoroute,,,France,50.3465398,7.5060026,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Sentinelle Ouest,station_carburant,autoroute,,,France,50.34063,3.4673692,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Sentinelle Est,station_carburant,autoroute,,,France,50.3396925,3.4691463,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.3009109,8.2369961,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Zur Schneifel,station_carburant,autoroute,,,France,50.2687688,6.4558351,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Mosel West,station_carburant,autoroute,,,France,50.2669979,7.5106563,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Mosel Ost,station_carburant,autoroute,,,France,50.2667137,7.511912,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Elztal Nord,station_carburant,autoroute,,,France,50.2663757,7.2258948,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Elztal Süd,station_carburant,autoroute,,,France,50.2659001,7.2264886,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Wancourt Est,station_carburant,autoroute,,,France,50.2635101,2.8664814,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Langen-Bergheim Ost,station_carburant,autoroute,,,France,50.2501457,8.9946848,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Langen-Bergheim West,station_carburant,autoroute,,,France,50.2489603,8.9939114,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Rumaucourt,station_carburant,autoroute,,,France,50.2275609,3.0639155,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Baralle,station_carburant,autoroute,,,France,50.2250439,3.0711845,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.2223932,3.2632376,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.2084492,8.6153457,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.1921056,3.2828978,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Neuberg,station_carburant,autoroute,,,France,50.1820062,9.0065801,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Léger,station_carburant,autoroute,,,France,50.1736547,2.8735354,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Baie de Somme,station_carburant,autoroute,,,France,50.1686209,1.7547041,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.1559495,4.5079849,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Wanlin,station_carburant,autoroute,,,France,50.1440755,5.0788743,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Graincourt,station_carburant,autoroute,,,France,50.123463,3.0892951,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d’Havrincourt,station_carburant,autoroute,,,France,50.1229457,3.089925,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.1156164,8.6126848,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Pfalzfeld,station_carburant,autoroute,,,France,50.1154255,7.5994263,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.1144568,8.6165632,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Medenbach-Ost,station_carburant,autoroute,,,France,50.0969966,8.3525818,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Medenbach-West,station_carburant,autoroute,,,France,50.0953581,8.3524436,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Medenbach-West,station_carburant,autoroute,,Wiesbaden,France,50.0944681,8.352004,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Wiesbaden),TRUE,osm
+Eifel Ost,station_carburant,autoroute,,,France,50.0698204,6.8802978,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Eifel West,station_carburant,autoroute,,,France,50.0689583,6.8808715,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Weiskirchen Nord,station_carburant,autoroute,,,France,50.0557721,8.9084014,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Tankstelle Wiesbaden-Erbenheim,station_carburant,autoroute,,,France,50.0552832,8.3120946,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Weiskirchen Süd,station_carburant,autoroute,,,France,50.0551282,8.9081357,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Tankstelle Wiesbaden-Erbenheim,station_carburant,autoroute,,,France,50.0544126,8.3113609,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.0373102,8.6247184,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,50.0370659,8.6251551,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Rheinböllen,station_carburant,autoroute,,,France,49.9959992,7.6844217,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Kleinostheim,station_carburant,autoroute,,Kleinostheim,France,49.9946483,9.0652921,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Kleinostheim),TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.9934049,8.3869609,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.9558383,8.3332334,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Gräfenhausen West,station_carburant,autoroute,,,France,49.9470742,8.6092534,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Gräfenhausen Ost,station_carburant,autoroute,,,France,49.9464733,8.6106653,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Bohr,station_carburant,autoroute,,,France,49.9310447,7.2784585,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Nahetal,station_carburant,autoroute,,,France,49.9254371,7.9373632,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Waldlaubersheim,station_carburant,autoroute,,,France,49.9247432,7.8244416,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.9174774,2.9335373,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.9040967,6.5417651,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Spessart Nord,station_carburant,autoroute,,,France,49.8984995,9.3937973,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Station de Gonflage de Pneu,station_carburant,autoroute,,,France,49.8983103,2.2923597,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Spessart Süd,station_carburant,autoroute,,,France,49.8957059,9.3947981,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Büttelborn Süd,station_carburant,autoroute,,,France,49.8925628,8.5448441,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire Cœur des Hauts-de-France Est,station_carburant,autoroute,,,France,49.8884187,2.8413337,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Villers-Bretonneux,station_carburant,autoroute,,,France,49.8547008,2.5208822,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+24-TOTAL Autohof Wörrstadt,station_carburant,autoroute,,Wörrstadt,France,49.8397738,8.1423488,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Wörrstadt),TRUE,osm
+Autohof Gau-Bickelheim,station_carburant,autoroute,,,France,49.8353366,7.9982961,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Tank & Rastanlage Pfungstadt Ost,station_carburant,autoroute,,,France,49.8116407,8.5785457,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Croixrault,station_carburant,autoroute,,,France,49.8075194,1.9705073,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d’Urvillers,station_carburant,autoroute,,,France,49.7856862,3.3344477,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+MAXI Autohof Wertheim,station_carburant,autoroute,,Wertheim,France,49.7713517,9.5766824,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Wertheim),TRUE,osm
+Tank & Rastanlage Alsbach West,station_carburant,autoroute,,,France,49.7461459,8.5914215,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Wasserbillig,station_carburant,autoroute,,,France,49.7277955,6.4922712,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.7065485,2.7661179,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Bergstraße,station_carburant,autoroute,,,France,49.6901715,8.6036091,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Bensheim,station_carburant,autoroute,,Bensheim,France,49.6729334,8.596681,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Bensheim),TRUE,osm
+Rasthof Wonnegau Ost,station_carburant,autoroute,,,France,49.6464018,8.2927646,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Wonnegau West,station_carburant,autoroute,,,France,49.6459243,8.2908854,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Lorsch Ost,station_carburant,autoroute,,,France,49.6437987,8.5535632,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Lorsch West,station_carburant,autoroute,,,France,49.6434917,8.5519838,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Hondelange,station_carburant,autoroute,,,France,49.6427707,5.831364,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Capellen,station_carburant,autoroute,,,France,49.6366961,5.9710843,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bolleville,station_carburant,autoroute,,,France,49.613793,0.5455128,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d’Hardivillers,station_carburant,autoroute,,,France,49.6090449,2.2041187,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.5941196,4.5030841,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Ardennes Woinic,station_carburant,autoroute,,,France,49.5931286,4.5043789,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+MAXI Autohof Kirchheim,station_carburant,autoroute,,Kirchheim an der Weinstraße,France,49.5541155,8.186072,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Kirchheim an der Weinstraße),TRUE,osm
+Aire de Pontpierre,station_carburant,autoroute,,,France,49.5485407,6.0447444,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Pontpierre,station_carburant,autoroute,,,France,49.5446385,6.0405097,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Berchem-Est,station_carburant,autoroute,,,France,49.5422352,6.1190264,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Berchem-Ouest,station_carburant,autoroute,,,France,49.54206,6.1172353,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Pfalz,station_carburant,autoroute,,,France,49.5274897,8.0717641,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Ressons Est,station_carburant,autoroute,,,France,49.5251168,2.7245957,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Ressons Ouest,station_carburant,autoroute,,,France,49.5189328,2.7190116,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Preis,station_carburant,autoroute,,,France,49.5137681,7.3718555,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Hirschberg,station_carburant,autoroute,,Hirschberg an der Bergstraße,France,49.5080255,8.6370509,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Hirschberg an der Bergstraße),TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.4951661,0.9975007,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Poste frontière de Zoufftgen,station_carburant,autoroute,,,France,49.4774655,6.1211536,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Mont de Nizy,station_carburant,autoroute,,,France,49.4493855,3.9252499,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Bio Nettoyage,station_carburant,autoroute,,,France,49.4484219,1.1009494,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Champ Roland,station_carburant,autoroute,,,France,49.4463254,3.9278752,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Ramstein,station_carburant,autoroute,,Ramstein-Miesenbach,France,49.4245764,7.5597512,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Ramstein-Miesenbach),TRUE,osm
+Aire de Bosgouet Nord,station_carburant,autoroute,,,France,49.361567,0.8626734,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bosgouet Sud,station_carburant,autoroute,,,France,49.3604892,0.8611178,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.3536589,1.0296525,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Hardtwald West,station_carburant,autoroute,,,France,49.3501895,8.6303531,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Hardtwald Ost,station_carburant,autoroute,,,France,49.3499717,8.6321961,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Jagsttal West,station_carburant,autoroute,,,France,49.3251669,9.4122826,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Beuzeville Nord,station_carburant,autoroute,,,France,49.3243903,0.3279473,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rastanlage Jagsttal Ost,station_carburant,autoroute,,,France,49.3232906,9.4154928,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Am Hockenheimring West,station_carburant,autoroute,,,France,49.3210794,8.5684885,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire Sud de Beuzeville,station_carburant,autoroute,,,France,49.3208951,0.3206891,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Am Hockenheimring Ost,station_carburant,autoroute,,,France,49.315772,8.5765435,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Saarlouis Nord,station_carburant,autoroute,,,France,49.2999847,6.7491386,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Saarlouis Süd,station_carburant,autoroute,,,France,49.2998411,6.7485819,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Schwegenheim,station_carburant,autoroute,,Schwegenheim,France,49.2763812,8.3416638,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Schwegenheim),TRUE,osm
+Aire des Mobilités C2N,station_carburant,autoroute,,Douvres-la-Délivrande,France,49.2760778,-0.3799182,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Douvres-la-Délivrande),TRUE,osm
+Aire de Gueux,station_carburant,autoroute,,,France,49.2444677,3.9228992,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Kraichgau Nord,station_carburant,autoroute,,,France,49.2439274,8.8802402,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.2431077,6.2097852,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Vrigny,station_carburant,autoroute,,,France,49.2426848,3.9195582,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Kraichgau Süd,station_carburant,autoroute,,,France,49.2413352,8.8806854,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Kolb,station_carburant,autoroute,,Sinsheim,France,49.2410828,8.892639,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Sinsheim),TRUE,osm
+Reims Jante Rénovation,station_carburant,autoroute,,,France,49.2366904,4.0909568,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Germersheim,station_carburant,autoroute,,,France,49.2313942,8.3702497,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+24-Total Autohof Bad Rappenau Nord,station_carburant,autoroute,,Bad Rappenau,France,49.2122295,9.075709,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Bad Rappenau),TRUE,osm
+Aire Sud de Vironvay,station_carburant,autoroute,,,France,49.2112662,1.218447,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire Nord de Vironvay,station_carburant,autoroute,,,France,49.2112454,1.2200903,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+24 Express Autohof Bad Rappenau Süd,station_carburant,autoroute,,Bad Rappenau,France,49.2107367,9.0701308,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Bad Rappenau),TRUE,osm
+Rasthof Goldene Bremm (Nord),station_carburant,autoroute,,,France,49.2082007,6.9652959,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Goldene Bremm (Süd),station_carburant,autoroute,,,France,49.2081805,6.9672063,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.2009146,-0.3439332,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Rémy,station_carburant,autoroute,,,France,49.179766,6.1767614,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Metz Saint-Privat,station_carburant,autoroute,,,France,49.1796514,6.0542834,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.1789091,-0.1905765,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Relais Beau Site,station_carburant,autoroute,,Caen,France,49.1728143,-0.3896494,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Caen),TRUE,osm
+Aire Nord de Giberville,station_carburant,autoroute,,,France,49.1680382,-0.2750459,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire Sud de Giberville,station_carburant,autoroute,,,France,49.166927,-0.2757638,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Bruchsal West,station_carburant,autoroute,,,France,49.1618871,8.5679478,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Bruchsal Ost,station_carburant,autoroute,,,France,49.1612803,8.5696591,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.1562365,1.3526635,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.1561107,4.0641924,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Maxe,station_carburant,autoroute,,,France,49.1500906,6.1847065,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Karlsdorf,station_carburant,autoroute,,,France,49.1481939,8.5553403,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bois d'Arthieul,station_carburant,autoroute,,,France,49.1456599,1.8006803,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.1415673,8.5531923,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Longeville-Nord,station_carburant,autoroute,,,France,49.1341481,6.6576489,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Longeville-Sud,station_carburant,autoroute,,,France,49.1326797,6.6592818,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Tardenois Nord,station_carburant,autoroute,,,France,49.1268042,3.5360897,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Tardenois Sud,station_carburant,autoroute,,,France,49.1258674,3.537357,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Reims Champagne-Nord,station_carburant,autoroute,,,France,49.1200287,4.2445702,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Verdun Saint-Nicolas-Nord,station_carburant,autoroute,,,France,49.1200232,5.5088631,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Reims Champagne-Sud,station_carburant,autoroute,,,France,49.1195769,4.2438645,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Herz'l,station_carburant,autoroute,,,France,49.0957174,8.6427267,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Valmy le Moulin,station_carburant,autoroute,,,France,49.0739698,4.7904725,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Valmy Orbeval,station_carburant,autoroute,,,France,49.0724069,4.7882098,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Vémars-Ouest,station_carburant,autoroute,,,France,49.0723248,2.5506049,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Vémars-Est,station_carburant,autoroute,,,France,49.0722804,2.5532819,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.0702664,2.7156817,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.0641904,1.9826629,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Attainville,station_carburant,autoroute,,,France,49.0601185,2.3480761,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.0534088,2.1749359,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.0483271,2.1330395,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Wunnenstein West,station_carburant,autoroute,,,France,49.0449105,9.2632583,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Wunnenstein Ost,station_carburant,autoroute,,,France,49.0446485,9.2646946,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.0278927,2.3470844,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.0263257,2.1029069,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Cergy-Pontoise,station_carburant,autoroute,,,France,49.0153682,2.1461194,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Cergy-Pontoise,station_carburant,autoroute,,,France,49.0127848,2.1487852,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,49.0093051,2.5372303,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.9997191,2.5226645,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.9950509,2.0802999,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire Nord de Rosny-sur-Seine,station_carburant,autoroute,,,France,48.9933743,1.6331402,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire Sud de Rosny-sur-Seine,station_carburant,autoroute,,,France,48.9921575,1.6330213,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Keskastel-Ouest,station_carburant,autoroute,,,France,48.9745768,7.0642852,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Keskastel-Est,station_carburant,autoroute,,,France,48.9722351,7.0686654,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d’Ussy sur Marne,station_carburant,autoroute,,,France,48.9711143,3.0639117,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Changis sur Marne,station_carburant,autoroute,,,France,48.963727,3.0532709,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.9604892,1.8448796,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.9418226,4.341103,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire Sud de Morainvilliers,station_carburant,autoroute,,,France,48.9417767,1.9512183,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire Nord de Morainvilliers,station_carburant,autoroute,,,France,48.941697,1.953671,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de La Courneuve Ouest,station_carburant,autoroute,,,France,48.9346001,2.393973,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de La Courneuve Est,station_carburant,autoroute,,,France,48.9337788,2.391783,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Clean&Go,station_carburant,autoroute,,,France,48.9249999,2.2098806,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Pforzheim,station_carburant,autoroute,,,France,48.9078341,8.7731512,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Vallée de la Vire Gouvets,station_carburant,autoroute,,,France,48.9075346,-1.1049165,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Villevaudé,station_carburant,autoroute,,,France,48.9050306,2.6421905,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.9006746,2.3747056,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.8997138,2.8109943,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+BP,station_carburant,autoroute,,,France,48.8805345,2.4523922,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.8617045,2.1842017,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Loisy,station_carburant,autoroute,,,France,48.8608961,6.091744,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Obrion,station_carburant,autoroute,,,France,48.8560511,6.0886467,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.8537703,2.8382117,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Haras,station_carburant,autoroute,,,France,48.848939,0.3732857,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.8427248,2.485351,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.8314671,9.1441953,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bussy Saint-Georges,station_carburant,autoroute,,,France,48.8303881,2.7452672,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.8289144,2.5688092,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Ferrières,station_carburant,autoroute,,,France,48.8286145,2.7421815,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Baden-Baden,station_carburant,autoroute,,,France,48.8095463,8.1823202,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bois Senon,station_carburant,autoroute,,,France,48.798883,2.0033944,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7975027,2.6243203,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7948598,9.2258085,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Berchères,station_carburant,autoroute,,,France,48.7923678,2.6183258,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire Du Val Raymond.,station_carburant,autoroute,,,France,48.7923151,1.6317452,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Prairie,station_carburant,autoroute,,,France,48.7920915,1.6346445,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7805635,2.1731123,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7804622,2.4409157,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Pompadour,station_carburant,autoroute,,,France,48.778131,2.4407562,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7728087,1.991001,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Val de Grace,station_carburant,autoroute,,,France,48.7712829,2.2276977,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7699739,9.2488978,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7696673,1.9845587,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7674943,1.9512756,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Ozoir,station_carburant,autoroute,,,France,48.7673675,2.6500221,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saverne - Eckartswiller,station_carburant,autoroute,,,France,48.7616967,7.3641629,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saverne - Monswiller,station_carburant,autoroute,,,France,48.7605433,7.3638961,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Rungis Delta,station_carburant,autoroute,,,France,48.7570408,2.3486921,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Bühl,station_carburant,autoroute,,,France,48.7544587,8.1322423,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.753928,2.3617776,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Bois de Vert,station_carburant,autoroute,,,France,48.7484724,1.2712452,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Couette,station_carburant,autoroute,,,France,48.7478438,1.2708614,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7477401,2.1969171,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Plaine Favreuse Est,station_carburant,autoroute,,,France,48.7464991,2.1961774,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7437376,1.9153413,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Sindelfinger Wald,station_carburant,autoroute,,,France,48.7421742,9.0341438,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7394748,2.6070106,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7380097,9.1652899,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7313373,4.2060176,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Brumath-Ouest,station_carburant,autoroute,,,France,48.7241375,7.6914997,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Pays d'Argentan,station_carburant,autoroute,,,France,48.7220588,-0.0570749,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Brumath-Est,station_carburant,autoroute,,,France,48.7211772,7.6953994,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.7049845,-3.022055,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.6906359,2.4543637,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.6836987,3.0868391,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Rheinau-Freistett,station_carburant,autoroute,,Rheinau,France,48.681012,7.9223686,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Rheinau),TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.6482917,2.1880737,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Relais du Der Nord,station_carburant,autoroute,,,France,48.6476988,4.8671278,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Relais du Der Sud,station_carburant,autoroute,,,France,48.6469259,4.8675172,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Kirchheim/Teck,station_carburant,autoroute,,Kirchheim unter Teck,France,48.643684,9.4292438,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Kirchheim unter Teck),TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.6419658,4.9020508,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Fond des Prés,station_carburant,autoroute,,,France,48.6383396,2.2020587,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Limours - Janvry,station_carburant,autoroute,,,France,48.6360744,2.147632,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Limours - Briis-sous-Forges,station_carburant,autoroute,,,France,48.6354585,2.1489192,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.6307694,2.4857233,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Fleury,station_carburant,autoroute,,,France,48.623668,2.3697833,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Schönbuch-Ost,station_carburant,autoroute,,,France,48.6159464,8.9068475,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Schönbuch-West,station_carburant,autoroute,,,France,48.6147898,8.9042884,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Relais Total Saint-Malo Est,station_carburant,autoroute,,,France,48.6134889,-1.9830602,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Galande,station_carburant,autoroute,,,France,48.6111834,2.6342354,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Canal de l’Est,station_carburant,autoroute,,,France,48.6067535,6.1741135,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Plessis Picard-Ourdy,station_carburant,autoroute,,,France,48.6027424,2.6011241,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.599816,2.2398252,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Villabé,station_carburant,autoroute,,,France,48.5952307,2.4433784,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Lisses,station_carburant,autoroute,,,France,48.594546,2.4427613,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.5938779,-0.6255852,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Vitrimont,station_carburant,autoroute,,,France,48.5910092,6.4246888,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Anthelupt,station_carburant,autoroute,,,France,48.5904852,6.4196492,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aleigne,station_carburant,autoroute,,,France,48.5877613,2.2512183,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Mont-Saint-Michel,station_carburant,autoroute,,,France,48.5856828,-1.3267027,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Kehl,station_carburant,autoroute,,Kehl,France,48.579578,7.8093758,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Kehl),TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.570543,1.8319508,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.5630415,2.2286195,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Renchtal West,station_carburant,autoroute,,,France,48.5628596,7.9561497,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Renchtal Ost,station_carburant,autoroute,,,France,48.562615,7.9579182,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Porz an Park,station_carburant,autoroute,,,France,48.5493021,-3.4526376,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.543203,7.6244161,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Bruche,station_carburant,autoroute,,,France,48.5391221,7.5817068,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Ostwald-Ouest,station_carburant,autoroute,,,France,48.538493,7.7173199,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Ostwald-Est,station_carburant,autoroute,,,France,48.537316,7.7163807,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.5343265,7.4016765,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Plerneuf,station_carburant,autoroute,,,France,48.5246731,-2.8889383,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.4884619,-2.4363981,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.4790412,-2.6249884,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Chartres-Gasville,station_carburant,autoroute,,,France,48.4683767,1.5787603,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Chartres-Bois Paris,station_carburant,autoroute,,,France,48.466905,1.5793541,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Dentelle d'Alençon,station_carburant,autoroute,,,France,48.456684,0.125789,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Jonchets -Les Récompenses,station_carburant,autoroute,,,France,48.4282682,2.9295243,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Jonchets -La Grande Paroisse,station_carburant,autoroute,,,France,48.4268917,2.9291402,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Charmont-sous-Barbuise,station_carburant,autoroute,,,France,48.4103393,4.1436684,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.4057805,2.1231355,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Empfingen,station_carburant,autoroute,,,France,48.386467,8.7230929,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Achères,station_carburant,autoroute,,,France,48.3623906,2.5736788,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Achères-la-Forêt,station_carburant,autoroute,,,France,48.3617624,2.5730446,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.3612164,-4.7769926,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.3428076,8.6634138,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Vincey,station_carburant,autoroute,,,France,48.3315496,6.3374351,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.3278301,2.6871195,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Mahlberg-West,station_carburant,autoroute,,,France,48.3100041,7.7892053,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.3095811,-0.6056248,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Mahlberg-Ost,station_carburant,autoroute,,,France,48.308014,7.7914896,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Kappel-Grafenhausen,station_carburant,autoroute,,Kappel-Grafenhausen,France,48.2811974,7.7772695,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Kappel-Grafenhausen),TRUE,osm
+Aire des Plaines de Beauce,station_carburant,autoroute,,,France,48.2755034,1.8552941,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.2749141,7.7868033,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.273984,-2.1868652,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Tankhof Grün,station_carburant,autoroute,,,France,48.2733001,7.7887483,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Val Neuvy,station_carburant,autoroute,,,France,48.2700745,1.8559454,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Lorraine Sandaucourt-Les Rappes,station_carburant,autoroute,,,France,48.2682832,5.862692,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Darvault,station_carburant,autoroute,,,France,48.2630554,2.7233188,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Nemours Ouest,station_carburant,autoroute,,,France,48.2630223,2.7212997,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aux Bons Soins,station_carburant,autoroute,,,France,48.2627086,7.4411286,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Villeneuve Vauluisant,station_carburant,autoroute,,,France,48.2465715,3.5546475,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Villeneuve l’Archevêque,station_carburant,autoroute,,,France,48.2438943,3.5547318,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Manoirs du Perche,station_carburant,autoroute,,,France,48.2409938,1.0847511,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Brou-Dampierre,station_carburant,autoroute,,,France,48.239312,1.0823398,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Herbolzheim,station_carburant,autoroute,,Herbolzheim,France,48.2270818,7.7540886,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Herbolzheim),TRUE,osm
+Aire de Troyes-le Plessis,station_carburant,autoroute,,,France,48.2133865,4.2413481,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Troyes-Fresnoy,station_carburant,autoroute,,,France,48.2121331,4.2408253,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Neckarburg-Ost,station_carburant,autoroute,,,France,48.2065132,8.6259536,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rasthof Neckarburg-West,station_carburant,autoroute,,,France,48.2057009,8.6223374,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.2038943,3.2712634,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.1948003,3.2091902,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Villeroy,station_carburant,autoroute,,,France,48.167156,3.1724984,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Pays de Rennes,station_carburant,autoroute,,,France,48.1671549,-1.8752556,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Armor et d'Argoat,station_carburant,autoroute,,,France,48.1663891,-1.8677444,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.1388154,-0.6316534,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Ferté-Bernard,station_carburant,autoroute,,,France,48.1268027,0.6227647,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Villaines la Gonais,station_carburant,autoroute,,,France,48.1253288,0.6224549,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.1079947,-1.5145116,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.1062561,4.3769453,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.0976589,-1.6430703,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Mayenne,station_carburant,autoroute,,,France,48.0957035,-0.6967916,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Erbrée,station_carburant,autoroute,,,France,48.0901888,-1.0988581,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.0893181,-4.332122,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Mondevert,station_carburant,autoroute,,,France,48.0889805,-1.0980403,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Loiret,station_carburant,autoroute,,,France,48.0840532,2.4719314,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.0808708,-4.3279666,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.0678142,7.3252767,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Relais des Trappistines,station_carburant,autoroute,,,France,48.0581961,-0.7687305,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Sarthe-Sargé-Le Mans Nord,station_carburant,autoroute,,,France,48.0564339,0.2537907,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.0549656,-1.6105376,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Sarthe-Sargé-Le Mans Sud,station_carburant,autoroute,,,France,48.0547994,0.2531523,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Croix Saint-Jacques,station_carburant,autoroute,,,France,48.0415336,6.582867,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.0373012,6.7529874,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Vallée de l'Erve,station_carburant,autoroute,,,France,48.0268605,-0.3420434,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Denis-d'Orques,station_carburant,autoroute,,,France,48.0234764,-0.3254887,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,48.01926,-4.5324497,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.9794472,-4.0897827,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Orléans-Saran,station_carburant,autoroute,,,France,47.9777363,1.8572566,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Montigny-le-Roi,station_carburant,autoroute,,,France,47.9771175,5.4979042,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Orléans-Gidy,station_carburant,autoroute,,,France,47.9758794,1.8604253,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Val de Meuse,station_carburant,autoroute,,,France,47.9751887,5.498845,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Couline,station_carburant,autoroute,,,France,47.9748868,3.1986576,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Réserve,station_carburant,autoroute,,,France,47.9735639,3.1978757,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Tankhof Bad Krozingen-Hausen,station_carburant,autoroute,,Bad Krozingen,France,47.9532713,7.6699524,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Bad Krozingen),TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.9516818,6.8172138,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.948362,0.1950404,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Brocéliande,station_carburant,autoroute,,,France,47.9195902,-2.3641915,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autohof Bremgarten,station_carburant,autoroute,,Hartheim,France,47.9092878,7.592039,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Hartheim),TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.9075072,8.72557,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.8966331,8.2734631,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.8686436,-3.2939619,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Im Hegau Ost,station_carburant,autoroute,,,France,47.8638269,8.7854538,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Im Hegau West,station_carburant,autoroute,,,France,47.8619034,8.7860943,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de remisage RATP Dev,station_carburant,autoroute,,,France,47.8611146,-3.531694,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Ty Mamgouz,station_carburant,autoroute,,,France,47.8609865,-3.9861554,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Jardin des Arbres,station_carburant,autoroute,,,France,47.8515157,2.6853874,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Battenheim,station_carburant,autoroute,,,France,47.8365343,7.3950612,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Kerfleury (Guidel Sud),station_carburant,autoroute,,,France,47.821666,-3.4684691,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Meung sur Loire,station_carburant,autoroute,,,France,47.8203077,1.6405241,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Beaugency-Messas,station_carburant,autoroute,,,France,47.8187225,1.6410105,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Langres-Noidant,station_carburant,autoroute,,,France,47.814667,5.2258436,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Langres-Perrogney,station_carburant,autoroute,,,France,47.8141265,5.2218037,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Parcé sur Sarthe,station_carburant,autoroute,,,France,47.8054747,-0.1682656,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Pommeniac,station_carburant,autoroute,,,France,47.800053,-1.6908109,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Venoy-Soleil Levant,station_carburant,autoroute,,,France,47.789311,3.6715328,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Venoy-Chablis,station_carburant,autoroute,,,France,47.7884034,3.6706125,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Boul Sapin,station_carburant,autoroute,,,France,47.779145,-3.195887,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.7384104,3.2962048,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Porte d’Alsace,station_carburant,autoroute,,,France,47.7164974,7.1353486,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.7032377,3.6278543,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Nolff,station_carburant,autoroute,,,France,47.6844745,-2.6472102,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Cœur de Sologne,station_carburant,autoroute,,,France,47.6653833,1.9259593,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Plougoumelen,station_carburant,autoroute,,,France,47.6652178,-2.9035179,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Blois-Villerbon,station_carburant,autoroute,,,France,47.6648886,1.3867503,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Blois-Ménars,station_carburant,autoroute,,,France,47.6637643,1.3880613,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de La Ferté-Saint-Aubin,station_carburant,autoroute,,,France,47.6634984,1.929097,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Sarthe-Touraine,station_carburant,autoroute,,,France,47.6510477,0.4689638,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.637689,-2.6733262,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Shell Autohof Dreiländereck Binzen,station_carburant,autoroute,,Binzen,France,47.6254186,7.6078491,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Binzen),TRUE,osm
+Garage Dilber,station_carburant,autoroute,,,France,47.6010963,7.5116611,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Deutscher Rasthof Weil am Rhein,station_carburant,autoroute,,,France,47.5994192,7.6032629,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Weinland West,station_carburant,autoroute,,,France,47.5811805,8.6832279,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.5730708,1.3691723,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Forrenberg Nord,station_carburant,autoroute,,,France,47.5268138,8.7339993,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Forrenberg Süd,station_carburant,autoroute,,,France,47.5262055,8.7342132,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Maison-Dieu,station_carburant,autoroute,,,France,47.5045025,4.0357122,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Chaponne,station_carburant,autoroute,,,France,47.5027797,4.0360752,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Portes d'Angers Sud,station_carburant,autoroute,,,France,47.4999089,-0.4900964,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.4767701,4.0121233,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Tours-La Longue Vue,station_carburant,autoroute,,,France,47.4754018,0.775603,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Tours-Val de Loire,station_carburant,autoroute,,,France,47.4737863,0.776599,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.4607996,9.0944974,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.4522824,-0.2654355,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Le Relais de Beaulieu,station_carburant,autoroute,,,France,47.4501621,-2.1281102,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.4495189,8.7005238,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.4478151,-0.5077986,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Écot,station_carburant,autoroute,,,France,47.4413619,6.72969,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Dijon-Brognon,station_carburant,autoroute,,,France,47.4224906,5.1704524,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Varades - Pays de la Loire,station_carburant,autoroute,,,France,47.4196537,-1.0153945,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Longué-la Couaille,station_carburant,autoroute,,,France,47.4192014,-0.1342233,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Longué-les Cossonnières,station_carburant,autoroute,,,France,47.4188539,-0.1327169,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Varades - Pays d'Ancenis,station_carburant,autoroute,,,France,47.4181658,-1.0176125,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.3637557,5.0475021,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Salbris La Loge,station_carburant,autoroute,,,France,47.3486887,2.0503725,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Salbris-Theillay,station_carburant,autoroute,,,France,47.3483405,2.048272,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Romorantin,station_carburant,autoroute,,,France,47.338354,1.6664655,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Vignobles,station_carburant,autoroute,,,France,47.338081,2.928058,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Treillières Ouest,station_carburant,autoroute,,,France,47.337527,-1.6550752,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Treillières Est,station_carburant,autoroute,,,France,47.3362231,-1.652409,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Kölliken-Nord,station_carburant,autoroute,,,France,47.3300975,8.0302779,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Vigneux-de-Bretagne,station_carburant,autoroute,,,France,47.32969,-1.7843168,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Besançon Champoux,station_carburant,autoroute,,,France,47.3285337,6.1266505,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Besançon Marchaux,station_carburant,autoroute,,,France,47.3274056,6.1247487,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Kölliken-Süd,station_carburant,autoroute,,,France,47.3233419,8.0214364,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Chien Blanc,station_carburant,autoroute,,,France,47.3150334,4.4960168,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Lochères,station_carburant,autoroute,,,France,47.3114128,4.5005512,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.3112702,-2.2010569,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Jardins de Villandry,station_carburant,autoroute,,Druye,France,47.3108797,0.5101701,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Druye),TRUE,osm
+Aire du Val de Cher,station_carburant,autoroute,,,France,47.3016312,0.8887691,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Knonauer Amt,station_carburant,autoroute,,,France,47.2714593,8.4386929,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.2568692,-1.5458406,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.2296771,-2.1552938,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Gevrey-Chambertin Est,station_carburant,autoroute,,,France,47.2229109,5.0102563,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.2223337,-1.4726837,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Herrlisberg Nord,station_carburant,autoroute,,,France,47.221155,8.6601763,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Herrlisberg Süd,station_carburant,autoroute,,,France,47.2196621,8.6618123,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Gevrey-Chambertin Ouest,station_carburant,autoroute,,,France,47.2171677,5.002323,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.2045336,-1.5473071,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.2007306,6.139945,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Fuchsberg Nord,station_carburant,autoroute,,,France,47.1961645,8.7519478,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Fuchsberg Süd,station_carburant,autoroute,,,France,47.1955241,8.7510767,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Pont Val de Saône,station_carburant,autoroute,,,France,47.1846259,5.3326233,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Pont Chêne d’Argent,station_carburant,autoroute,,,France,47.1803298,5.3337742,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Ajoncs,station_carburant,autoroute,,,France,47.1676557,-1.643556,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Sainte-Maure de Touraine,station_carburant,autoroute,,,France,47.1668948,0.6307367,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de La Fontaine Colette,station_carburant,autoroute,,,France,47.1656308,0.6319109,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.1654092,-1.5707061,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Grassinière,station_carburant,autoroute,,,France,47.1616663,-1.5132614,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.1603882,-1.5514754,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Dole Romange,station_carburant,autoroute,,,France,47.1489927,5.5833221,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Dole Audelange,station_carburant,autoroute,,,France,47.1473919,5.5820922,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rheintal,station_carburant,autoroute,,,France,47.146096,9.5003588,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Glarnerland,station_carburant,autoroute,,,France,47.1372229,9.0513122,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Trémentines,station_carburant,autoroute,,,France,47.135334,-0.8264742,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Creux Moreau,station_carburant,autoroute,,,France,47.1130793,4.7118496,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Bergsboden Walensee,station_carburant,autoroute,,,France,47.112385,9.2662758,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Neuenkirch West,station_carburant,autoroute,,,France,47.1107324,8.2336628,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Forêt,station_carburant,autoroute,,,France,47.1050355,4.7136568,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bourges-Marmagne,station_carburant,autoroute,,,France,47.0954845,2.2419003,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bourges-Sainte-Thorette,station_carburant,autoroute,,,France,47.0948139,2.2412049,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Champs d'Amour,station_carburant,autoroute,,,France,47.089907,1.8451403,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,47.0631752,-0.8665533,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Glanon,station_carburant,autoroute,,,France,47.0321883,5.1091663,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Bois Guillerot,station_carburant,autoroute,,,France,47.0298676,5.1078792,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Heidiland,station_carburant,autoroute,,,France,47.0114765,9.5124588,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.9838513,-1.244496,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Beaune-Tailly,station_carburant,autoroute,,,France,46.9658835,4.8357415,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Guetli Shop,station_carburant,autoroute,,,France,46.9651104,8.3822467,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Beaune-Merceuil,station_carburant,autoroute,,,France,46.9634348,4.8383829,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.9506578,-0.9809551,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.9210128,4.7486016,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Coop Pronto,station_carburant,autoroute,,,France,46.9197499,9.5629572,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Châtellerault-Antran,station_carburant,autoroute,,,France,46.906913,0.5220422,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Châtellerault-Usseau,station_carburant,autoroute,,,France,46.9058684,0.5239171,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Herbiers,station_carburant,autoroute,,,France,46.9045904,-1.0481801,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Brouzils,station_carburant,autoroute,,,France,46.8803652,-1.2900838,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Münsingen,station_carburant,autoroute,,,France,46.8779716,7.5425219,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Chavagnes-en-Paillers,station_carburant,autoroute,,,France,46.8734309,-1.2836728,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Magny-Cours,station_carburant,autoroute,,,France,46.872473,3.1595876,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.821218,8.1783454,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.8074392,5.5810104,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.7928987,1.7166419,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Val de l'Indre,station_carburant,autoroute,,,France,46.7232046,1.6041806,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Poitiers-Chincé,station_carburant,autoroute,,,France,46.7021285,0.371552,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Poitiers Jaunay-Clan,station_carburant,autoroute,,,France,46.7015273,0.366654,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.7006524,-1.9300776,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Ambreuil,station_carburant,autoroute,,,France,46.6924444,4.844691,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de La Ferté,station_carburant,autoroute,,,France,46.6917619,4.8427427,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Mines,station_carburant,autoroute,,,France,46.6832163,4.3494686,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Restoroute de la Gruyère,station_carburant,autoroute,,,France,46.6827742,7.0859129,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Bavois,station_carburant,autoroute,,,France,46.6745518,6.5696511,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.6312468,0.3571454,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.6041329,0.3320477,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.5758461,0.3451702,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.5747156,1.4995709,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Vendée,station_carburant,autoroute,,,France,46.5723662,-1.1147927,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+San Gottardo Sud Stalvedro,station_carburant,autoroute,,,France,46.5209288,8.6347786,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.5125001,3.4599235,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Bourbonnais,station_carburant,autoroute,,,France,46.4970622,3.3616592,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Rouillé - Pamproux Nord,station_carburant,autoroute,,,France,46.4533661,-0.0165974,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.4386286,5.7215937,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Deux-Sèvres,station_carburant,autoroute,,,France,46.4288133,-0.5061321,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Mâcon-Saint-Albain,station_carburant,autoroute,,,France,46.4199256,4.8642644,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Mâcon-La Salle,station_carburant,autoroute,,,France,46.4196393,4.866389,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+O2,station_carburant,autoroute,,,France,46.41275,-0.2055342,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.3875774,4.6217219,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Vieilles Étables,station_carburant,autoroute,,,France,46.3852239,0.2199104,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Vérités,station_carburant,autoroute,,,France,46.3790103,2.5867518,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.3778412,4.6063345,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.3715119,3.0287276,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Centre routier des Minières de Payré,station_carburant,autoroute,,,France,46.358152,0.1979965,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Allier (Saulzet),station_carburant,autoroute,,,France,46.3560437,2.8042532,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Allier (Doyet),station_carburant,autoroute,,,France,46.3547429,2.8030765,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Le Chablais,station_carburant,autoroute,,,France,46.3397263,6.931521,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Service de Montmarault,station_carburant,autoroute,,,France,46.3313312,2.9755899,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Boismandé,station_carburant,autoroute,,,France,46.3138943,1.417306,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Poitou-Charentes Sud,station_carburant,autoroute,,,France,46.2977013,-0.3710252,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Poitou-Charentes Nord,station_carburant,autoroute,,,France,46.2963819,-0.3768364,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Vérités,station_carburant,autoroute,,,France,46.2454379,3.610866,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Campagnola,station_carburant,autoroute,,,France,46.2324993,9.1035256,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Bellinzona Nord,station_carburant,autoroute,,,France,46.2094982,9.0277457,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bourg Jasseron,station_carburant,autoroute,,,France,46.2044812,5.2966284,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bourg Teyssonge,station_carburant,autoroute,,,France,46.2040047,5.2942952,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Parsac,station_carburant,autoroute,,,France,46.1973131,2.1869616,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.1916578,6.3343201,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Bellinzona Sud,station_carburant,autoroute,,,France,46.1834063,9.0023367,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Monts de Guéret,station_carburant,autoroute,,,France,46.1827113,1.8474405,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.1728104,9.3819417,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Dracé,station_carburant,autoroute,,,France,46.1423765,4.7671056,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.1414053,9.4136815,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Taponas,station_carburant,autoroute,,,France,46.1359496,4.7675794,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Ceignes Haut-Bugey,station_carburant,autoroute,,,France,46.1180811,5.4903156,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Ceignes-Cerdon,station_carburant,autoroute,,,France,46.1166204,5.4918173,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+DIR,station_carburant,autoroute,,,France,46.1124581,1.3766002,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Valleiry Nord,station_carburant,autoroute,,,France,46.0972987,5.962765,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Valleiry Sud,station_carburant,autoroute,,,France,46.0961391,5.9629908,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.0830117,4.0236409,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Volcans d'Auvergne,station_carburant,autoroute,,,France,46.057364,3.113463,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.0235221,8.2729724,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,46.0216042,0.6572216,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Églantier,station_carburant,autoroute,,,France,46.0011954,0.2012856,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Groisy,station_carburant,autoroute,,,France,45.9996915,6.1669449,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Crêts Blancs,station_carburant,autoroute,,,France,45.9991174,6.1671767,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Groies,station_carburant,autoroute,,,France,45.9845584,0.2005032,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Manzat,station_carburant,autoroute,,,France,45.9563692,2.9878025,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.9499902,-0.9267704,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+F.I Taxi Ambérieu-en-Bugey,station_carburant,autoroute,,Vaux-en-Bugey,France,45.9297828,5.3521204,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Vaux-en-Bugey),TRUE,osm
+Borne de vidange camping car,station_carburant,autoroute,,,France,45.9259753,1.1721966,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.9151469,9.4336882,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Régulation de Passy - Le Fayet,station_carburant,autoroute,,,France,45.9148953,6.7203079,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Mandello Est,station_carburant,autoroute,,,France,45.914381,9.3281559,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Mandello Ovest,station_carburant,autoroute,,,France,45.9142259,9.327549,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Limoges-Ouest,station_carburant,autoroute,,,France,45.9134572,1.292527,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Limoges-Est,station_carburant,autoroute,,,France,45.9084888,1.2928017,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Chères Est,station_carburant,autoroute,,,France,45.9032784,4.7301052,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Chères Ouest,station_carburant,autoroute,,,France,45.902571,4.7286588,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Gravières,station_carburant,autoroute,,,France,45.8981745,6.8108178,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Fenioux,station_carburant,autoroute,,,France,45.8936481,-0.6035649,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Mionnay,station_carburant,autoroute,,,France,45.8880179,4.8944189,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Mionnay,station_carburant,autoroute,,,France,45.8844544,4.8937063,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Ripaille,station_carburant,autoroute,,,France,45.8770898,6.072573,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Fontanelles,station_carburant,autoroute,,,France,45.8757577,6.069947,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Haut-Forez Nord,station_carburant,autoroute,,,France,45.8561057,3.8123075,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Haut-Forez Sud,station_carburant,autoroute,,,France,45.8544359,3.8110224,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Limagne,station_carburant,autoroute,,,France,45.8508573,3.4056466,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Loire,station_carburant,autoroute,,,France,45.8506194,4.2233282,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Coldrerio,station_carburant,autoroute,,,France,45.8504069,8.9822325,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Coldrerio-Est,station_carburant,autoroute,,,France,45.8497099,8.9853107,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.847167,9.5225189,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Lyon-Montluel,station_carburant,autoroute,,,France,45.845207,5.0700154,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Lyon-Dagneux,station_carburant,autoroute,,,France,45.8432875,5.0703097,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.8411612,9.0385339,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.831561,-1.123804,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.8095641,9.2334881,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Bruyères - Paisy,station_carburant,autoroute,,,France,45.8089787,4.7695213,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Eni,station_carburant,autoroute,,,France,45.8079348,8.8369585,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Dardilly,station_carburant,autoroute,,,France,45.8034959,4.7705492,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.7662057,4.9266116,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.7660631,4.784217,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Brughiera Ovest,station_carburant,autoroute,,,France,45.7644608,8.8107138,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Brughiera Est,station_carburant,autoroute,,,France,45.7601516,8.8097513,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.7539748,4.7775549,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Châtillon-Saint Vincent Sud,station_carburant,autoroute,,,France,45.7471262,7.6243262,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autoporto,station_carburant,autoroute,,,France,45.739351,7.384004,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autoporto / Autoport,station_carburant,autoroute,,,France,45.7374399,7.3714914,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Les Iles de Brissogne,station_carburant,autoroute,,,France,45.7370768,7.405269,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Lario Ovest,station_carburant,autoroute,,,France,45.729537,9.0276629,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Lario Est,station_carburant,autoroute,,,France,45.7293306,9.0292164,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Verbano Ovest,station_carburant,autoroute,,,France,45.7042248,8.7328383,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Verbano Est,station_carburant,autoroute,,,France,45.7023465,8.7372936,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.7011641,0.1820605,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Manissieux,station_carburant,autoroute,,,France,45.6983513,4.9766717,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Priest,station_carburant,autoroute,,,France,45.6976916,4.9761726,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.6974735,9.4802123,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.6922347,9.0642414,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.6871262,9.1844097,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.6858207,3.1436523,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.685745,9.0547143,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Plaine du Forez Ouest,station_carburant,autoroute,,,France,45.6820008,4.1545255,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Peso Pubblico,station_carburant,autoroute,,,France,45.6813018,8.3150523,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Plaine du Forez Est,station_carburant,autoroute,,,France,45.6803827,4.1565855,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.6765915,4.9191215,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Mouxy,station_carburant,autoroute,,,France,45.6743774,5.9294426,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Drumettaz,station_carburant,autoroute,,,France,45.6723748,5.9267952,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Centre hivernal du Sancy,station_carburant,autoroute,,,France,45.665979,2.6814479,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Punto Verde,station_carburant,autoroute,,,France,45.6625162,8.9328628,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Agogna Ovest,station_carburant,autoroute,,,France,45.661338,8.5012152,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Veyre,station_carburant,autoroute,,,France,45.6601591,3.1529233,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Agogna Est,station_carburant,autoroute,,,France,45.659878,8.4966092,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Solaize,station_carburant,autoroute,,,France,45.6510257,4.8354831,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Authezat,station_carburant,autoroute,,,France,45.6423578,3.1841954,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Velasca Ovest,station_carburant,autoroute,,,France,45.6367655,9.3635119,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Brembo nord,station_carburant,autoroute,,,France,45.6326818,9.5995033,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Brembo sud,station_carburant,autoroute,,,France,45.6318314,9.5994116,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Sérézin-du-Rhône,station_carburant,autoroute,,,France,45.6316203,4.8195635,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Chavanon,station_carburant,autoroute,,,France,45.6222439,2.4570595,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Isle d'Abeau Nord,station_carburant,autoroute,,,France,45.6134994,5.2101488,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Isle d'Abeau Sud,station_carburant,autoroute,,,France,45.6120907,5.209818,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Léger Est,station_carburant,autoroute,,,France,45.6117033,-0.6002118,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Léger Ouest,station_carburant,autoroute,,,France,45.6112233,-0.6010996,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.6076829,9.1947117,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Communay-Nord,station_carburant,autoroute,,,France,45.5909585,4.8267298,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Centre d'Ussel,station_carburant,autoroute,,,France,45.5897232,2.41569,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Communay-Sud,station_carburant,autoroute,,,France,45.5890006,4.8243924,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service – Paderno Dugnano,station_carburant,autoroute,,Paderno Dugnano,France,45.5888876,9.1731328,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Paderno Dugnano),TRUE,osm
+Aire du Guiers,station_carburant,autoroute,,,France,45.57811,5.6334721,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Romagnieu,station_carburant,autoroute,,,France,45.5766616,5.6336124,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5758229,9.3387005,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Brianza Nord,station_carburant,autoroute,,,France,45.5756477,9.393085,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Brianza Sud,station_carburant,autoroute,,,France,45.5740369,9.3934477,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Cinisello Nord,station_carburant,autoroute,,,France,45.5723617,9.200238,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Romain-en-Gier,station_carburant,autoroute,,,France,45.571139,4.7119627,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area servizio Cinisello Nord,station_carburant,autoroute,,,France,45.5705109,9.1985464,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5683104,5.9628995,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5599598,9.3768501,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5598862,9.1740544,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.559544,9.3365556,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Villoresi Est,station_carburant,autoroute,,,France,45.5594121,9.0405133,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Villoresi Ovest,station_carburant,autoroute,,,France,45.558493,9.0394108,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5554284,3.2690429,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5516665,9.333778,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Lambro Nord,station_carburant,autoroute,,,France,45.5487361,9.2079131,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Arclusaz,station_carburant,autoroute,,,France,45.5483878,6.1566282,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Lambro Sud,station_carburant,autoroute,,,France,45.5480171,9.2082335,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Val Gelon,station_carburant,autoroute,,,France,45.5476791,6.1567108,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.546694,9.3930716,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5464813,9.3112344,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5438247,9.3917309,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'accueil de camping-cars de Treignac,station_carburant,autoroute,,,France,45.5434638,1.8002528,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.543241,9.1444648,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5417411,9.5963009,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire Porte de Corrèze,station_carburant,autoroute,,,France,45.5410647,1.509614,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5403629,9.3367849,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Cologno Monzese Est,station_carburant,autoroute,,,France,45.5372357,9.2994128,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5334232,9.5985924,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5316463,9.4212657,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5307246,9.3743832,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Novate Nord,station_carburant,autoroute,,,France,45.5298977,9.1489895,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Granier,station_carburant,autoroute,,,France,45.5264047,5.9742398,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l’Abis,station_carburant,autoroute,,,France,45.5258657,5.9762768,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5246103,4.2954985,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5192146,9.4027544,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Pero Nord,station_carburant,autoroute,,,France,45.5137124,9.0701968,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Rho Sud,station_carburant,autoroute,,,France,45.5094283,9.0397539,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5076007,9.3895122,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5070252,9.3283388,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.506908,9.4113792,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Servizio Cascina Gobba Ovest,station_carburant,autoroute,,,France,45.5068041,9.2593033,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5046053,9.3725695,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.5041162,9.3547711,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Pays du Gier,station_carburant,autoroute,,,France,45.4951719,4.5261278,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4801349,9.4245008,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Novara Nord,station_carburant,autoroute,,,France,45.4695659,8.6575146,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Novara Sud,station_carburant,autoroute,,,France,45.4683398,8.6580916,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4632956,9.1338523,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4608123,9.1106187,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4607117,9.1489117,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4601482,9.099171,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4600855,-0.1443378,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di sosta Villarboit Nord,station_carburant,autoroute,,,France,45.4573879,8.3458506,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4567635,9.0722382,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4501814,9.0963,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4462429,4.4068061,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Muggiano Est,station_carburant,autoroute,,,France,45.445476,9.074907,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Chabure,station_carburant,autoroute,,,France,45.4453992,4.4666377,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Muggiano Ovest,station_carburant,autoroute,,,France,45.4451705,9.0736193,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4427156,7.8219984,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Servizio Muzza Est,station_carburant,autoroute,,,France,45.4251329,9.4213531,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Servizio Muzza Ovest,station_carburant,autoroute,,,France,45.4247094,9.4198563,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4240577,9.249908,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4233684,9.4322122,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Cantalupa Est,station_carburant,autoroute,,,France,45.4209837,9.1587716,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Cantalupa Ovest,station_carburant,autoroute,,,France,45.4193195,9.1555638,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Viverone Nord,station_carburant,autoroute,,,France,45.4084933,8.0128818,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4081855,9.208428,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Viverone Sud,station_carburant,autoroute,,,France,45.407583,8.0129242,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Scarmagno est,station_carburant,autoroute,,,France,45.4074752,7.8484488,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Scarmagno ovest,station_carburant,autoroute,,,France,45.4069798,7.8466603,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Roussillon,station_carburant,autoroute,,,France,45.4050163,4.8151938,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.4027926,9.4694993,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Assago Ovest,station_carburant,autoroute,,,France,45.4010253,9.1219831,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.3981073,9.2106594,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Rozzano Est,station_carburant,autoroute,,,France,45.3913546,9.1897844,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.3867377,7.6578124,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+San Giuliano Est,station_carburant,autoroute,,,France,45.3834109,9.2510516,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+San Giuliano Ovest,station_carburant,autoroute,,,France,45.3825753,9.2510849,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.3679928,7.679977,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Cavour Est,station_carburant,autoroute,,,France,45.3678156,8.143897,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Cavour Ovest,station_carburant,autoroute,,,France,45.3668506,8.1439198,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.3624971,8.9097821,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Corrèze,station_carburant,autoroute,,,France,45.3594085,1.9374452,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.3570914,7.6577436,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.3525429,8.9061259,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de La Fayette-Lorlanges,station_carburant,autoroute,,,France,45.3364751,3.2729893,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.3360226,9.3806754,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di servizio San Zenone ovest,station_carburant,autoroute,,,France,45.3211125,9.375547,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.3193782,3.3724731,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.317343,1.8486836,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.2939399,-0.2394424,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.2871042,8.0341462,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Sesia Est,station_carburant,autoroute,,,France,45.2861756,8.4723713,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Sesia Ovest,station_carburant,autoroute,,,France,45.2860532,8.4702301,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Voreppe,station_carburant,autoroute,,,France,45.2783723,5.6239836,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint Rambert d'Albon - Est,station_carburant,autoroute,,,France,45.2764643,4.8290814,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Île Rose,station_carburant,autoroute,,,France,45.2763954,5.6232926,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Rambert-d'Albon Ouest,station_carburant,autoroute,,,France,45.2762285,4.8259996,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.2561089,8.7444397,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Risaie Ovest,station_carburant,autoroute,,,France,45.2523145,8.4481907,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.2490373,8.7211492,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bois Claret,station_carburant,autoroute,,,France,45.2470676,5.8672616,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Julien-Mont-Denis,station_carburant,autoroute,,,France,45.2462936,6.4236246,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.2445242,8.7311854,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Nazaire-les-Eymes,station_carburant,autoroute,,,France,45.2442046,5.8619008,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area Servizio San Rocco,station_carburant,autoroute,,,France,45.2414435,7.9723193,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.238976,7.3809983,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Michel-de-Maurienne,station_carburant,autoroute,,,France,45.2172803,6.4630696,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.2083538,9.1467626,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.2079679,7.659384,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.197589,5.7806382,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autoport du Freney,station_carburant,autoroute,,,France,45.1966115,6.6239148,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.1909799,8.9414522,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saugon Ouest,station_carburant,autoroute,,,France,45.1891363,-0.4938845,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saugon Est,station_carburant,autoroute,,,France,45.1885916,-0.4903998,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bédenac Ouest,station_carburant,autoroute,,,France,45.1734029,-0.3350803,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.1712962,1.470642,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bédenac Est,station_carburant,autoroute,,,France,45.1699038,-0.3338358,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.1620353,8.9458362,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Pays de Brive,station_carburant,autoroute,,,France,45.161336,1.4406775,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.1579576,9.0876501,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Manoire,station_carburant,autoroute,,,France,45.1494928,0.7996573,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Dorno Est,station_carburant,autoroute,,,France,45.1480536,8.9921213,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Dorno Ovest,station_carburant,autoroute,,,France,45.1479966,8.9906715,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.1475279,2.4999336,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Settimo Sud,station_carburant,autoroute,,,France,45.1379897,7.7417509,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.1354442,7.0879185,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Stura Nord,station_carburant,autoroute,,,France,45.1286125,7.6786736,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Stura Sud,station_carburant,autoroute,,,France,45.1285403,7.6901276,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.1221873,7.6191106,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.1191275,8.2462302,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.1190046,3.7300458,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.1019582,7.703911,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.0992729,7.6374369,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.08724,9.2576208,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Rivoli Nord,station_carburant,autoroute,,,France,45.0846002,7.5277152,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Stradella Nord,station_carburant,autoroute,,,France,45.0838461,9.3163916,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Rivoli Sud,station_carburant,autoroute,,,France,45.0837394,7.515316,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Stradella Sud,station_carburant,autoroute,,,France,45.0826759,9.3171387,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Monferrato Est,station_carburant,autoroute,,,France,45.0746561,8.5111077,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Monferrato Ovest,station_carburant,autoroute,,,France,45.0745063,8.5090958,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire Porte de la Drôme,station_carburant,autoroute,,,France,45.0741434,5.2098869,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Royans-Vercors,station_carburant,autoroute,,,France,45.072264,5.2112775,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area del Gran Bosco Est,station_carburant,autoroute,,,France,45.0718381,6.8933165,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area del Gran Bosco Ovest,station_carburant,autoroute,,,France,45.0715649,6.8906667,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.07111,9.1024372,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.0394395,8.0318956,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Pech-Montat,station_carburant,autoroute,,,France,45.0325162,1.525978,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.0268632,7.5957973,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Latitude 45,station_carburant,autoroute,,,France,45.0218211,4.876313,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Pont-de-l'Isère-Les Vinays,station_carburant,autoroute,,,France,45.016882,4.8747226,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.0112622,-0.099617,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,45.0108975,8.6467341,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Palombières,station_carburant,autoroute,,,France,45.0019191,0.034738,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.9936732,7.494709,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Nichelino Sud,station_carburant,autoroute,,,France,44.9813554,7.6449434,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Estalot,station_carburant,autoroute,,,France,44.9785096,-0.4324178,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di servizio Bauducchi ovest,station_carburant,autoroute,,,France,44.9782605,7.7001111,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Nichelino Nord,station_carburant,autoroute,,,France,44.9756658,7.6580392,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Villanova Nord,station_carburant,autoroute,,,France,44.9505328,7.950822,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Villanova Sud,station_carburant,autoroute,,,France,44.9492393,7.9516319,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.9467906,7.8065507,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Tortona Nord,station_carburant,autoroute,,,France,44.935442,8.8842199,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Tortona Sud,station_carburant,autoroute,,,France,44.935046,8.8850616,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Castelnuovo Scrivia Est,station_carburant,autoroute,,,France,44.9339162,8.8534807,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.923755,4.9174421,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.9197271,4.877813,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di servizio Piscina nord,station_carburant,autoroute,,,France,44.9075105,7.4298611,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.9050292,8.1776675,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Crocetta Nord,station_carburant,autoroute,,,France,44.9049831,8.363863,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.9038576,8.0936325,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Crocetta Sud,station_carburant,autoroute,,,France,44.9036914,8.3640787,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.9009625,8.4324956,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.8896838,7.3861766,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Aquitaine Nord,station_carburant,autoroute,,,France,44.8881497,-0.5798146,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Aquitaine Sud,station_carburant,autoroute,,,France,44.8874887,-0.5795715,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.8866383,8.6147096,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.8862974,8.6152771,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.8805701,-0.5169742,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Rio dei Cocchi ovest,station_carburant,autoroute,,,France,44.8738668,7.7462945,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Garde,station_carburant,autoroute,,,France,44.8712309,3.2516163,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Lozère,station_carburant,autoroute,,,France,44.8699799,3.2482239,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Portes-lès-Valence Ouest,station_carburant,autoroute,,,France,44.8657717,4.8650722,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.8568629,2.1102941,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Relais d'Aquitaine,station_carburant,autoroute,,,France,44.8508738,-0.6676442,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Relais de Gironde,station_carburant,autoroute,,,France,44.8500627,-0.6670767,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Bormida Est,station_carburant,autoroute,,,France,44.818708,8.5953726,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Bormida Ovest,station_carburant,autoroute,,,France,44.818239,8.5934982,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Marengo Nord,station_carburant,autoroute,,,France,44.8012602,8.7504257,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Marengo Sud,station_carburant,autoroute,,,France,44.8005058,8.7501246,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Thouars Nord,station_carburant,autoroute,,,France,44.7863204,-0.5950609,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Thouars Sud,station_carburant,autoroute,,,France,44.7858347,-0.595013,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.777232,4.8472302,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.7771795,-0.6103606,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.7757342,-0.5950061,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.7712606,8.3702503,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Bettole Ovest,station_carburant,autoroute,,,France,44.7603974,8.8369577,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Bettole Est,station_carburant,autoroute,,,France,44.7599662,8.838416,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saulce,station_carburant,autoroute,,,France,44.72171,4.7871949,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Servizio Rio Coloré est,station_carburant,autoroute,,,France,44.7043668,7.763842,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.6953335,7.9027666,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.68756,7.836194,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.6847664,7.829013,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Valle Scrivia Ovest,station_carburant,autoroute,,,France,44.6705821,8.9058947,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire-Jardin des Causses du Lot,station_carburant,autoroute,,,France,44.657952,1.5682756,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Giovi ovest,station_carburant,autoroute,,,France,44.6044873,8.9531721,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Giovi est,station_carburant,autoroute,,,France,44.604119,8.9543582,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.5997651,7.7340223,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Stura Est,station_carburant,autoroute,,,France,44.5923651,8.6659108,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Stura Ovest,station_carburant,autoroute,,,France,44.5922516,8.665004,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.5865599,4.5342448,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.568939,7.9011012,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.55503,7.5419989,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Rio Ghidone est,station_carburant,autoroute,,,France,44.548983,7.7859558,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Rio Ghidone ovest,station_carburant,autoroute,,,France,44.5488556,7.784664,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Campora Est,station_carburant,autoroute,,,France,44.529783,8.9404472,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Montélimar Ouest,station_carburant,autoroute,,,France,44.5156722,4.780824,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Montélimar Est,station_carburant,autoroute,,,France,44.5144698,4.782618,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Turchino Ovest,station_carburant,autoroute,,,France,44.4552146,8.7441248,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Turchino Est,station_carburant,autoroute,,,France,44.4543126,8.7451744,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Mondovì Est,station_carburant,autoroute,,,France,44.4345778,7.8501841,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.4110855,1.2586743,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Mas d'Agenais,station_carburant,autoroute,,,France,44.4049997,0.1868036,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Sant'Ilario Nord,station_carburant,autoroute,,,France,44.3931117,9.046244,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Sant'Ilario Sud,station_carburant,autoroute,,,France,44.3922391,9.0455613,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Piani d'Invrea nord,station_carburant,autoroute,,,France,44.3720893,8.6168295,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Priero ovest,station_carburant,autoroute,,,France,44.3717764,8.0764817,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Piani d'Invrea Sud,station_carburant,autoroute,,,France,44.3690845,8.6103889,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Porte des Landes-Ouest,station_carburant,autoroute,,,France,44.3618601,-0.8523309,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Carcare Est,station_carburant,autoroute,,,France,44.3463099,8.3016898,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Bivouac,station_carburant,autoroute,,,France,44.3426766,3.5769884,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.3399374,7.777584,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Aveyron,station_carburant,autoroute,,,France,44.3308572,3.0797602,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di San Cristoforo Nord,station_carburant,autoroute,,,France,44.3044807,8.4531745,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Aurelia Sud,station_carburant,autoroute,,,France,44.2876947,8.4420588,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Coeur d'Aquitaine,station_carburant,autoroute,,,France,44.2861034,-0.2295327,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Servizio Riviera Nord,station_carburant,autoroute,,,France,44.2759107,9.4201722,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Valleggia Nord,station_carburant,autoroute,,,France,44.2745412,8.4237378,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.2717576,9.424348,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Bois de Dourre,station_carburant,autoroute,,,France,44.2320994,1.5287522,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Borsana Sud,station_carburant,autoroute,,,France,44.2252521,8.3598102,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Mornas-Les Adrets,station_carburant,autoroute,,,France,44.215116,4.7232357,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Mornas Village,station_carburant,autoroute,,,France,44.1955677,4.7319965,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Ceriale Nord,station_carburant,autoroute,,,France,44.088351,8.206043,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Ceriale Sud,station_carburant,autoroute,,,France,44.0877341,8.2067256,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,44.0541973,8.2136315,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Garonne,station_carburant,autoroute,,,France,44.0411441,1.0040018,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Sorgues,station_carburant,autoroute,,,France,44.0234052,4.8899076,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Tavel-Nord,station_carburant,autoroute,,,France,44.0031625,4.7020427,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Tavel-Sud,station_carburant,autoroute,,,France,44.0005583,4.7014284,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Rinovo Nord,station_carburant,autoroute,,,France,43.9585986,8.1341553,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Nauze Vert,station_carburant,autoroute,,,France,43.9577326,1.3267715,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.9548554,1.2160499,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Valle Chiappa Sud,station_carburant,autoroute,,,France,43.9427174,8.1127288,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Océan-Ouest,station_carburant,autoroute,,,France,43.9380102,-1.0910706,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Océan-Est,station_carburant,autoroute,,,France,43.9367105,-1.090476,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Morières,station_carburant,autoroute,,,France,43.9231325,4.9123452,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Marguerittes Nord,station_carburant,autoroute,,,France,43.875641,4.4496738,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Marguerittes Sud,station_carburant,autoroute,,,France,43.8690919,4.4401637,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Caylar,station_carburant,autoroute,,,France,43.8637563,3.3126314,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Castellaro Nord,station_carburant,autoroute,,,France,43.8601473,7.8767975,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Conioli,station_carburant,autoroute,,,France,43.8508604,7.9092601,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Manosque,station_carburant,autoroute,,,France,43.843895,5.8508501,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Volx,station_carburant,autoroute,,,France,43.8434527,5.8489154,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Frontonnais Nord,station_carburant,autoroute,,,France,43.8120045,1.3622511,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Autoporto di Ventimiglia,station_carburant,autoroute,,,France,43.8048213,7.5912788,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Bordighera Nord,station_carburant,autoroute,,,France,43.7990769,7.6913628,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Area di Bordighera Sud,station_carburant,autoroute,,,France,43.7978669,7.6908673,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Camping Car des Rives de l'Adour,station_carburant,autoroute,,,France,43.7664209,-0.5601978,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Via Julia Augusta,station_carburant,autoroute,,,France,43.7549272,7.3977838,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Riviera Française,station_carburant,autoroute,,,France,43.7533131,7.4192792,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Portes du Tarn,station_carburant,autoroute,,,France,43.7521058,1.6563004,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Adour,station_carburant,autoroute,,,France,43.72086,-0.2692702,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Ambrussum Nord,station_carburant,autoroute,,,France,43.7150046,4.132862,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Ambrussum Sud,station_carburant,autoroute,,,France,43.7124317,4.1318951,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Cantarelles,station_carburant,autoroute,,,France,43.6514488,4.6699763,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.6431954,7.0505839,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Meyrargues-Fontbelle,station_carburant,autoroute,,,France,43.6326537,5.4932176,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.6005876,1.3985275,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Mougins,station_carburant,autoroute,,,France,43.5914225,7.0349543,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Lançon de Provence,station_carburant,autoroute,,,France,43.5899098,5.1916059,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Camping-car de la Digue,station_carburant,autoroute,,,France,43.5898558,-0.7431115,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Cote d'Azur,station_carburant,autoroute,,,France,43.5891252,7.0348007,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Labenne,station_carburant,autoroute,,,France,43.5857924,-1.4215522,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Axxiom services à domicile,station_carburant,autoroute,,,France,43.5850755,1.3431674,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Montpellier-Fabrègues Nord,station_carburant,autoroute,,,France,43.547657,3.7956372,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Montpellier-Fabrègues Sud,station_carburant,autoroute,,,France,43.5453042,3.7940837,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de l'Estérel,station_carburant,autoroute,,,France,43.5422263,6.7863847,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire d'Hastingues,station_carburant,autoroute,,,France,43.5292269,-1.1515692,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.5248999,1.4007112,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.5181184,1.1830608,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Toulouse Sud Nord,station_carburant,autoroute,,,France,43.4858505,1.5491378,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Toulouse Sud Sud,station_carburant,autoroute,,,France,43.4834106,1.5495253,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Manoeuvre Iter,station_carburant,autoroute,,,France,43.4716933,5.1632455,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Rousset,station_carburant,autoroute,,,France,43.4716183,5.644233,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Sainte Victoire,station_carburant,autoroute,,,France,43.468721,5.654591,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Canaver,station_carburant,autoroute,,,France,43.4670723,6.6722745,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.4622781,2.3465267,TRUE,FALSE,FALSE,TRUE,TRUE,FALSE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+E.S. Carrefour El Alisal,station_carburant,autoroute,,Santander,France,43.4563014,-3.8619183,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Santander),TRUE,osm
+Aire de Vitrolles,station_carburant,autoroute,,,France,43.4467353,5.242477,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Champouse,station_carburant,autoroute,,,France,43.4409988,5.3953935,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.4405464,-3.8391991,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Chabauds,station_carburant,autoroute,,,France,43.4334779,5.3952313,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Cambarette,station_carburant,autoroute,,,France,43.4237136,5.9913994,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bidart Ouest,station_carburant,autoroute,,,France,43.4230227,-1.5984363,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Bidart Est,station_carburant,autoroute,,,France,43.4223452,-1.5973648,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Lacq-Audéjos,station_carburant,autoroute,,,France,43.4215377,-0.5987574,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Terrasses de Provence PL,station_carburant,autoroute,,,France,43.4215344,5.9901051,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Lacq-Audéjos,station_carburant,autoroute,,,France,43.4188207,-0.5849402,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Provence Verdon,station_carburant,autoroute,,,France,43.4156738,6.4522645,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Vidauban Sud,station_carburant,autoroute,,,France,43.4144213,6.4533448,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+"CNI, Passeports, Cartes grises",station_carburant,autoroute,,,France,43.4132456,5.2205697,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Manon des Sources,station_carburant,autoroute,,,France,43.400859,5.5777491,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire Marcel Pagnol,station_carburant,autoroute,,,France,43.4008144,5.5759231,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Rebuty,station_carburant,autoroute,,,France,43.3922092,5.2563144,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de La Nerthe,station_carburant,autoroute,,,France,43.3908371,5.2594329,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.3831732,-3.8587922,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Béziers-Montblanc Nord Boby Lapointe,station_carburant,autoroute,,,France,43.360313,3.3446041,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Béziers-Montblanc Sud Boby Lapointe,station_carburant,autoroute,,,France,43.3590753,3.3463513,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Kurtz Ersa,station_carburant,autoroute,,,France,43.3567863,5.3363056,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Manpower,station_carburant,autoroute,,,France,43.35676,5.336233,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aksis,station_carburant,autoroute,,,France,43.3566591,5.3358054,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Radio Holland,station_carburant,autoroute,,,France,43.3562644,5.3348142,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+El Mirador,station_carburant,autoroute,,,France,43.3559492,-4.0944437,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Port-Lauragais Nord,station_carburant,autoroute,,,France,43.3543016,1.8074152,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Port-Lauragais Sud,station_carburant,autoroute,,,France,43.3525004,1.804524,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Volvestre,station_carburant,autoroute,,,France,43.3368343,1.24537,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Garonne,station_carburant,autoroute,,,France,43.3353905,1.2456116,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Ugaldebietako zerbitzugune-atsedenlekua,station_carburant,autoroute,,,France,43.3284771,-3.0680625,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.3186159,-2.8766701,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Gálibo,station_carburant,autoroute,,,France,43.3183977,-3.0513853,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.3094095,-4.5456712,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Service Carte Grise,station_carburant,autoroute,,,France,43.2975053,5.3847042,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Mondial Telecom,station_carburant,autoroute,,,France,43.2972202,5.3779414,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Reprocopie,station_carburant,autoroute,,,France,43.2965154,5.3771471,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Pomme,station_carburant,autoroute,,,France,43.2920095,5.4538858,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+France services,station_carburant,autoroute,,,France,43.2531588,2.365208,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Pyrénées,station_carburant,autoroute,,Ger,France,43.229543,-0.0788891,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant. (Ger),TRUE,osm
+Aire de Carcassonne Arzens,station_carburant,autoroute,,,France,43.2200537,2.2171991,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Narbonne-Vinassan Sud,station_carburant,autoroute,,,France,43.2155697,3.0930789,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Narbonne-Vinassan Nord,station_carburant,autoroute,,,France,43.2146009,3.0890668,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Baie de La Ciotat,station_carburant,autoroute,,,France,43.1938076,5.6686387,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Frères Lumière,station_carburant,autoroute,,,France,43.192475,5.6679114,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.1904545,6.5530108,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Corbières Nord,station_carburant,autoroute,,,France,43.1787249,2.5426885,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire des Corbières Sud,station_carburant,autoroute,,,France,43.1767081,2.5416974,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Garde,station_carburant,autoroute,,,France,43.1517109,6.0379299,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Garde,station_carburant,autoroute,,,France,43.1491901,6.0342888,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Bigue,station_carburant,autoroute,,,France,43.1427448,6.0110086,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Saint-Augustin,station_carburant,autoroute,,,France,43.134686,6.0479985,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de La Pascalette,station_carburant,autoroute,,,France,43.1309581,6.2193531,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Comminges,station_carburant,autoroute,,,France,43.110224,0.6155508,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.1087404,-0.0379908,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.0972,-0.0379989,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.0909094,-0.1462909,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,43.0059191,-0.0984414,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.9893191,2.9722337,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Palme Est,station_carburant,autoroute,,,France,42.9505062,2.9722458,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de la Palme Ouest,station_carburant,autoroute,,,France,42.9501282,2.9683058,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.9452509,2.9890511,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de Pia,station_carburant,autoroute,,,France,42.7490475,2.8948645,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.7160015,-0.3085553,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Àrea de servei,station_carburant,autoroute,,,France,42.7002624,0.862604,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.6120862,0.5273196,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire du Village Catalan,station_carburant,autoroute,,,France,42.5799287,2.8461309,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.5770624,1.13951,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.5532535,3.037584,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Zone Technique,station_carburant,autoroute,,,France,42.5518321,3.0395072,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+REPSOL,station_carburant,autoroute,,,France,42.5399409,-0.3553146,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.5370714,1.6325366,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.4762029,2.7075707,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.435039,-0.3971033,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.4334833,3.1659043,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.4170244,2.8718873,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+la Porta Catalana,station_carburant,autoroute,,,France,42.4058947,2.8739864,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Àrea de Servei La Jonquera / Porta Catalana,station_carburant,autoroute,,,France,42.4055243,2.8744117,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.341723,1.2986229,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
+Aire de service,station_carburant,autoroute,,,France,42.3163875,3.063878,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,TRUE,4.0,Aire de service avec carburant.,TRUE,osm
