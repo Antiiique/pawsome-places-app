@@ -756,6 +756,31 @@ export default function MarkerPopup({
               )}
             </div>
 
+            {isFuelStation && (
+              <div className="rounded-lg border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700 p-3 space-y-2">
+                <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
+                  <span className="text-lg">⛽</span> Carburants & services
+                </p>
+                <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">
+                  {place.description ?? "Station-service · Chiens acceptés en laisse obligatoire"}
+                </p>
+              </div>
+            )}
+
+            {isFuelStation && (
+              <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
+                <p className="text-sm font-bold text-green-700 dark:text-green-400">✅ Animaux acceptés</p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center rounded-full border border-transparent bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-300">
+                    🐕 Chiens acceptés
+                  </span>
+                  <span className="inline-flex items-center rounded-full border border-transparent bg-yellow-100 px-2.5 py-0.5 text-xs font-semibold text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                    🐕‍🦺 Laisse obligatoire
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* 6. Avis — onglets Google / Communauté */}
             <div
               className="pt-2 border-t border-border space-y-3"
