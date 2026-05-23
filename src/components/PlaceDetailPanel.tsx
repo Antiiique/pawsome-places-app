@@ -103,6 +103,26 @@ function timeAgo(dateStr: string): string {
   return `Il y a ${d}j`;
 }
 
+function parseStationLines(desc: string): string[] {
+  const lines: string[] = [];
+  const sections = desc.split(/\.\s+(?=\S)/);
+  for (const section of sections) {
+    const s = section.replace(/\.$/, "").trim();
+    if (!s || s.startsWith("(")) continue;
+    if (s.startsWith("⛽")) {
+      const fuelPart = s.replace(/^⛽\s*/, "");
+      fuelPart.split(/,\s*/).forEach((f) => {
+        if (f.trim()) lines.push(`⛽ ${f.trim()}`);
+      });
+    } else {
+      s.split(/\s{2,}/).forEach((svc) => {
+        if (svc.trim()) lines.push(svc.trim());
+      });
+    }
+  }
+  return lines.length > 0 ? lines : [desc];
+}
+
 const categoryLabels: Record<string, string> = {
   restaurant: "Restaurant 🍽️",
   hotel: "Hôtel 🛏️",
@@ -1022,9 +1042,14 @@ const PlaceDetailPanel = ({
                   <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
                     <span className="text-lg">⛽</span> Carburants & services
                   </p>
-                  <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">
-                    {place.description ?? "Station-service · Chiens acceptés en laisse obligatoire"}
-                  </p>
+                  <div className="space-y-1">
+                    {place.description
+                      ? parseStationLines(place.description).map((line, i) => (
+                          <p key={i} className="text-sm text-foreground">{line}</p>
+                        ))
+                      : <p className="text-sm text-foreground">Station-service · Chiens acceptés en laisse obligatoire</p>
+                    }
+                  </div>
                 </div>
               )}
               {(localCategory || place.category) === "station_carburant" && (
@@ -1341,7 +1366,7 @@ const PlaceDetailPanel = ({
                   </a>
                 </div>
               )}
-              {place.description && (
+              {place.description && (localCategory || place.category) !== "station_carburant" && (
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Description</p>
                   <p className="text-sm leading-relaxed">{place.description}</p>
