@@ -1399,10 +1399,10 @@ const PlaceDetailPanel = ({
                   <p className="text-sm whitespace-pre-line">{place.opening_hours}</p>
                 </div>
               )}
-              {place.address && (
+              {(googleData?.formattedAddress || place.address) && (
                 <div className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <p className="text-sm">{place.address}</p>
+                  <p className="text-sm">{googleData?.formattedAddress || place.address}</p>
                 </div>
               )}
               {place.phone && (
