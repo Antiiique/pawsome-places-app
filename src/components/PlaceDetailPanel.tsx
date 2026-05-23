@@ -133,6 +133,34 @@ const categoryLabels: Record<string, string> = {
   other: "Autre",
 };
 
+const categoryInfo: Record<string, { icon: string; title: string; fallback: string }> = {
+  veterinaire:       { icon: "🏥", title: "Soins vétérinaires",   fallback: "Cabinet vétérinaire" },
+  restaurant:        { icon: "🍽️", title: "Restauration",          fallback: "Restaurant pet-friendly" },
+  hotel:             { icon: "🛏️", title: "Hébergement",           fallback: "Hôtel · Animaux acceptés" },
+  outdoor:           { icon: "🌿", title: "Parc & Nature",          fallback: "Espace naturel" },
+  parc_chiens:       { icon: "🐕", title: "Parc canin",            fallback: "Espace dédié aux chiens" },
+  animalerie:        { icon: "🐾", title: "Animalerie",            fallback: "Accessoires & alimentation" },
+  pension:           { icon: "🏠", title: "Pension animaux",        fallback: "Garde pendant votre absence" },
+  toiletteur:        { icon: "🛁", title: "Toilettage",            fallback: "Bain, coupe et soin" },
+  educateur:         { icon: "🎓", title: "Éducation canine",      fallback: "Dressage et comportement" },
+  masseur:           { icon: "💆", title: "Massage / Ostéo",       fallback: "Bien-être et soins animaux" },
+  pet_sitter:        { icon: "🏡", title: "Pet Sitting",           fallback: "Garde à domicile" },
+  dog_walker:        { icon: "🦮", title: "Dog Walking",           fallback: "Promenades pour chiens" },
+  camping:           { icon: "⛺", title: "Camping",               fallback: "Camping pet-friendly" },
+  plage:             { icon: "🏖️", title: "Plage",                fallback: "Zone accessible aux animaux" },
+  loisir:            { icon: "🎯", title: "Loisirs",              fallback: "Activité pet-friendly" },
+  refuge:            { icon: "🏚️", title: "Refuge",               fallback: "Refuge pour animaux" },
+  spa:               { icon: "🐾", title: "SPA Animaux",          fallback: "Soins et bien-être" },
+  cafe_animalier:    { icon: "☕", title: "Café Animaux",         fallback: "Café avec animaux de compagnie" },
+  aeroport:          { icon: "✈️", title: "Aéroport",             fallback: "Informations transport animaux" },
+  aire_repos:        { icon: "🛣️", title: "Aire de repos",        fallback: "Aire d'autoroute pet-friendly" },
+  station_carburant: { icon: "⛽", title: "Carburants & services", fallback: "Station-service · Chiens acceptés en laisse" },
+  transport:         { icon: "🚇", title: "Transport",            fallback: "Transport en commun" },
+  evenement:         { icon: "📅", title: "Événement",            fallback: "Événement pet-friendly" },
+  services:          { icon: "❤️", title: "Services",            fallback: "Services pour animaux" },
+  other:             { icon: "📍", title: "Lieu",                 fallback: "Lieu pet-friendly" },
+};
+
 const categoryBgColors: Record<string, string> = {
   restaurant: "bg-orange-500",
   hotel: "bg-blue-500",
@@ -1030,52 +1058,43 @@ const PlaceDetailPanel = ({
                 <Badge className={`${categoryBgColors[localCategory || place.category] || "bg-gray-500"} text-white`}>
                   {categoryLabels[localCategory || place.category] || localCategory || place.category}
                 </Badge>
-                {localVerified && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-semibold border border-green-300 dark:border-green-700">
-                    ✅ Vérifié
-                  </span>
-                )}
-                {localPetFlags.accepts_dogs && (
-                  <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                    🐕 Chiens
-                  </Badge>
-                )}
-                {localPetFlags.accepts_cats && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                    🐈 Chats
-                  </Badge>
-                )}
-                {localPetFlags.outdoor_seating && (
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300">
-                    🌿 Terrasse
-                  </Badge>
-                )}
-                {localPetFlags.dogs_on_leash_only && (
-                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
-                    🦮 Laisse
-                  </Badge>
-                )}
               </div>
 
-              {(localCategory || place.category) === "station_carburant" && (
-                <div className="rounded-lg border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700 p-3 space-y-2">
-                  <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
-                    <span className="text-lg">⛽</span> Carburants & services
-                  </p>
-                  <div className="space-y-1">
-                    {place.description
-                      ? parseStationLines(place.description).map((line, i) => (
-                          <p key={i} className="text-sm text-foreground">{line}</p>
-                        ))
-                      : <p className="text-sm text-foreground">Station-service · Chiens acceptés en laisse obligatoire</p>
-                    }
+              {(() => {
+                const cat = localCategory || place.category;
+                const info = categoryInfo[cat] ?? categoryInfo.other;
+                return (
+                  <div className="rounded-lg border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700 p-3 space-y-2">
+                    <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
+                      <span className="text-lg">{info.icon}</span> {info.title}
+                    </p>
+                    {cat === "station_carburant" ? (
+                      <div className="space-y-1">
+                        {place.description
+                          ? parseStationLines(place.description).map((line, i) => (
+                              <p key={i} className="text-sm text-foreground">{line}</p>
+                            ))
+                          : <p className="text-sm text-foreground">{info.fallback}</p>
+                        }
+                      </div>
+                    ) : (
+                      <p className="text-sm leading-relaxed text-foreground">
+                        {place.description ?? info.fallback}
+                      </p>
+                    )}
                   </div>
-                </div>
-              )}
-              {(localPetFlags.accepts_dogs || localPetFlags.accepts_cats || localPetFlags.outdoor_seating || localPetFlags.dogs_on_leash_only) && (
+                );
+              })()}
+
+              {(localVerified || localPetFlags.accepts_dogs || localPetFlags.accepts_cats || localPetFlags.outdoor_seating || localPetFlags.dogs_on_leash_only) && (
                 <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
                   <p className="text-sm font-bold text-green-700 dark:text-green-400">✅ Animaux acceptés</p>
                   <div className="flex flex-wrap gap-2">
+                    {localVerified && (
+                      <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 border border-green-400">
+                        ✅ Vérifié
+                      </Badge>
+                    )}
                     {localPetFlags.accepts_dogs && (
                       <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
                         🐕 Chiens acceptés
@@ -1392,12 +1411,6 @@ const PlaceDetailPanel = ({
                   >
                     {place.website}
                   </a>
-                </div>
-              )}
-              {place.description && (localCategory || place.category) !== "station_carburant" && (
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Description</p>
-                  <p className="text-sm leading-relaxed">{place.description}</p>
                 </div>
               )}
 
