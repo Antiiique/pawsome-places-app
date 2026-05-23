@@ -1060,32 +1060,6 @@ const PlaceDetailPanel = ({
                 </Badge>
               </div>
 
-              {(() => {
-                const cat = localCategory || place.category;
-                const info = categoryInfo[cat] ?? categoryInfo.other;
-                return (
-                  <div className="rounded-lg border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700 p-3 space-y-2">
-                    <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
-                      <span className="text-lg">{info.icon}</span> {info.title}
-                    </p>
-                    {cat === "station_carburant" ? (
-                      <div className="space-y-1">
-                        {place.description
-                          ? parseStationLines(place.description).map((line, i) => (
-                              <p key={i} className="text-sm text-foreground">{line}</p>
-                            ))
-                          : <p className="text-sm text-foreground">{info.fallback}</p>
-                        }
-                      </div>
-                    ) : (
-                      <p className="text-sm leading-relaxed text-foreground">
-                        {place.description ?? info.fallback}
-                      </p>
-                    )}
-                  </div>
-                );
-              })()}
-
               {(localVerified || localPetFlags.accepts_dogs || localPetFlags.accepts_cats || localPetFlags.outdoor_seating || localPetFlags.dogs_on_leash_only) && (
                 <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
                   <p className="text-sm font-bold text-green-700 dark:text-green-400">✅ Animaux acceptés</p>
@@ -1118,6 +1092,32 @@ const PlaceDetailPanel = ({
                   </div>
                 </div>
               )}
+
+              {(() => {
+                const cat = localCategory || place.category;
+                const info = categoryInfo[cat] ?? categoryInfo.other;
+                return (
+                  <div className="rounded-lg border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700 p-3 space-y-2">
+                    <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
+                      <span className="text-lg">{info.icon}</span> {info.title}
+                    </p>
+                    {cat === "station_carburant" ? (
+                      <div className="space-y-1">
+                        {place.description
+                          ? parseStationLines(place.description).map((line, i) => (
+                              <p key={i} className="text-sm text-foreground">{line}</p>
+                            ))
+                          : <p className="text-sm text-foreground">{info.fallback}</p>
+                        }
+                      </div>
+                    ) : (
+                      <p className="text-sm leading-relaxed text-foreground">
+                        {place.description ?? info.fallback}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Tabs */}
               <div className="flex rounded-xl border border-border overflow-hidden">
