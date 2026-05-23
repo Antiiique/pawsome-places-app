@@ -703,18 +703,54 @@ export default function MarkerPopup({
           )}
 
           <div className="p-4 space-y-4">
-            {/* 3. Badges pet-friendly + vérifié */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {place.isPetFriendly && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-semibold">
-                  🐾 Pet-friendly
-                </span>
+            {/* 3. Blocs lieu + pet-friendly */}
+            <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
+              <p className="text-sm font-bold text-green-700 dark:text-green-400">✅ Animaux & lieu</p>
+              {(place.isPetFriendly || localVerified || place.accepts_dogs || place.accepts_cats || place.outdoor_seating || place.dogs_on_leash_only) ? (
+                <div className="flex flex-wrap gap-2">
+                  {place.isPetFriendly && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-semibold">
+                      🐾 Pet-friendly
+                    </span>
+                  )}
+                  {localVerified && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-semibold border border-green-300 dark:border-green-700">
+                      ✅ Vérifié
+                    </span>
+                  )}
+                  {place.accepts_dogs && (
+                    <span className="inline-flex items-center rounded-full border border-transparent bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-300">
+                      🐕 Chiens acceptés
+                    </span>
+                  )}
+                  {place.accepts_cats && (
+                    <span className="inline-flex items-center rounded-full border border-transparent bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                      🐈 Chats acceptés
+                    </span>
+                  )}
+                  {place.outdoor_seating && (
+                    <span className="inline-flex items-center rounded-full border border-transparent bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300">
+                      🌿 Terrasse
+                    </span>
+                  )}
+                  {place.dogs_on_leash_only && (
+                    <span className="inline-flex items-center rounded-full border border-transparent bg-yellow-100 px-2.5 py-0.5 text-xs font-semibold text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                      🦮 Laisse obligatoire
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-green-700/80 dark:text-green-400/80 italic">Aucune information pet-friendly renseignée pour ce lieu.</p>
               )}
-              {localVerified && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-semibold border border-green-300 dark:border-green-700">
-                  ✅ Vérifié
-                </span>
-              )}
+            </div>
+
+            <div className="rounded-lg border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700 p-3 space-y-2">
+              <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
+                {isFuelStation ? <span className="text-lg">⛽</span> : null}{getCategoryTitle(localCategory)}
+              </p>
+              <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">
+                {place.description ?? typeLabel}
+              </p>
             </div>
 
             {/* 4. Note Google */}
