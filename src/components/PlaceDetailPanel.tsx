@@ -203,6 +203,7 @@ const PlaceDetailPanel = ({
   onToggleFavorite,
   onReport,
   isClosing,
+  initialAdminEdit,
 }: PlaceDetailPanelProps) => {
   const { user, profile } = useAuthContext();
   const [isAdmin, setIsAdmin] = useState(false);
