@@ -234,6 +234,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [center, setCenter] = useState({ lat: 48.8566, lng: 2.3522 });
   const [searching, setSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PetPlace | null>(null);
+  const [openInAdminEdit, setOpenInAdminEdit] = useState(false);
   const [stationGoogleData, setStationGoogleData] = useState<{ rating?: number; photo_url?: string } | null>(null);
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [itineraryFilter, setItineraryFilter] = useState<string | null>(null);
