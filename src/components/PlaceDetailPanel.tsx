@@ -334,11 +334,11 @@ const PlaceDetailPanel = ({
   };
 
   // ── Bottom sheet snap state ──
-  const [snap, setSnap] = useState<"half" | "full">("half");
+  const [snap, setSnap] = useState<"half" | "full">(initialAdminEdit ? "full" : "half");
   const [dragDelta, setDragDelta] = useState(0); // percentage offset during drag
   // Refs mirror state so handleDragEnd always reads the latest value,
   // avoiding stale-closure bugs with React 18 batched updates.
-  const snapRef = useRef<"half" | "full">("half");
+  const snapRef = useRef<"half" | "full">(initialAdminEdit ? "full" : "half");
   const dragDeltaRef = useRef(0);
   const isDragging = useRef(false);
   const touchStartY = useRef<number | null>(null);
