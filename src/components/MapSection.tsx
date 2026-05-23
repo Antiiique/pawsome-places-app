@@ -1483,6 +1483,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             isFavorite={isFavorite?.(selectedPlace.id)}
             onToggleFavorite={() => handleToggleFav(selectedPlace)}
             onReport={() => setReportModal({ open: true, placeId: selectedPlace.id, placeName: selectedPlace.name })}
+            initialAdminEdit={openInAdminEdit}
           />
         </>
       )}
