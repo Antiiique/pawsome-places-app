@@ -727,11 +727,6 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
             </div>
           )}
 
-
-
-
-
-
           {/* Tabs */}
           <div className="flex rounded-xl border border-border overflow-hidden">
             <button onClick={() => setActiveTab("google")}
