@@ -44,6 +44,7 @@ interface MentionSuggestion {
 export interface UniversalPlace {
   name: string;
   address?: string;
+  description?: string;
   lat: number;
   lng: number;
   category?: string;
@@ -161,6 +162,7 @@ export default function MarkerPopup({
 }: MarkerPopupProps) {
   const emoji = getPlaceEmoji(place);
   const typeLabel = getPlaceTypeLabel(place);
+  const isFuelStation = localCategory === "station_carburant" || place.category === "station_carburant" || place.types?.includes("gas_station");
   const [photoIndex, setPhotoIndex] = useState(0);
   const [expandedReviews, setExpandedReviews] = useState<Record<number, boolean>>({});
   const [fullPhoto, setFullPhoto] = useState<string | null>(null);
