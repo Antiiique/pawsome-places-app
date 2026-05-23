@@ -50,7 +50,10 @@ type GooglePlaceResult = { photos: string[]; reviews: any[]; rating?: number; re
 function extractPlaceResult(place: any): Omit<GooglePlaceResult, "placeId"> {
   const photos = place.photos ? place.photos.slice(0, 5).map((p: any) => p.getUrl({ maxWidth: 400, maxHeight: 300 })) : [];
   const reviews = place.reviews ? place.reviews.slice(0, 5).map((r: any) => ({ author: r.author_name || "Anonyme", avatar: r.profile_photo_url || null, rating: r.rating, text: r.text || "", time: r.relative_time_description || "" })) : [];
-  return { photos, reviews, rating: place.rating, reviewsTotal: place.user_ratings_total, phone: place.formatted_phone_number, website: place.website, opening_hours: place.opening_hours?.isOpen?.() ? "🟢 Ouvert maintenant" : place.opening_hours?.weekday_text?.join(" • ") };
+  const weekdayText: string[] | undefined = place.opening_hours?.weekday_text;
+  const statusLine = place.opening_hours?.isOpen?.() ? "🟢 Ouvert maintenant" : null;
+  const hoursLines = [statusLine, ...(weekdayText || [])].filter(Boolean) as string[];
+  return { photos, reviews, rating: place.rating, reviewsTotal: place.user_ratings_total, phone: place.formatted_phone_number, website: place.website, opening_hours: hoursLines.length ? hoursLines.join("\n") : undefined };
 }
 
 function fetchGooglePlaceDetails(placeId: string): Promise<GooglePlaceResult> {
