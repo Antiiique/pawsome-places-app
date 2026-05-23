@@ -1396,7 +1396,7 @@ const PlaceDetailPanel = ({
               {place.opening_hours && (
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Horaires</p>
-                  <p className="text-sm">{place.opening_hours}</p>
+                  <p className="text-sm whitespace-pre-line">{place.opening_hours}</p>
                 </div>
               )}
               {place.address && (
