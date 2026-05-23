@@ -624,9 +624,6 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
 
       {/* Scrollable content — scroll uniquement en mode full comme les autres panels */}
       <div className="flex-1" style={{ overflowY: "auto", touchAction: "pan-y" }}>
-        <div style={{background:"red", color:"white", padding:"8px", textAlign:"center", fontWeight:"bold"}}>
-          BUNDLE UPDATED ✓
-        </div>
         {adminEditOpen ? (
           <div className="p-4 space-y-4">
             {publisher ? (
