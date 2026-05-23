@@ -437,7 +437,7 @@ const PlaceDetailPanel = ({
   const [submitting, setSubmitting] = useState(false);
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
-  const [adminEditOpen, setAdminEditOpen] = useState(false);
+  const [adminEditOpen, setAdminEditOpen] = useState(!!initialAdminEdit);
   const [editSaving, setEditSaving] = useState(false);
   const [editForm, setEditForm] = useState<{
     name: string;
