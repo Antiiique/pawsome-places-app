@@ -1043,6 +1043,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     setTimeout(() => {
       setSelectedPlace(null);
       setClosingPanel(false);
+      setOpenInAdminEdit(false);
       prevPopupDataRef.current = null;
     }, 320);
   }, []);
