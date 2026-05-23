@@ -355,14 +355,15 @@ const PlaceDetailPanel = ({
   // Reset to half-snap whenever a new place opens
   const [entered, setEntered] = useState(false);
   useEffect(() => {
-    snapRef.current = "half";
-    setSnap("half");
+    const initSnap = initialAdminEdit ? "full" : "half";
+    snapRef.current = initSnap;
+    setSnap(initSnap);
     dragDeltaRef.current = 0;
     setDragDelta(0);
     setEntered(false);
     const t = setTimeout(() => setEntered(true), 10);
     return () => clearTimeout(t);
-  }, [place?.id]);
+  }, [place?.id, initialAdminEdit]);
 
   const baseOffset = snap === "half" ? 55 : 0; // % translateY
   const currentOffset = isClosing ? 100 : entered ? Math.max(0, baseOffset + dragDelta) : 100;
