@@ -44,6 +44,9 @@ interface MentionSuggestion {
 export interface UniversalPlace {
   name: string;
   address?: string;
+  formattedAddress?: string;
+  postcode?: string;
+  country?: string;
   description?: string;
   lat: number;
   lng: number;
