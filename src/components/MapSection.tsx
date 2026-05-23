@@ -559,16 +559,13 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
               },
             } : prev);
 
-            // Backfill: persist google_place_id + missing address fields silently
+            // Backfill: persist google_place_id + missing fields ONLY (never overwrite existing address)
             const dbUpdate: Record<string, any> = {};
             if (!googlePlaceId && details.placeId) dbUpdate.google_place_id = details.placeId;
             if (!place.city && details.city) dbUpdate.city = details.city;
             if (!(place as any).postcode && details.postcode) dbUpdate.postcode = details.postcode;
             if (!place.country && details.country) dbUpdate.country = details.country;
-            // Only overwrite address if current one is shorter than Google's (likely incomplete)
-            if (details.formattedAddress && (!place.address || place.address.length < details.formattedAddress.length - 5)) {
-              dbUpdate.address = details.formattedAddress;
-            }
+            if (!place.address && details.formattedAddress) dbUpdate.address = details.formattedAddress;
             if (Object.keys(dbUpdate).length > 0) {
               supabase.from("pet_friendly_places" as any).update(dbUpdate).eq("id", place.id).then(() => {});
             }
