@@ -148,6 +148,7 @@ interface MarkerPopupProps {
   onSetOrigin: () => void;
   onSetDestination: () => void;
   onShowInfo?: () => void;
+  onAdminEdit?: () => void;
   onAddWaypoint?: () => void;
   onToggleFavorite?: () => void;
   isFavorite?: boolean;
@@ -158,7 +159,7 @@ interface MarkerPopupProps {
 }
 
 export default function MarkerPopup({
-  place, position, onSetOrigin, onSetDestination, onShowInfo, onAddWaypoint, onToggleFavorite, isFavorite, onClose, onReport, isInDatabase, dbId,
+  place, position, onSetOrigin, onSetDestination, onShowInfo, onAdminEdit, onAddWaypoint, onToggleFavorite, isFavorite, onClose, onReport, isInDatabase, dbId,
 }: MarkerPopupProps) {
   const emoji = getPlaceEmoji(place);
   const typeLabel = getPlaceTypeLabel(place);
