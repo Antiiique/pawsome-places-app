@@ -603,7 +603,7 @@ const PlaceDetailPanel = ({ place, googleData, onClose, onBack, isFavorite, onTo
             </button>
             {savingMeta && <div className="w-3 h-3 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />}
             <button
-              onClick={() => { const next = !adminEditOpen; setAdminEditOpen(next); if (next) setSnapState("full"); }}
+              onClick={() => { setAdminEditOpen(true); setSnapState("full"); }}
               className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg border font-medium transition-colors ${
                 adminEditOpen
                   ? "bg-violet-600 border-violet-600 text-white"
