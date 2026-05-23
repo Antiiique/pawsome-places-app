@@ -105,7 +105,10 @@ function timeAgo(dateStr: string): string {
 
 function parseStationLines(desc: string): string[] {
   const lines: string[] = [];
-  const sections = desc.split(/\.\s+(?=\S)/);
+  const sections = desc
+    .replace(/\.\s+(?=\S)/g, "\n")
+    .replace(/\s+(?=(?:\p{Emoji}\uFE0F?|\p{Emoji_Presentation}))/gu, "\n")
+    .split(/\n+/);
   for (const section of sections) {
     const s = section.replace(/\.$/, "").trim();
     if (!s || s.startsWith("(")) continue;
@@ -1117,8 +1120,8 @@ const PlaceDetailPanel = ({
                     </p>
                     {cat === "station_carburant" ? (
                       <div className="space-y-1">
-                        {place.description
-                          ? parseStationLines(place.description).map((line, i) => (
+                        {localDescription
+                          ? parseStationLines(localDescription).map((line, i) => (
                               <p key={i} className="text-sm text-foreground">{line}</p>
                             ))
                           : <p className="text-sm text-foreground">{info.fallback}</p>
@@ -1126,7 +1129,7 @@ const PlaceDetailPanel = ({
                       </div>
                     ) : (
                       <p className="text-sm leading-relaxed text-foreground">
-                        {place.description ?? info.fallback}
+                        {localDescription ?? info.fallback}
                       </p>
                     )}
                   </div>
