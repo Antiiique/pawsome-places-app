@@ -113,6 +113,32 @@ const CATEGORY_OPTIONS = [
 const getCategoryTitle = (category?: string) =>
   CATEGORY_OPTIONS.find((option) => option.value === category)?.label || "Lieu 📍";
 
+function parseStationLines(desc: string): string[] {
+  const lines: string[] = [];
+  const sections = desc
+    .replace(/\.\s+(?=\S)/g, "\n")
+    .replace(/\s+(?=(?:\p{Emoji}\uFE0F?|\p{Emoji_Presentation}))/gu, "\n")
+    .split(/\n+/);
+
+  for (const section of sections) {
+    const s = section.replace(/\.$/, "").trim();
+    if (!s || s.startsWith("(")) continue;
+
+    const emojiMatch = s.match(/^(\p{Emoji}\uFE0F?|\p{Emoji_Presentation})\s*/u);
+    const emoji = emojiMatch ? emojiMatch[1] : "";
+    const rest = emojiMatch ? s.slice(emojiMatch[0].length) : s;
+    if (!rest.trim()) continue;
+
+    const delimiter = rest.includes(",") ? /,\s*/ : /\s{2,}/;
+    for (const item of rest.split(delimiter)) {
+      const trimmed = item.trim();
+      if (trimmed) lines.push(emoji ? `${emoji} ${trimmed}` : trimmed);
+    }
+  }
+
+  return lines.length > 0 ? lines : [desc];
+}
+
 function getPlaceEmoji(place: UniversalPlace): string {
   if (place.isPetFriendly) return "🐾";
   const types = place.types || [];
@@ -748,9 +774,20 @@ export default function MarkerPopup({
               <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
                 {isFuelStation ? <span className="text-lg">⛽</span> : null}{getCategoryTitle(localCategory)}
               </p>
-              <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">
-                {place.description ?? typeLabel}
-              </p>
+              {isFuelStation ? (
+                <div className="space-y-1">
+                  {place.description
+                    ? parseStationLines(place.description).map((line, i) => (
+                        <p key={i} className="text-sm text-foreground">{line}</p>
+                      ))
+                    : <p className="text-sm text-foreground">{typeLabel}</p>
+                  }
+                </div>
+              ) : (
+                <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">
+                  {place.description ?? typeLabel}
+                </p>
+              )}
             </div>
 
             {/* 4. Note Google */}
