@@ -1035,6 +1035,26 @@ const PlaceDetailPanel = ({
                     ✅ Vérifié
                   </span>
                 )}
+                {localPetFlags.accepts_dogs && (
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                    🐕 Chiens
+                  </Badge>
+                )}
+                {localPetFlags.accepts_cats && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                    🐈 Chats
+                  </Badge>
+                )}
+                {localPetFlags.outdoor_seating && (
+                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300">
+                    🌿 Terrasse
+                  </Badge>
+                )}
+                {localPetFlags.dogs_on_leash_only && (
+                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                    🦮 Laisse
+                  </Badge>
+                )}
               </div>
 
               {(localCategory || place.category) === "station_carburant" && (
