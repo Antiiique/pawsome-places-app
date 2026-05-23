@@ -446,6 +446,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           const fallback: UniversalPlace = {
             name: place.name, address: place.address || place.city || "",
             lat: place.latitude, lng: place.longitude, category: place.category,
+            description: place.description || undefined,
             city: place.city || undefined, phone: place.phone || undefined,
             opening_hours: place.opening_hours || undefined,
             rating: (place as any).google_rating || place.rating || undefined,
