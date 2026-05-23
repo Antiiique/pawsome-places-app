@@ -632,7 +632,7 @@ export default function MarkerPopup({
               </button>
               {savingMeta && <div className="w-3 h-3 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />}
               <button
-                onClick={() => onShowInfo?.()}
+                onClick={() => (onAdminEdit ?? onShowInfo)?.()}
                 className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg border border-violet-200 bg-white text-violet-600 dark:bg-transparent dark:border-violet-700 dark:text-violet-400 hover:bg-violet-50 font-medium transition-colors"
               >
                 <Pencil className="w-3 h-3" /> Modifier
