@@ -492,10 +492,10 @@ const PlaceDetailPanel = ({
     setNewRating(0);
     setNewBody("");
     setVisitedWithPet(false);
-    setAdminEditOpen(false);
+    setAdminEditOpen(!!initialAdminEdit);
     setPhotoFiles([]);
     setPhotoPreviews([]);
-  }, [place?.id]);
+  }, [place?.id, initialAdminEdit]);
 
   useEffect(() => {
     if (!place || !adminEditOpen) return;
