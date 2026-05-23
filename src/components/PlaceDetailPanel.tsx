@@ -267,6 +267,8 @@ const PlaceDetailPanel = ({
   const [isAdmin, setIsAdmin] = useState(false);
   const [localCategory, setLocalCategory] = useState(place?.category ?? "");
   const [savingCategory, setSavingCategory] = useState(false);
+  const [localSubcategory, setLocalSubcategory] = useState(place?.subcategory ?? "");
+  const [savingSubcategory, setSavingSubcategory] = useState(false);
   const [localName, setLocalName] = useState(place?.name ?? "");
   const [savingName, setSavingName] = useState(false);
   const [localVerified, setLocalVerified] = useState(place?.verified ?? false);
@@ -303,6 +305,7 @@ const PlaceDetailPanel = ({
 
   useEffect(() => {
     setLocalCategory(place?.category ?? "");
+    setLocalSubcategory(place?.subcategory ?? "");
     setLocalName(place?.name ?? "");
     setLocalVerified(place?.verified ?? false);
     setLocalDescription(place?.description ?? null);
@@ -326,6 +329,22 @@ const PlaceDetailPanel = ({
     }
     setLocalCategory(val);
     toast.success("Catégorie modifiée ✓");
+  };
+
+  const saveSubcategoryInline = async () => {
+    const trimmed = localSubcategory.trim();
+    if (!place || trimmed === (place.subcategory ?? "")) return;
+    setSavingSubcategory(true);
+    const { error } = await supabase
+      .from("pet_friendly_places")
+      .update({ subcategory: trimmed || null })
+      .eq("id", place.id);
+    setSavingSubcategory(false);
+    if (error) {
+      toast.error("Erreur : " + error.message);
+      return;
+    }
+    toast.success("Type de commerce modifié ✓");
   };
 
   const saveNameInline = async () => {
@@ -844,6 +863,21 @@ const PlaceDetailPanel = ({
             </select>
             {savingCategory && (
               <div className="w-3.5 h-3.5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0" />
+            )}
+          </div>
+          {/* Ligne 1b : Type de commerce / sous-catégorie */}
+          <div className="flex items-center gap-2 px-4 pb-1">
+            <span className="text-xs font-bold text-violet-700 dark:text-violet-300 shrink-0">🏪</span>
+            <input
+              value={localSubcategory}
+              onChange={(e) => setLocalSubcategory(e.target.value)}
+              onBlur={saveSubcategoryInline}
+              onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+              placeholder="Type de commerce…"
+              className="flex-1 text-xs bg-white dark:bg-violet-900/40 border border-violet-300 dark:border-violet-600 rounded-lg px-2 py-1 text-violet-900 dark:text-violet-100 placeholder:text-violet-400 focus:outline-none focus:border-violet-500"
+            />
+            {savingSubcategory && (
+              <div className="w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0" />
             )}
           </div>
           {/* Ligne 2 : Vérifié / Signalé / Modifier / Supprimer */}
