@@ -45,7 +45,44 @@ function loadGooglePlacesLib(): Promise<void> {
   });
 }
 
-type GooglePlaceResult = { photos: string[]; reviews: any[]; rating?: number; reviewsTotal?: number; phone?: string; website?: string; opening_hours?: string; placeId?: string };
+type GooglePlaceResult = {
+  photos: string[]; reviews: any[]; rating?: number; reviewsTotal?: number;
+  phone?: string; website?: string; opening_hours?: string; placeId?: string;
+  formattedAddress?: string; street?: string; city?: string; postcode?: string; country?: string;
+};
+
+// ── In-memory + localStorage cache (24h TTL) ──
+const GPLACE_CACHE_TTL = 24 * 60 * 60 * 1000;
+const gplaceMemCache = new Map<string, GooglePlaceResult>();
+
+function cacheGet(key: string): GooglePlaceResult | null {
+  if (gplaceMemCache.has(key)) return gplaceMemCache.get(key)!;
+  try {
+    const raw = localStorage.getItem(`petfriendly_gplace_${key}`);
+    if (!raw) return null;
+    const { t, v } = JSON.parse(raw);
+    if (Date.now() - t > GPLACE_CACHE_TTL) { localStorage.removeItem(`petfriendly_gplace_${key}`); return null; }
+    gplaceMemCache.set(key, v);
+    return v;
+  } catch { return null; }
+}
+function cacheSet(key: string, v: GooglePlaceResult) {
+  gplaceMemCache.set(key, v);
+  try { localStorage.setItem(`petfriendly_gplace_${key}`, JSON.stringify({ t: Date.now(), v })); } catch {}
+}
+
+function parseAddressComponents(components: any[] | undefined): { street?: string; city?: string; postcode?: string; country?: string } {
+  if (!components) return {};
+  const get = (type: string) => components.find((c) => c.types?.includes(type))?.long_name;
+  const streetNumber = get("street_number");
+  const route = get("route");
+  return {
+    street: [streetNumber, route].filter(Boolean).join(" ") || undefined,
+    city: get("locality") || get("postal_town") || get("administrative_area_level_2"),
+    postcode: get("postal_code"),
+    country: get("country"),
+  };
+}
 
 function extractPlaceResult(place: any): Omit<GooglePlaceResult, "placeId"> {
   const photos = place.photos ? place.photos.slice(0, 5).map((p: any) => p.getUrl({ maxWidth: 400, maxHeight: 300 })) : [];
@@ -53,24 +90,40 @@ function extractPlaceResult(place: any): Omit<GooglePlaceResult, "placeId"> {
   const weekdayText: string[] | undefined = place.opening_hours?.weekday_text;
   const statusLine = place.opening_hours?.isOpen?.() ? "🟢 Ouvert maintenant" : null;
   const hoursLines = [statusLine, ...(weekdayText || [])].filter(Boolean) as string[];
-  return { photos, reviews, rating: place.rating, reviewsTotal: place.user_ratings_total, phone: place.formatted_phone_number, website: place.website, opening_hours: hoursLines.length ? hoursLines.join("\n") : undefined };
+  const addr = parseAddressComponents(place.address_components);
+  return {
+    photos, reviews, rating: place.rating, reviewsTotal: place.user_ratings_total,
+    phone: place.formatted_phone_number, website: place.website,
+    opening_hours: hoursLines.length ? hoursLines.join("\n") : undefined,
+    formattedAddress: place.formatted_address || undefined,
+    ...addr,
+  };
 }
 
+const DETAIL_FIELDS = ["rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos", "formatted_address", "address_components"];
+
 function fetchGooglePlaceDetails(placeId: string): Promise<GooglePlaceResult> {
+  const cached = cacheGet(placeId);
+  if (cached) return Promise.resolve(cached);
   return loadGooglePlacesLib().then(() => new Promise((resolve) => {
     const div = document.createElement("div");
     document.body.appendChild(div);
     const g = (window as any).google;
     const service = new g.maps.places.PlacesService(div);
-    service.getDetails({ placeId, fields: ["rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos"] }, (place: any, status: string) => {
+    service.getDetails({ placeId, fields: DETAIL_FIELDS }, (place: any, status: string) => {
       document.body.removeChild(div);
       if (status !== g.maps.places.PlacesServiceStatus.OK || !place) { resolve({ photos: [], reviews: [] }); return; }
-      resolve({ ...extractPlaceResult(place), placeId });
+      const result = { ...extractPlaceResult(place), placeId };
+      cacheSet(placeId, result);
+      resolve(result);
     });
   }));
 }
 
 function fetchGooglePlaceByLocation(lat: number, lng: number, name: string): Promise<GooglePlaceResult> {
+  const locKey = `loc_${lat.toFixed(5)}_${lng.toFixed(5)}_${name}`;
+  const cached = cacheGet(locKey);
+  if (cached) return Promise.resolve(cached);
   return loadGooglePlacesLib().then(() => new Promise((resolve) => {
     const div = document.createElement("div");
     document.body.appendChild(div);
@@ -79,16 +132,22 @@ function fetchGooglePlaceByLocation(lat: number, lng: number, name: string): Pro
     service.nearbySearch({ location: { lat, lng }, radius: 80, keyword: name }, (results: any[], status: string) => {
       if (status !== g.maps.places.PlacesServiceStatus.OK || !results?.[0]?.place_id) { document.body.removeChild(div); resolve({ photos: [], reviews: [] }); return; }
       const placeId = results[0].place_id as string;
-      service.getDetails({ placeId, fields: ["rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos"] }, (place: any, detailStatus: string) => {
+      service.getDetails({ placeId, fields: DETAIL_FIELDS }, (place: any, detailStatus: string) => {
         document.body.removeChild(div);
         if (detailStatus !== g.maps.places.PlacesServiceStatus.OK || !place) { resolve({ photos: [], reviews: [] }); return; }
-        resolve({ ...extractPlaceResult(place), placeId });
+        const result = { ...extractPlaceResult(place), placeId };
+        cacheSet(placeId, result);
+        cacheSet(locKey, result);
+        resolve(result);
       });
     });
   }));
 }
 
 function fetchGoogleGasStation(lat: number, lng: number): Promise<GooglePlaceResult> {
+  const locKey = `gas_${lat.toFixed(5)}_${lng.toFixed(5)}`;
+  const cached = cacheGet(locKey);
+  if (cached) return Promise.resolve(cached);
   return loadGooglePlacesLib().then(() => new Promise((resolve) => {
     const div = document.createElement("div");
     document.body.appendChild(div);
@@ -97,10 +156,13 @@ function fetchGoogleGasStation(lat: number, lng: number): Promise<GooglePlaceRes
     service.nearbySearch({ location: { lat, lng }, radius: 200, type: "gas_station" }, (results: any[], status: string) => {
       if (status !== g.maps.places.PlacesServiceStatus.OK || !results?.[0]?.place_id) { document.body.removeChild(div); resolve({ photos: [], reviews: [] }); return; }
       const placeId = results[0].place_id as string;
-      service.getDetails({ placeId, fields: ["rating", "user_ratings_total", "photos", "opening_hours"] }, (place: any, detailStatus: string) => {
+      service.getDetails({ placeId, fields: DETAIL_FIELDS }, (place: any, detailStatus: string) => {
         document.body.removeChild(div);
         if (detailStatus !== g.maps.places.PlacesServiceStatus.OK || !place) { resolve({ photos: [], reviews: [] }); return; }
-        resolve({ ...extractPlaceResult(place), placeId });
+        const result = { ...extractPlaceResult(place), placeId };
+        cacheSet(placeId, result);
+        cacheSet(locKey, result);
+        resolve(result);
       });
     });
   }));
