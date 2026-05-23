@@ -160,6 +160,7 @@ interface PlaceDetailPanelProps {
   onToggleFavorite?: () => void;
   onReport?: () => void;
   isClosing?: boolean;
+  initialAdminEdit?: boolean;
 }
 
 const ADMIN_EMAILS = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"];
