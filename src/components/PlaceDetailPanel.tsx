@@ -1062,7 +1062,7 @@ const PlaceDetailPanel = ({
 
               {(localVerified || localPetFlags.accepts_dogs || localPetFlags.accepts_cats || localPetFlags.outdoor_seating || localPetFlags.dogs_on_leash_only) && (
                 <div className="rounded-lg border-2 border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-3 space-y-2">
-                  <p className="text-sm font-bold text-green-700 dark:text-green-400">✅ Animaux acceptés</p>
+                  <p className="text-sm font-bold text-green-700 dark:text-green-400">✅ Animaux & lieu</p>
                   <div className="flex flex-wrap gap-2">
                     {localVerified && (
                       <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 border border-green-400">
