@@ -109,15 +109,22 @@ function parseStationLines(desc: string): string[] {
   for (const section of sections) {
     const s = section.replace(/\.$/, "").trim();
     if (!s || s.startsWith("(")) continue;
-    if (s.startsWith("⛽")) {
-      const fuelPart = s.replace(/^⛽\s*/, "");
-      fuelPart.split(/,\s*/).forEach((f) => {
-        if (f.trim()) lines.push(`⛽ ${f.trim()}`);
-      });
-    } else {
-      s.split(/\s{2,}/).forEach((svc) => {
-        if (svc.trim()) lines.push(svc.trim());
-      });
+
+    // Extract leading emoji
+    const emojiMatch = s.match(/^(\p{Emoji}\uFE0F?|\p{Emoji_Presentation})\s*/u);
+    const emoji = emojiMatch ? emojiMatch[1] : "";
+    const rest = emojiMatch ? s.slice(emojiMatch[0].length) : s;
+
+    if (!rest.trim()) continue;
+
+    // Split by comma if present, otherwise by double spaces
+    const delimiter = rest.includes(",") ? /,\s*/ : /\s{2,}/;
+    const items = rest.split(delimiter);
+
+    for (const item of items) {
+      const trimmed = item.trim();
+      if (!trimmed) continue;
+      lines.push(emoji ? `${emoji} ${trimmed}` : trimmed);
     }
   }
   return lines.length > 0 ? lines : [desc];
