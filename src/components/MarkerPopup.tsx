@@ -816,10 +816,10 @@ export default function MarkerPopup({
                   <span className={`text-xs leading-relaxed whitespace-pre-line ${place.opening_hours.startsWith("🟢") ? "text-success" : "text-muted-foreground"}`}>{place.opening_hours}</span>
                 </div>
               )}
-              {(place.formattedAddress || place.address) && (
+              {(place.address || place.formattedAddress) && (
                 <div className="flex gap-2 items-start p-2.5 rounded-lg bg-secondary border border-border">
                   <span className="text-base flex-shrink-0">📍</span>
-                  <span className="text-xs text-muted-foreground leading-relaxed">{place.formattedAddress || place.address}</span>
+                  <span className="text-xs text-muted-foreground leading-relaxed">{place.address || place.formattedAddress}</span>
                 </div>
               )}
               {place.phone && (
