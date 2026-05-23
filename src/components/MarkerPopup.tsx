@@ -162,7 +162,6 @@ export default function MarkerPopup({
 }: MarkerPopupProps) {
   const emoji = getPlaceEmoji(place);
   const typeLabel = getPlaceTypeLabel(place);
-  const isFuelStation = localCategory === "station_carburant" || place.category === "station_carburant" || place.types?.includes("gas_station");
   const [photoIndex, setPhotoIndex] = useState(0);
   const [expandedReviews, setExpandedReviews] = useState<Record<number, boolean>>({});
   const [fullPhoto, setFullPhoto] = useState<string | null>(null);
@@ -173,6 +172,7 @@ export default function MarkerPopup({
   const [loadingCR, setLoadingCR] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [localCategory, setLocalCategory] = useState(place.category ?? "other");
+  const isFuelStation = localCategory === "station_carburant" || place.category === "station_carburant" || place.types?.includes("gas_station");
   const [savingCategory, setSavingCategory] = useState(false);
   const [localVerified, setLocalVerified] = useState(false);
   const [localFlagged, setLocalFlagged] = useState(false);
