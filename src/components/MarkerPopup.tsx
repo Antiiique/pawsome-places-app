@@ -306,7 +306,7 @@ export default function MarkerPopup({
     let uploadedPhotoUrl: string | null = userReview?.photo_url || null;
     if (photoFile) {
       const ext = photoFile.name.split(".").pop();
-      const path = `${dbId}/${user.id}/${Date.now()}.${ext}`;
+      const path = `${user.id}/${dbId}/${Date.now()}.${ext}`;
       const { data: uploadData, error: uploadError } = await supabase.storage.from("review-photos").upload(path, photoFile, { upsert: true });
       if (!uploadError && uploadData) {
         const { data: urlData } = supabase.storage.from("review-photos").getPublicUrl(uploadData.path);
