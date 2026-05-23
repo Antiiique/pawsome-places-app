@@ -55,6 +55,10 @@ export interface UniversalPlace {
   reviewsTotal?: number;
   website?: string;
   isPetFriendly: boolean;
+  accepts_dogs?: boolean;
+  accepts_cats?: boolean;
+  outdoor_seating?: boolean;
+  dogs_on_leash_only?: boolean;
   types?: string[];
   placeId?: string;
   photos?: string[];
@@ -102,8 +106,12 @@ const CATEGORY_OPTIONS = [
   { value: "aire_repos",     label: "Aires de repos 🛣️" },
   { value: "transport",      label: "Transport 🚇" },
   { value: "evenement",      label: "Événements 📅" },
+  { value: "station_carburant", label: "Carburants & services ⛽" },
   { value: "other",          label: "Autres 📍" },
 ];
+
+const getCategoryTitle = (category?: string) =>
+  CATEGORY_OPTIONS.find((option) => option.value === category)?.label || "Lieu 📍";
 
 function getPlaceEmoji(place: UniversalPlace): string {
   if (place.isPetFriendly) return "🐾";
