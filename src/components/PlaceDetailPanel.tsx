@@ -160,6 +160,7 @@ interface PlaceDetailPanelProps {
   onToggleFavorite?: () => void;
   onReport?: () => void;
   isClosing?: boolean;
+  initialAdminEdit?: boolean;
 }
 
 const ADMIN_EMAILS = ["elvin.agd@gmail.com", "artistfx.mp4@gmail.com"];
@@ -202,6 +203,7 @@ const PlaceDetailPanel = ({
   onToggleFavorite,
   onReport,
   isClosing,
+  initialAdminEdit,
 }: PlaceDetailPanelProps) => {
   const { user, profile } = useAuthContext();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -332,11 +334,11 @@ const PlaceDetailPanel = ({
   };
 
   // ── Bottom sheet snap state ──
-  const [snap, setSnap] = useState<"half" | "full">("half");
+  const [snap, setSnap] = useState<"half" | "full">(initialAdminEdit ? "full" : "half");
   const [dragDelta, setDragDelta] = useState(0); // percentage offset during drag
   // Refs mirror state so handleDragEnd always reads the latest value,
   // avoiding stale-closure bugs with React 18 batched updates.
-  const snapRef = useRef<"half" | "full">("half");
+  const snapRef = useRef<"half" | "full">(initialAdminEdit ? "full" : "half");
   const dragDeltaRef = useRef(0);
   const isDragging = useRef(false);
   const touchStartY = useRef<number | null>(null);
@@ -353,14 +355,15 @@ const PlaceDetailPanel = ({
   // Reset to half-snap whenever a new place opens
   const [entered, setEntered] = useState(false);
   useEffect(() => {
-    snapRef.current = "half";
-    setSnap("half");
+    const initSnap = initialAdminEdit ? "full" : "half";
+    snapRef.current = initSnap;
+    setSnap(initSnap);
     dragDeltaRef.current = 0;
     setDragDelta(0);
     setEntered(false);
     const t = setTimeout(() => setEntered(true), 10);
     return () => clearTimeout(t);
-  }, [place?.id]);
+  }, [place?.id, initialAdminEdit]);
 
   const baseOffset = snap === "half" ? 55 : 0; // % translateY
   const currentOffset = isClosing ? 100 : entered ? Math.max(0, baseOffset + dragDelta) : 100;
@@ -435,7 +438,7 @@ const PlaceDetailPanel = ({
   const [submitting, setSubmitting] = useState(false);
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
-  const [adminEditOpen, setAdminEditOpen] = useState(false);
+  const [adminEditOpen, setAdminEditOpen] = useState(!!initialAdminEdit);
   const [editSaving, setEditSaving] = useState(false);
   const [editForm, setEditForm] = useState<{
     name: string;
@@ -489,10 +492,10 @@ const PlaceDetailPanel = ({
     setNewRating(0);
     setNewBody("");
     setVisitedWithPet(false);
-    setAdminEditOpen(false);
+    setAdminEditOpen(!!initialAdminEdit);
     setPhotoFiles([]);
     setPhotoPreviews([]);
-  }, [place?.id]);
+  }, [place?.id, initialAdminEdit]);
 
   useEffect(() => {
     if (!place || !adminEditOpen) return;

@@ -234,6 +234,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [center, setCenter] = useState({ lat: 48.8566, lng: 2.3522 });
   const [searching, setSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PetPlace | null>(null);
+  const [openInAdminEdit, setOpenInAdminEdit] = useState(false);
   const [stationGoogleData, setStationGoogleData] = useState<{ rating?: number; photo_url?: string } | null>(null);
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [itineraryFilter, setItineraryFilter] = useState<string | null>(null);
@@ -1042,6 +1043,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     setTimeout(() => {
       setSelectedPlace(null);
       setClosingPanel(false);
+      setOpenInAdminEdit(false);
       prevPopupDataRef.current = null;
     }, 320);
   }, []);
@@ -1443,7 +1445,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           place={popupData.place} position={popupData.position} onClose={() => setPopupData(null)}
           onSetOrigin={() => { const p = popupData.place; setOriginPoint({ lat: p.lat, lng: p.lng }); window.dispatchEvent(new CustomEvent("marker-set-itinerary", { detail: { type: "origin", location: { lat: p.lat, lng: p.lng }, text: p.name } })); toast.success(`✓ Départ enregistré : ${p.name} — retrouvez-le dans l'itinéraire`); setPopupData(null); }}
           onSetDestination={() => { const p = popupData.place; setDestPoint({ lat: p.lat, lng: p.lng }); window.dispatchEvent(new CustomEvent("marker-set-itinerary", { detail: { type: "destination", location: { lat: p.lat, lng: p.lng }, text: p.name } })); toast.success(`✓ Arrivée enregistrée : ${p.name} — retrouvez-la dans l'itinéraire`); setPopupData(null); }}
-          onShowInfo={popupData.petPlace ? () => { prevPopupDataRef.current = popupData; setSelectedPlace(popupData.petPlace!); setPopupData(null); } : undefined}
+          onShowInfo={popupData.petPlace ? () => { prevPopupDataRef.current = popupData; setOpenInAdminEdit(false); setSelectedPlace(popupData.petPlace!); setPopupData(null); } : undefined}
+          onAdminEdit={popupData.petPlace ? () => { prevPopupDataRef.current = popupData; setOpenInAdminEdit(true); setSelectedPlace(popupData.petPlace!); setPopupData(null); } : undefined}
           isFavorite={isFavorite?.(popupData.petPlace?.id || popupData.place.placeId || `custom_${popupData.place.lat}_${popupData.place.lng}`)}
           onToggleFavorite={() => {
             if (!onToggleFavorite) return;
@@ -1481,6 +1484,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             isFavorite={isFavorite?.(selectedPlace.id)}
             onToggleFavorite={() => handleToggleFav(selectedPlace)}
             onReport={() => setReportModal({ open: true, placeId: selectedPlace.id, placeName: selectedPlace.name })}
+            initialAdminEdit={openInAdminEdit}
           />
         </>
       )}
