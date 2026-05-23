@@ -211,7 +211,7 @@ const VELOCITY_THRESHOLD = 0.4; // px/ms
 
 interface PlaceDetailPanelProps {
   place: PetPlace | null;
-  googleData?: { rating?: number; photo_url?: string } | null;
+  googleData?: { rating?: number; photo_url?: string; formattedAddress?: string } | null;
   onClose: () => void;
   onBack?: () => void;
   isFavorite?: boolean;
