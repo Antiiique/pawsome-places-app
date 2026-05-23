@@ -531,7 +531,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             ? fetchGooglePlaceDetails(googlePlaceId)
             : fetchGooglePlaceByLocation(place.latitude, place.longitude, place.name);
           enrichPromise.then((details) => {
-            if (!details.reviews.length && !details.photos.length) return;
+            if (!details.reviews.length && !details.photos.length && !details.formattedAddress) return;
             setPopupData((prev) => prev ? {
               ...prev,
               place: {
@@ -543,9 +543,27 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
                 opening_hours: details.opening_hours || prev.place.opening_hours,
                 photos: details.photos.length ? details.photos : prev.place.photos,
                 reviews: details.reviews,
-                placeId: googlePlaceId,
+                placeId: details.placeId || googlePlaceId,
+                formattedAddress: details.formattedAddress || prev.place.formattedAddress,
+                city: details.city || prev.place.city,
+                postcode: details.postcode || prev.place.postcode,
+                country: details.country || prev.place.country,
               },
             } : prev);
+
+            // Backfill: persist google_place_id + missing address fields silently
+            const dbUpdate: Record<string, any> = {};
+            if (!googlePlaceId && details.placeId) dbUpdate.google_place_id = details.placeId;
+            if (!place.city && details.city) dbUpdate.city = details.city;
+            if (!(place as any).postcode && details.postcode) dbUpdate.postcode = details.postcode;
+            if (!place.country && details.country) dbUpdate.country = details.country;
+            // Only overwrite address if current one is shorter than Google's (likely incomplete)
+            if (details.formattedAddress && (!place.address || place.address.length < details.formattedAddress.length - 5)) {
+              dbUpdate.address = details.formattedAddress;
+            }
+            if (Object.keys(dbUpdate).length > 0) {
+              supabase.from("pet_friendly_places" as any).update(dbUpdate).eq("id", place.id).then(() => {});
+            }
           });
         });
       }
