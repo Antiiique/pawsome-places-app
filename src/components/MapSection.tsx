@@ -452,6 +452,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             opening_hours: place.opening_hours || undefined,
             rating: (place as any).google_rating || place.rating || undefined,
             website: place.website || undefined, isPetFriendly: true,
+            accepts_dogs: place.accepts_dogs,
+            accepts_cats: place.accepts_cats,
+            outdoor_seating: place.outdoor_seating,
+            dogs_on_leash_only: place.dogs_on_leash_only,
             photos: place.photo_url ? [place.photo_url] : [], reviews: [],
           };
 
