@@ -1217,6 +1217,8 @@ const AdminPage = () => {
     }
     toast.success(`✅ "${editForm.name}" mis à jour`);
     setPlaces(prev => prev.map(p => p.id === editDialog.place!.id ? { ...p, ...editForm } as PublishedPlace : p));
+    // Notify the live map / detail panel so the change appears without reload
+    window.dispatchEvent(new CustomEvent("place-updated", { detail: { id: editDialog.place.id, changes: { ...editForm } } }));
     setEditDialog({ open: false, place: null });
   };
 

@@ -45,7 +45,44 @@ function loadGooglePlacesLib(): Promise<void> {
   });
 }
 
-type GooglePlaceResult = { photos: string[]; reviews: any[]; rating?: number; reviewsTotal?: number; phone?: string; website?: string; opening_hours?: string; placeId?: string };
+type GooglePlaceResult = {
+  photos: string[]; reviews: any[]; rating?: number; reviewsTotal?: number;
+  phone?: string; website?: string; opening_hours?: string; placeId?: string;
+  formattedAddress?: string; street?: string; city?: string; postcode?: string; country?: string;
+};
+
+// ── In-memory + localStorage cache (24h TTL) ──
+const GPLACE_CACHE_TTL = 24 * 60 * 60 * 1000;
+const gplaceMemCache = new Map<string, GooglePlaceResult>();
+
+function cacheGet(key: string): GooglePlaceResult | null {
+  if (gplaceMemCache.has(key)) return gplaceMemCache.get(key)!;
+  try {
+    const raw = localStorage.getItem(`petfriendly_gplace_${key}`);
+    if (!raw) return null;
+    const { t, v } = JSON.parse(raw);
+    if (Date.now() - t > GPLACE_CACHE_TTL) { localStorage.removeItem(`petfriendly_gplace_${key}`); return null; }
+    gplaceMemCache.set(key, v);
+    return v;
+  } catch { return null; }
+}
+function cacheSet(key: string, v: GooglePlaceResult) {
+  gplaceMemCache.set(key, v);
+  try { localStorage.setItem(`petfriendly_gplace_${key}`, JSON.stringify({ t: Date.now(), v })); } catch {}
+}
+
+function parseAddressComponents(components: any[] | undefined): { street?: string; city?: string; postcode?: string; country?: string } {
+  if (!components) return {};
+  const get = (type: string) => components.find((c) => c.types?.includes(type))?.long_name;
+  const streetNumber = get("street_number");
+  const route = get("route");
+  return {
+    street: [streetNumber, route].filter(Boolean).join(" ") || undefined,
+    city: get("locality") || get("postal_town") || get("administrative_area_level_2"),
+    postcode: get("postal_code"),
+    country: get("country"),
+  };
+}
 
 function extractPlaceResult(place: any): Omit<GooglePlaceResult, "placeId"> {
   const photos = place.photos ? place.photos.slice(0, 5).map((p: any) => p.getUrl({ maxWidth: 400, maxHeight: 300 })) : [];
@@ -53,24 +90,40 @@ function extractPlaceResult(place: any): Omit<GooglePlaceResult, "placeId"> {
   const weekdayText: string[] | undefined = place.opening_hours?.weekday_text;
   const statusLine = place.opening_hours?.isOpen?.() ? "🟢 Ouvert maintenant" : null;
   const hoursLines = [statusLine, ...(weekdayText || [])].filter(Boolean) as string[];
-  return { photos, reviews, rating: place.rating, reviewsTotal: place.user_ratings_total, phone: place.formatted_phone_number, website: place.website, opening_hours: hoursLines.length ? hoursLines.join("\n") : undefined };
+  const addr = parseAddressComponents(place.address_components);
+  return {
+    photos, reviews, rating: place.rating, reviewsTotal: place.user_ratings_total,
+    phone: place.formatted_phone_number, website: place.website,
+    opening_hours: hoursLines.length ? hoursLines.join("\n") : undefined,
+    formattedAddress: place.formatted_address || undefined,
+    ...addr,
+  };
 }
 
+const DETAIL_FIELDS = ["rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos", "formatted_address", "address_components"];
+
 function fetchGooglePlaceDetails(placeId: string): Promise<GooglePlaceResult> {
+  const cached = cacheGet(placeId);
+  if (cached) return Promise.resolve(cached);
   return loadGooglePlacesLib().then(() => new Promise((resolve) => {
     const div = document.createElement("div");
     document.body.appendChild(div);
     const g = (window as any).google;
     const service = new g.maps.places.PlacesService(div);
-    service.getDetails({ placeId, fields: ["rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos"] }, (place: any, status: string) => {
+    service.getDetails({ placeId, fields: DETAIL_FIELDS }, (place: any, status: string) => {
       document.body.removeChild(div);
       if (status !== g.maps.places.PlacesServiceStatus.OK || !place) { resolve({ photos: [], reviews: [] }); return; }
-      resolve({ ...extractPlaceResult(place), placeId });
+      const result = { ...extractPlaceResult(place), placeId };
+      cacheSet(placeId, result);
+      resolve(result);
     });
   }));
 }
 
 function fetchGooglePlaceByLocation(lat: number, lng: number, name: string): Promise<GooglePlaceResult> {
+  const locKey = `loc_${lat.toFixed(5)}_${lng.toFixed(5)}_${name}`;
+  const cached = cacheGet(locKey);
+  if (cached) return Promise.resolve(cached);
   return loadGooglePlacesLib().then(() => new Promise((resolve) => {
     const div = document.createElement("div");
     document.body.appendChild(div);
@@ -79,16 +132,22 @@ function fetchGooglePlaceByLocation(lat: number, lng: number, name: string): Pro
     service.nearbySearch({ location: { lat, lng }, radius: 80, keyword: name }, (results: any[], status: string) => {
       if (status !== g.maps.places.PlacesServiceStatus.OK || !results?.[0]?.place_id) { document.body.removeChild(div); resolve({ photos: [], reviews: [] }); return; }
       const placeId = results[0].place_id as string;
-      service.getDetails({ placeId, fields: ["rating", "user_ratings_total", "opening_hours", "formatted_phone_number", "website", "reviews", "photos"] }, (place: any, detailStatus: string) => {
+      service.getDetails({ placeId, fields: DETAIL_FIELDS }, (place: any, detailStatus: string) => {
         document.body.removeChild(div);
         if (detailStatus !== g.maps.places.PlacesServiceStatus.OK || !place) { resolve({ photos: [], reviews: [] }); return; }
-        resolve({ ...extractPlaceResult(place), placeId });
+        const result = { ...extractPlaceResult(place), placeId };
+        cacheSet(placeId, result);
+        cacheSet(locKey, result);
+        resolve(result);
       });
     });
   }));
 }
 
 function fetchGoogleGasStation(lat: number, lng: number): Promise<GooglePlaceResult> {
+  const locKey = `gas_${lat.toFixed(5)}_${lng.toFixed(5)}`;
+  const cached = cacheGet(locKey);
+  if (cached) return Promise.resolve(cached);
   return loadGooglePlacesLib().then(() => new Promise((resolve) => {
     const div = document.createElement("div");
     document.body.appendChild(div);
@@ -97,10 +156,13 @@ function fetchGoogleGasStation(lat: number, lng: number): Promise<GooglePlaceRes
     service.nearbySearch({ location: { lat, lng }, radius: 200, type: "gas_station" }, (results: any[], status: string) => {
       if (status !== g.maps.places.PlacesServiceStatus.OK || !results?.[0]?.place_id) { document.body.removeChild(div); resolve({ photos: [], reviews: [] }); return; }
       const placeId = results[0].place_id as string;
-      service.getDetails({ placeId, fields: ["rating", "user_ratings_total", "photos", "opening_hours"] }, (place: any, detailStatus: string) => {
+      service.getDetails({ placeId, fields: DETAIL_FIELDS }, (place: any, detailStatus: string) => {
         document.body.removeChild(div);
         if (detailStatus !== g.maps.places.PlacesServiceStatus.OK || !place) { resolve({ photos: [], reviews: [] }); return; }
-        resolve({ ...extractPlaceResult(place), placeId });
+        const result = { ...extractPlaceResult(place), placeId };
+        cacheSet(placeId, result);
+        cacheSet(locKey, result);
+        resolve(result);
       });
     });
   }));
@@ -238,7 +300,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const [searching, setSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PetPlace | null>(null);
   const [openInAdminEdit, setOpenInAdminEdit] = useState(false);
-  const [stationGoogleData, setStationGoogleData] = useState<{ rating?: number; photo_url?: string } | null>(null);
+  const [stationGoogleData, setStationGoogleData] = useState<{ rating?: number; photo_url?: string; formattedAddress?: string } | null>(null);
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [itineraryFilter, setItineraryFilter] = useState<string | null>(null);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
@@ -439,6 +501,14 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           markerCirclesRef.current.set(id, circleEl);
           if (glowedIdRef.current === id) circleEl.classList.add("marker-selected-glow");
         }
+        // Prefetch Google Place details on hover/touch — instant detail panel on click
+        const prefetch = () => {
+          const gid = (place as any).google_place_id;
+          if (gid) fetchGooglePlaceDetails(gid).catch(() => {});
+          else fetchGooglePlaceByLocation(place.latitude, place.longitude, place.name).catch(() => {});
+        };
+        el.addEventListener("mouseenter", prefetch, { once: true });
+        el.addEventListener("touchstart", prefetch, { once: true, passive: true });
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           markerClickedRef.current = true;
@@ -469,7 +539,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             ? fetchGooglePlaceDetails(googlePlaceId)
             : fetchGooglePlaceByLocation(place.latitude, place.longitude, place.name);
           enrichPromise.then((details) => {
-            if (!details.reviews.length && !details.photos.length) return;
+            if (!details.reviews.length && !details.photos.length && !details.formattedAddress) return;
             setPopupData((prev) => prev ? {
               ...prev,
               place: {
@@ -481,9 +551,27 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
                 opening_hours: details.opening_hours || prev.place.opening_hours,
                 photos: details.photos.length ? details.photos : prev.place.photos,
                 reviews: details.reviews,
-                placeId: googlePlaceId,
+                placeId: details.placeId || googlePlaceId,
+                formattedAddress: details.formattedAddress || prev.place.formattedAddress,
+                city: details.city || prev.place.city,
+                postcode: details.postcode || prev.place.postcode,
+                country: details.country || prev.place.country,
               },
             } : prev);
+
+            // Backfill: persist google_place_id + missing address fields silently
+            const dbUpdate: Record<string, any> = {};
+            if (!googlePlaceId && details.placeId) dbUpdate.google_place_id = details.placeId;
+            if (!place.city && details.city) dbUpdate.city = details.city;
+            if (!(place as any).postcode && details.postcode) dbUpdate.postcode = details.postcode;
+            if (!place.country && details.country) dbUpdate.country = details.country;
+            // Only overwrite address if current one is shorter than Google's (likely incomplete)
+            if (details.formattedAddress && (!place.address || place.address.length < details.formattedAddress.length - 5)) {
+              dbUpdate.address = details.formattedAddress;
+            }
+            if (Object.keys(dbUpdate).length > 0) {
+              supabase.from("pet_friendly_places" as any).update(dbUpdate).eq("id", place.id).then(() => {});
+            }
           });
         });
       }
@@ -1072,18 +1160,60 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   }, [selectedPlace?.id]);
 
   useEffect(() => {
-    if (!selectedPlace || selectedPlace.category !== "station_carburant" || selectedPlace.google_place_id) return;
+    if (!selectedPlace) return;
     let cancelled = false;
-    fetchGoogleGasStation(selectedPlace.latitude, selectedPlace.longitude).then((result) => {
-      if (cancelled || !result.placeId) return;
-      const update: Record<string, any> = { google_place_id: result.placeId };
-      if (result.rating != null) update.rating = result.rating;
-      if (result.photos?.[0]) update.photo_url = result.photos[0];
-      supabase.from("pet_friendly_places" as any).update(update).eq("id", selectedPlace.id).then(() => {});
-      setStationGoogleData({ rating: result.rating, photo_url: result.photos?.[0] });
+
+    // Gas stations without google_place_id → discover via nearby search
+    if (selectedPlace.category === "station_carburant" && !selectedPlace.google_place_id) {
+      fetchGoogleGasStation(selectedPlace.latitude, selectedPlace.longitude).then((result) => {
+        if (cancelled || !result.placeId) return;
+        const update: Record<string, any> = { google_place_id: result.placeId };
+        if (result.rating != null) update.rating = result.rating;
+        if (result.photos?.[0]) update.photo_url = result.photos[0];
+        if (result.formattedAddress) update.address = result.formattedAddress;
+        if (result.city) update.city = result.city;
+        if (result.postcode) update.postcode = result.postcode;
+        supabase.from("pet_friendly_places" as any).update(update).eq("id", selectedPlace.id).then(() => {});
+        setStationGoogleData({ rating: result.rating, photo_url: result.photos?.[0], formattedAddress: result.formattedAddress });
+      });
+      return () => { cancelled = true; };
+    }
+
+    // All other places: enrich detail panel with full Google address
+    const enrich = selectedPlace.google_place_id
+      ? fetchGooglePlaceDetails(selectedPlace.google_place_id)
+      : fetchGooglePlaceByLocation(selectedPlace.latitude, selectedPlace.longitude, selectedPlace.name);
+    enrich.then((result) => {
+      if (cancelled) return;
+      if (result.formattedAddress || result.rating != null) {
+        setStationGoogleData({ rating: result.rating, photo_url: result.photos?.[0], formattedAddress: result.formattedAddress });
+      }
+      // Silent backfill: persist google_place_id + complete address fields
+      const update: Record<string, any> = {};
+      if (!selectedPlace.google_place_id && result.placeId) update.google_place_id = result.placeId;
+      if (!selectedPlace.city && result.city) update.city = result.city;
+      if (!selectedPlace.country && result.country) update.country = result.country;
+      if (result.formattedAddress && (!selectedPlace.address || selectedPlace.address.length < result.formattedAddress.length - 5)) {
+        update.address = result.formattedAddress;
+      }
+      if (Object.keys(update).length > 0) {
+        supabase.from("pet_friendly_places" as any).update(update).eq("id", selectedPlace.id).then(() => {});
+      }
     });
     return () => { cancelled = true; };
   }, [selectedPlace?.id, selectedPlace?.google_place_id, selectedPlace?.category]);
+
+  // Listen for admin edits — refresh selectedPlace + places list instantly
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { id: string; changes: Partial<PetPlace> } | undefined;
+      if (!detail?.id) return;
+      setSelectedPlace((prev) => (prev && prev.id === detail.id ? { ...prev, ...detail.changes } as PetPlace : prev));
+      setPlaces((prev) => prev.map((p) => p.id === detail.id ? { ...p, ...detail.changes } as any : p));
+    };
+    window.addEventListener("place-updated", handler);
+    return () => window.removeEventListener("place-updated", handler);
+  }, []);
 
   // ── Inject golden glow CSS once ──
   useEffect(() => {
