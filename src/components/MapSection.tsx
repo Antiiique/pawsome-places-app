@@ -501,6 +501,14 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           markerCirclesRef.current.set(id, circleEl);
           if (glowedIdRef.current === id) circleEl.classList.add("marker-selected-glow");
         }
+        // Prefetch Google Place details on hover/touch — instant detail panel on click
+        const prefetch = () => {
+          const gid = (place as any).google_place_id;
+          if (gid) fetchGooglePlaceDetails(gid).catch(() => {});
+          else fetchGooglePlaceByLocation(place.latitude, place.longitude, place.name).catch(() => {});
+        };
+        el.addEventListener("mouseenter", prefetch, { once: true });
+        el.addEventListener("touchstart", prefetch, { once: true, passive: true });
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           markerClickedRef.current = true;
