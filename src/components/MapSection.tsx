@@ -646,7 +646,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     mapboxgl.accessToken = MAPBOX_TOKEN;
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/streets-v12",
+      style: "mapbox://styles/elvinagd/cmpjz7p7f000b01s9dcoc04k5",
       center: [2.3522, 48.8566],
       zoom: 13,
       failIfMajorPerformanceCaveat: false,
