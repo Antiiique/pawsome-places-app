@@ -1438,10 +1438,14 @@ const PlaceDetailPanel = ({
                   <p className="text-sm whitespace-pre-line">{place.opening_hours}</p>
                 </div>
               )}
-              {(place.address || googleData?.formattedAddress) && (
+              {(place.address || place.city || googleData?.formattedAddress) && (
                 <div className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <p className="text-sm">{place.address || googleData?.formattedAddress}</p>
+                  <p className="text-sm">
+                    {googleData?.formattedAddress
+                      ? googleData.formattedAddress
+                      : [place.address, place.city].filter(Boolean).join(", ")}
+                  </p>
                 </div>
               )}
               {place.phone && (
