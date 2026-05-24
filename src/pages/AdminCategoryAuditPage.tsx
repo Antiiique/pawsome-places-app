@@ -59,7 +59,7 @@ export default function AdminCategoryAuditPage() {
       .limit(500);
     setLoading(false);
     if (error) { toast.error("Erreur : " + error.message); return; }
-    setPlaces((data as Place[]) ?? []);
+    setPlaces(((data as unknown) as Place[]) ?? []);
   }, [filterCategory]);
 
   useEffect(() => { load(); }, [load]);
