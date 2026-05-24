@@ -441,10 +441,10 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
                 onClick={() => setSnap(s => s === "half" ? "full" : "half")}
                 className="p-1.5 rounded-full hover:bg-muted transition-colors"
               >
-                <ChevronUp className={`w-5 h-5 text-primary transition-transform ${snap === "full" ? "rotate-180" : ""}`} />
+                <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform ${snap === "full" ? "rotate-180" : ""}`} />
               </button>
               <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
-                <X className="w-5 h-5 text-primary" />
+                <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
           </div>
