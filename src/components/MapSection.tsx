@@ -489,8 +489,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       const el = document.createElement("div");
 
       if (cluster.properties.cluster) {
-        el.style.cssText = "background:hsl(var(--primary));color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;";
-        el.textContent = String(cluster.properties.point_count);
+        el.style.cssText = "cursor:pointer;";
+        const inner = document.createElement("div");
+        inner.style.cssText = "background:hsl(var(--primary));color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3);transform-origin:center center;";
+        inner.style.animation = `markerPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1) ${animDelay}ms both`;
+        inner.textContent = String(cluster.properties.point_count);
+        el.appendChild(inner);
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           const z = scRef.current.getClusterExpansionZoom(cluster.properties.cluster_id);
@@ -502,8 +506,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         const color = place.accepts_dogs ? (CATEGORY_COLORS[place.category] || "#4CAF50") : "#9E9E9E";
         const emoji = CATEGORY_EMOJIS[place.category] || "📍";
         el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));";
-        el.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:${color};border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transition:box-shadow 0.2s ease;">${emoji}</div><div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid ${color};margin-top:-1px;"></div>`;
-        const circleEl = el.firstElementChild as HTMLElement | null;
+        const wrapper = document.createElement("div");
+        wrapper.style.cssText = "display:flex;flex-direction:column;align-items:center;transform-origin:bottom center;";
+        wrapper.style.animation = `markerPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1) ${animDelay}ms both`;
+        wrapper.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:${color};border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transition:box-shadow 0.2s ease;">${emoji}</div><div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid ${color};margin-top:-1px;"></div>`;
+        el.appendChild(wrapper);
+        const circleEl = wrapper.firstElementChild as HTMLElement | null;
         if (circleEl) {
           markerCirclesRef.current.set(id, circleEl);
           if (glowedIdRef.current === id) circleEl.classList.add("marker-selected-glow");
@@ -579,12 +587,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           });
         });
       }
-
-      el.style.opacity = "0";
-      el.style.transform = "scale(0.3)";
-      el.style.transformOrigin = cluster.properties.cluster ? "center center" : "bottom center";
-      el.style.transition = "opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1)";
-      setTimeout(() => { el.style.opacity = "1"; el.style.transform = "scale(1)"; }, animDelay);
 
       const anchor = cluster.properties.cluster ? "center" : "bottom";
       const marker = new mapboxgl.Marker({ element: el, anchor }).setLngLat([lng, lat]).addTo(map);
@@ -1236,6 +1238,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         50%       { box-shadow: 0 0 0 5px rgba(251,191,36,0.40), 0 0 18px 6px rgba(251,191,36,0.3); }
       }
       .marker-selected-glow { animation: markerGoldGlow 2s ease-in-out infinite; }
+      @keyframes markerPopIn {
+        from { opacity: 0; transform: scale(0.3); }
+        to   { opacity: 1; transform: scale(1); }
+      }
     `;
     document.head.appendChild(style);
   }, []);
