@@ -173,7 +173,7 @@ const PANEL_EDGE_ZONE = 44; // px from screen edge that triggers panel swipe
 const CATEGORY_FILTERS = [
   { key: null,              label: "Tous",              emoji: "🐾" },
   { key: "__strays__",      label: "Animaux errants",   emoji: "🚨" },
-  { key: "__lost__",        label: "Animaux perdus",    emoji: "​🆘" },
+  { key: "__lost__",        label: "Animaux perdus",    emoji: "🆘" },
   { key: "veterinaire",    label: "Vétérinaires",      emoji: "🏥" },
   { key: "restaurant",     label: "Restaurants",    emoji: "🍽️" },
   { key: "hotel",          label: "Hôtels",         emoji: "🛏️" },
@@ -1106,7 +1106,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     lostPets.forEach(pet => {
       if (!pet.last_seen_lat || !pet.last_seen_lng) return;
       const el = document.createElement("div");
-      el.innerHTML = `<div class="lost-pet-marker" style="background:#D97706;color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid white;box-shadow:0 2px 8px rgba(217,119,6,.5);cursor:pointer">​🆘</div>`;
+      el.innerHTML = `<div class="lost-pet-marker" style="background:#D97706;color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid white;box-shadow:0 2px 8px rgba(217,119,6,.5);cursor:pointer">🆘</div>`;
       const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
         .setLngLat([pet.last_seen_lng, pet.last_seen_lat])
         .addTo(map);

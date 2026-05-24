@@ -827,7 +827,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                     { label: "Connaisseur",    emoji: "🗺️", desc: "50 avis",           unlocked: reviewCount >= 50,      cat: "Action" },
                     { label: "Bâtisseur",      emoji: "📍", desc: "1 lieu approuvé",   unlocked: approvedSubCount >= 1,  cat: "Action" },
                     { label: "Architecte",     emoji: "🏛️", desc: "5 lieux",           unlocked: approvedSubCount >= 5,  cat: "Action" },
-                    { label: "Veilleur",       emoji: "​🆘", desc: "1 signalement",      unlocked: strayCount >= 1,        cat: "Action" },
+                    { label: "Veilleur",       emoji: "🆘", desc: "1 signalement",      unlocked: strayCount >= 1,        cat: "Action" },
                     { label: "Aventurier",     emoji: "🌟", desc: "500 pts",           unlocked: profile.points >= 500,  cat: "Points" },
                     { label: "Héros",          emoji: "🦁", desc: "1 000 pts",         unlocked: profile.points >= 1000, cat: "Points" },
                     { label: "Légende",        emoji: "💎", desc: "1 500 pts",         unlocked: profile.points >= 1500, cat: "Points" },
@@ -1427,7 +1427,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                         {([
                           { key: "notif_new_place_zone",     icon: "📍", label: "Nouveau lieu publié",   desc: `Dans un rayon de ${profile.alert_radius_km} km` },
                           { key: "notif_place_updated_zone", icon: "✏️", label: "Lieu modifié",           desc: `Dans un rayon de ${profile.alert_radius_km} km` },
-                          { key: "notif_lost_pet_zone",      icon: "​🆘", label: "Animal perdu",           desc: `Dans un rayon de ${profile.alert_radius_km} km` },
+                          { key: "notif_lost_pet_zone",      icon: "🆘", label: "Animal perdu",           desc: `Dans un rayon de ${profile.alert_radius_km} km` },
                           { key: "notif_new_stray_zone",     icon: "🚨", label: "Animal errant",          desc: `Dans un rayon de ${profile.alert_radius_km} km` },
                         ] as const).map(({ key, icon, label, desc }) => (
                           <NotifToggleRow
@@ -1470,7 +1470,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                       { key: "notif_admin_new_review",        icon: "💬", label: "Nouvel avis posté",        desc: "Un utilisateur publie un commentaire" },
                       { key: "notif_admin_new_place",         icon: "📍", label: "Nouveau lieu soumis",      desc: "Un utilisateur soumet un lieu" },
                       { key: "notif_admin_new_stray",         icon: "🚨", label: "Signalement errant",       desc: "Un animal errant est signalé" },
-                      { key: "notif_admin_lost_pet",          icon: "​🆘", label: "Animal perdu",             desc: "Un animal perdu est signalé" },
+                      { key: "notif_admin_lost_pet",          icon: "🆘", label: "Animal perdu",             desc: "Un animal perdu est signalé" },
                       { key: "notif_admin_new_user",          icon: "👤", label: "Nouvelle inscription",     desc: "Un nouvel utilisateur crée un compte" },
                       { key: "notif_admin_profile_complete",  icon: "✨", label: "Profil complété",          desc: "Un utilisateur remplit son profil" },
                     ] as const).map(({ key, icon, label, desc }) => (
