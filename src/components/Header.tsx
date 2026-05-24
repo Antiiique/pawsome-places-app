@@ -76,7 +76,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
           className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
           style={fabStyle}
         >
-          <Heart className="w-5 h-5 text-foreground" />
+          <Heart className="w-5 h-5 text-primary" />
         </button>
 
         <button
@@ -85,7 +85,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
           className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
           style={fabStyle}
         >
-          <Navigation className="w-5 h-5 text-foreground" />
+          <Navigation className="w-5 h-5 text-primary" />
         </button>
 
         {user && (
@@ -95,7 +95,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
             className="relative w-11 h-11 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
             style={fabStyle}
           >
-            <MessageCircle className="w-5 h-5 text-foreground" />
+            <MessageCircle className="w-5 h-5 text-primary" />
             {unreadMessages > 0 && (
               <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
                 {unreadMessages > 9 ? "9+" : unreadMessages}
@@ -112,7 +112,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
               className="relative w-11 h-11 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150"
               style={fabStyle}
             >
-              <Bell className="w-5 h-5 text-foreground" />
+              <Bell className="w-5 h-5 text-primary" />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
                   {unreadCount > 9 ? "9+" : unreadCount}
