@@ -605,7 +605,8 @@ export default function MarkerPopup({
         style={{
           height: "calc(100dvh - var(--header-h, 56px))",
           transform: `translateY(${!visible ? 100 : currentOffset}%)`,
-          transition: isDragging.current ? "none" : "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
+          opacity: panelOpacity,
+          transition: isDragging.current ? "none" : "transform 0.32s cubic-bezier(0.4,0,0.2,1), opacity 0.15s ease",
           willChange: "transform",
         }}
       >
@@ -721,7 +722,7 @@ export default function MarkerPopup({
 
           {/* 2. Photo carousel */}
           {photos.length > 0 && (
-            <div className="relative w-full h-[180px]">
+            <div className="relative w-full h-56 md:h-64">
               <img
                 src={photos[photoIndex]}
                 className="w-full h-full object-cover cursor-pointer"
