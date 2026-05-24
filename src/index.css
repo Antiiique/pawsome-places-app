@@ -29,83 +29,87 @@ html, body, #root {
 
 @layer base {
   :root {
-    /* Stone & Slate — Quiet Luxury 2026 */
-    --background: 32 18% 96%;        /* #F7F5F1 — pierre blanche */
-    --foreground: 20 15% 9%;         /* #191614 — noir chaud */
+    /* ── TEST PALETTE — Soleil & Corail ── */
+    --background: 0 0% 98%;           /* #F9F9F9 */
+    --foreground: 220 20% 18%;        /* quasi-noir bleu-gris */
 
-    --card: 30 30% 99%;              /* #FEFDFB — blanc nacré */
-    --card-foreground: 20 15% 9%;
+    --card: 0 0% 100%;                /* #FFFFFF */
+    --card-foreground: 220 20% 18%;
 
-    --popover: 30 30% 99%;
-    --popover-foreground: 20 15% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 18%;
 
-    --primary: 205 18% 40%;          /* #546674 — ardoise bleue */
-    --primary-foreground: 0 0% 100%;
+    --primary: 37 100% 64%;           /* #FFB947 — Accent Soleil */
+    --primary-foreground: 220 20% 15%;/* texte foncé sur jaune */
 
-    --secondary: 30 14% 91%;         /* #EDEAE5 — pierre douce */
-    --secondary-foreground: 20 12% 22%;
+    --secondary: 214 32% 91%;         /* #E2E8F0 — Shadow douce */
+    --secondary-foreground: 215 26% 35%;
 
-    --muted: 30 14% 91%;
-    --muted-foreground: 25 8% 46%;   /* #787370 — gris chaud */
+    --muted: 214 32% 94%;
+    --muted-foreground: 215 26% 61%;  /* #A1B1C8 — Texte secondaire */
 
-    --accent: 22 32% 46%;            /* #987055 — noyer chaud */
+    --accent: 16 100% 66%;            /* #FF7F50 — Action Corail */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 4 60% 44%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 12% 86%;            /* #DDD9D3 — pierre clair */
-    --input: 30 12% 86%;
-    --ring: 205 18% 40%;
+    --border: 214 32% 91%;            /* #E2E8F0 */
+    --input: 214 32% 91%;
+    --ring: 37 100% 64%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 32 18% 96%;
-    --sidebar-foreground: 20 15% 9%;
-    --sidebar-primary: 205 18% 40%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 14% 91%;
-    --sidebar-accent-foreground: 20 12% 22%;
-    --sidebar-border: 30 12% 86%;
-    --sidebar-ring: 205 18% 40%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 20% 18%;
+    --sidebar-primary: 37 100% 64%;
+    --sidebar-primary-foreground: 220 20% 15%;
+    --sidebar-accent: 214 32% 91%;
+    --sidebar-accent-foreground: 220 20% 18%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 37 100% 64%;
 
-    --success: 158 30% 36%;
-    --warning: 35 60% 46%;
+    --success: 143 34% 64%;           /* #82C29B */
+    --warning: 37 100% 64%;
     --danger: 4 60% 44%;
 
-    --surface: 30 14% 91%;
-    --text-sub: 25 8% 50%;
+    --surface: 0 0% 100%;             /* #FFFFFF */
+    --text-sub: 215 26% 61%;          /* #A1B1C8 */
 
-    --accent-hover: 205 22% 34%;
-    --accent-soft: 205 18% 92%;
-    --pet: 205 18% 40%;
+    --accent-hover: 37 100% 55%;      /* Soleil foncé */
+    --accent-soft: 37 100% 94%;       /* Soleil très clair */
+    --pet: 37 100% 64%;
+
+    --gradient-signature: linear-gradient(135deg, #FFB947 0%, #FF7F50 100%);
   }
 
   .dark {
-    --background: 220 15% 10%;
-    --foreground: 32 20% 92%;
-    --card: 220 14% 14%;
-    --card-foreground: 32 20% 92%;
-    --popover: 220 14% 14%;
-    --popover-foreground: 32 20% 92%;
-    --primary: 205 22% 56%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 12% 12%;
-    --secondary-foreground: 32 20% 92%;
-    --muted: 220 12% 12%;
-    --muted-foreground: 32 10% 48%;
-    --accent: 22 32% 54%;
+    --background: 220 20% 10%;
+    --foreground: 0 0% 95%;
+    --card: 220 20% 14%;
+    --card-foreground: 0 0% 95%;
+    --popover: 220 20% 14%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 37 100% 60%;           /* Soleil légèrement tamisé */
+    --primary-foreground: 220 20% 10%;
+    --secondary: 220 15% 20%;
+    --secondary-foreground: 0 0% 85%;
+    --muted: 220 15% 18%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 16 100% 62%;            /* Corail légèrement tamisé */
     --accent-foreground: 0 0% 100%;
     --destructive: 4 55% 44%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 12% 20%;
-    --input: 220 12% 20%;
-    --ring: 205 22% 56%;
-    --surface: 220 12% 12%;
-    --text-sub: 32 10% 50%;
-    --accent-hover: 205 22% 62%;
-    --accent-soft: 205 18% 18%;
-    --pet: 205 22% 56%;
+    --border: 220 15% 22%;
+    --input: 220 15% 22%;
+    --ring: 37 100% 60%;
+    --surface: 220 20% 14%;
+    --text-sub: 215 20% 55%;
+    --accent-hover: 37 100% 68%;
+    --accent-soft: 37 30% 20%;
+    --pet: 37 100% 60%;
+
+    --gradient-signature: linear-gradient(135deg, #FFB947 0%, #FF7F50 100%);
   }
 }
 
@@ -129,13 +133,12 @@ html, body, #root {
   .hero-gradient {
     background: linear-gradient(
       135deg,
-      hsla(205, 18%, 30%, 0.90) 0%,
-      hsla(205, 18%, 18%, 0.82) 50%,
-      hsla(20, 15%, 6%, 0.96) 100%
+      hsla(37, 100%, 40%, 0.88) 0%,
+      hsla(16, 100%, 35%, 0.92) 100%
     );
   }
   .category-shadow {
-    box-shadow: 0 4px 20px -4px hsla(205, 18%, 40%, 0.14);
+    box-shadow: 0 4px 20px -4px hsla(37, 100%, 64%, 0.18);
   }
   .card-hover {
     @apply transition-all duration-300;
