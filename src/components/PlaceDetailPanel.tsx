@@ -1134,11 +1134,14 @@ const PlaceDetailPanel = ({
         ) : (
           <>
             {(place.photo_url || googleData?.photo_url) && (
-              <img
-                src={place.photo_url || googleData!.photo_url}
-                alt={place.name}
-                className="w-full h-40 object-cover"
-              />
+              <div className="relative w-full h-56 shrink-0 overflow-hidden">
+                <img
+                  src={place.photo_url || googleData!.photo_url}
+                  alt={place.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card to-transparent" />
+              </div>
             )}
 
             <div className="p-4 space-y-4">
