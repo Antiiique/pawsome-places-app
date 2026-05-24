@@ -282,6 +282,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const markerCirclesRef = useRef<Map<string, HTMLElement>>(new Map());
+  const animatedMarkerIds = useRef<Set<string>>(new Set());
   const glowedIdRef = useRef<string | null>(null);
   const strayMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const lostPetMarkersRef = useRef<mapboxgl.Marker[]>([]);
@@ -488,7 +489,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         el.style.cssText = "cursor:pointer;";
         const inner = document.createElement("div");
         inner.style.cssText = "background:hsl(var(--primary));color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3);transform-origin:center center;";
-        inner.style.animation = `markerPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both`;
+        if (!animatedMarkerIds.current.has(id)) {
+          inner.style.animation = `markerPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both`;
+          animatedMarkerIds.current.add(id);
+        }
         inner.textContent = String(cluster.properties.point_count);
         el.appendChild(inner);
         el.addEventListener("click", (e) => {
@@ -504,7 +508,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));";
         const wrapper = document.createElement("div");
         wrapper.style.cssText = "display:flex;flex-direction:column;align-items:center;transform-origin:bottom center;";
-        wrapper.style.animation = `markerPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both`;
+        if (!animatedMarkerIds.current.has(id)) {
+          wrapper.style.animation = `markerPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both`;
+          animatedMarkerIds.current.add(id);
+        }
         wrapper.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:${color};border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transition:box-shadow 0.2s ease;">${emoji}</div><div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid ${color};margin-top:-1px;"></div>`;
         el.appendChild(wrapper);
         const circleEl = wrapper.firstElementChild as HTMLElement | null;
