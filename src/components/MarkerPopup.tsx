@@ -206,6 +206,8 @@ export default function MarkerPopup({
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const { user, profile } = useAuthContext();
   const [reviewTab, setReviewTab] = useState<"google" | "community">("google");
+  const tabDirRef = useRef<"left" | "right">("right");
+  const [tabKey, setTabKey] = useState(0);
   const [communityReviews, setCommunityReviews] = useState<CommunityReview[]>([]);
   const [loadingCR, setLoadingCR] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -488,6 +490,24 @@ export default function MarkerPopup({
   const reviews = place.reviews || [];
   const hasGoogleData = reviews.length > 0 || !!place.rating;
 
+  const switchTab = (tab: "google" | "community") => {
+    tabDirRef.current = tab === "community" ? "right" : "left";
+    setTabKey(k => k + 1);
+    setReviewTab(tab);
+  };
+
+  const addRipple = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const btn = e.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 2;
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+    const ripple = document.createElement("span");
+    ripple.style.cssText = `position:absolute;border-radius:50%;width:${size}px;height:${size}px;left:${x}px;top:${y}px;background:currentColor;pointer-events:none;animation:ripple-expand 0.5s ease-out forwards;`;
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 550);
+  };
+
   const toggleReviewExpand = (i: number) => {
     setExpandedReviews(prev => ({ ...prev, [i]: !prev[i] }));
   };
@@ -502,6 +522,7 @@ export default function MarkerPopup({
 
   const baseOffset = snap === "half" ? 52 : 0;
   const currentOffset = Math.max(0, baseOffset + dragDelta);
+  const panelOpacity = dragDelta > 5 ? Math.max(0.6, 1 - dragDelta * 0.009) : 1;
 
   function handleDragStart(e: React.TouchEvent) {
     isDragging.current = true;
@@ -584,7 +605,8 @@ export default function MarkerPopup({
         style={{
           height: "calc(100dvh - var(--header-h, 56px))",
           transform: `translateY(${!visible ? 100 : currentOffset}%)`,
-          transition: isDragging.current ? "none" : "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
+          opacity: panelOpacity,
+          transition: isDragging.current ? "none" : "transform 0.32s cubic-bezier(0.4,0,0.2,1), opacity 0.15s ease",
           willChange: "transform",
         }}
       >
@@ -700,7 +722,7 @@ export default function MarkerPopup({
 
           {/* 2. Photo carousel */}
           {photos.length > 0 && (
-            <div className="relative w-full h-[180px]">
+            <div className="relative w-full h-56 md:h-64">
               <img
                 src={photos[photoIndex]}
                 className="w-full h-full object-cover cursor-pointer"
@@ -850,15 +872,17 @@ export default function MarkerPopup({
                 const dx = e.changedTouches[0].clientX - swipeStartX.current;
                 swipeStartX.current = null;
                 if (Math.abs(dx) < 40) return;
-                if (dx < 0 && reviewTab === "google" && dbId) setReviewTab("community");
-                else if (dx > 0 && reviewTab === "community") setReviewTab("google");
+                if (dx < 0 && reviewTab === "google" && dbId) switchTab("community");
+                else if (dx > 0 && reviewTab === "community") switchTab("google");
               }}
             >
               {(hasGoogleData || !!dbId) && (
                 <div className="flex gap-2 p-1 rounded-xl bg-muted">
                   {hasGoogleData && (
                     <button
-                      onClick={() => setReviewTab("google")}
+                      onClick={() => switchTab("google")}
+                      onPointerDown={addRipple}
+                      style={{ position: "relative", overflow: "hidden" }}
                       className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                         reviewTab === "google"
                           ? "bg-amber-400 text-white shadow-sm"
@@ -870,7 +894,9 @@ export default function MarkerPopup({
                   )}
                   {!!dbId && (
                     <button
-                      onClick={() => setReviewTab("community")}
+                      onClick={() => switchTab("community")}
+                      onPointerDown={addRipple}
+                      style={{ position: "relative", overflow: "hidden" }}
                       className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                         reviewTab === "community"
                           ? "bg-primary text-primary-foreground shadow-sm"
@@ -883,6 +909,7 @@ export default function MarkerPopup({
                 </div>
               )}
 
+              <div key={tabKey} style={{ animation: `tab-slide-in-${tabDirRef.current} 0.22s ease-out both` }}>
               {reviewTab === "google" && (reviews.length > 0 ? (
                 <div className="space-y-2.5">
                   {reviews.map((r, i) => (
@@ -935,7 +962,18 @@ export default function MarkerPopup({
                     </div>
                   )}
                   {loadingCR ? (
-                    <p className="text-xs text-muted-foreground text-center py-2">Chargement…</p>
+                    <div className="space-y-3 pt-1">
+                      {[0, 1].map(i => (
+                        <div key={i} className="rounded-xl border border-border p-3 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <div className="skeleton-shimmer w-6 h-6 rounded-full" />
+                            <div className="skeleton-shimmer h-3 w-24" />
+                          </div>
+                          <div className="skeleton-shimmer h-3 w-full" />
+                          <div className="skeleton-shimmer h-3 w-2/3" />
+                        </div>
+                      ))}
+                    </div>
                   ) : communityReviews.length === 0 ? (
                     <p className="text-xs text-muted-foreground text-center py-2">Aucun avis communauté. Sois le premier !</p>
                   ) : (
@@ -1123,6 +1161,7 @@ export default function MarkerPopup({
                   ) : <p className="text-xs text-muted-foreground italic text-center">Connecte-toi pour laisser un avis.</p>}
                 </div>
               )}
+              </div>
             </div>
 
           </div>
