@@ -376,13 +376,9 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, 
     if (!isDragging.current) return;
     const delta = e.touches[0].clientY - dragStartY.current;
     setDragDelta(delta);
-    if (panelRef.current && delta > 0) {
-      panelRef.current.style.opacity = String(Math.max(0.3, 1 - (delta / window.innerHeight) * 2));
-    }
   };
   const handleDragEnd = (e: React.TouchEvent) => {
     if (!isDragging.current) return;
-    if (panelRef.current) panelRef.current.style.opacity = "1";
     isDragging.current = false;
     const delta = e.changedTouches[0].clientY - dragStartY.current;
     const elapsed = Date.now() - dragStartTime.current;
@@ -401,6 +397,8 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, 
     const delta = dragDelta / (window.innerHeight * (1 - 56 / window.innerHeight));
     return Math.max(0, Math.min(100, base + delta * 100));
   })();
+
+  const panelOpacity = !visible ? 0 : dragDelta > 0 ? Math.max(0.3, 1 - (dragDelta / window.innerHeight) * 2) : 1;
 
   const handleMessage = async () => {
     if (!me) { toast.error("Connectez-vous pour envoyer un message"); window.dispatchEvent(new CustomEvent("open-auth-modal")); return; }
@@ -462,7 +460,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, 
           top: 0,
           paddingTop: snap === "full" ? "env(safe-area-inset-top)" : 0,
           transform: `translateY(${visible ? currentOffset : 100}%)`,
-          opacity: visible ? 1 : 0,
+          opacity: panelOpacity,
           transition: isDragging.current ? "none" : "opacity 0.3s ease, transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
           willChange: "transform",
         }}

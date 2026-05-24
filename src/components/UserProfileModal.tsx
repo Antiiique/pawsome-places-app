@@ -672,12 +672,12 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
     <>
     <div
       data-panel
-      className="fixed z-[600] inset-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-l-2xl"
+      className="fixed z-[600] inset-0 bg-card shadow-2xl flex flex-col rounded-l-2xl"
       style={{
         overflow: "hidden",
         ...(dragProgress !== undefined
-          ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" }
-          : { transform: open ? "translateX(0%)" : "translateX(100%)" }),
+          ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, opacity: Math.max(0.3, dragProgress), transition: "none" }
+          : { transform: open ? "translateX(0%)" : "translateX(100%)", opacity: open ? 1 : 0, transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease" }),
       }}
     >
       <div className={`flex-shrink-0 flex items-center justify-end px-4 py-3 border-b border-border ${isLeftHanded ? "flex-row-reverse" : ""}`}>
