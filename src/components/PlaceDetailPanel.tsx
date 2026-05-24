@@ -459,6 +459,7 @@ const PlaceDetailPanel = ({
 
   const baseOffset = snap === "half" ? 55 : 0; // % translateY
   const currentOffset = isClosing ? 100 : entered ? Math.max(0, baseOffset + dragDelta) : 100;
+  const panelOpacity = dragDelta > 5 ? Math.max(0.6, 1 - dragDelta * 0.009) : 1;
 
   const handleDragStart = (e: React.TouchEvent) => {
     isDragging.current = true;
@@ -521,6 +522,26 @@ const PlaceDetailPanel = ({
 
   // ── Place data state ──
   const [activeTab, setActiveTab] = useState<"google" | "community">("google");
+  const tabDirRef = useRef<"left" | "right">("right");
+  const [tabKey, setTabKey] = useState(0);
+
+  const switchTab = (tab: "google" | "community") => {
+    tabDirRef.current = tab === "community" ? "right" : "left";
+    setTabKey(k => k + 1);
+    setActiveTab(tab);
+  };
+
+  const addRipple = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const btn = e.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 2;
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+    const ripple = document.createElement("span");
+    ripple.style.cssText = `position:absolute;border-radius:50%;width:${size}px;height:${size}px;left:${x}px;top:${y}px;background:currentColor;pointer-events:none;animation:ripple-expand 0.5s ease-out forwards;`;
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 550);
+  };
   const [reviews, setReviews] = useState<PlaceReview[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [newRating, setNewRating] = useState(0);
@@ -808,10 +829,11 @@ const PlaceDetailPanel = ({
         height: "100dvh",
         paddingTop: snap === "full" ? "env(safe-area-inset-top)" : 0,
         transform: `translateY(${currentOffset}%)`,
+        opacity: panelOpacity,
         transition:
           isDragging.current && !isClosing
             ? "none"
-            : "transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
+            : "transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.15s ease",
         willChange: "transform",
       }}
     >
@@ -1220,18 +1242,24 @@ const PlaceDetailPanel = ({
               {/* Tabs */}
               <div className="flex rounded-xl border border-border overflow-hidden">
                 <button
-                  onClick={() => setActiveTab("google")}
+                  onClick={() => switchTab("google")}
+                  onPointerDown={addRipple}
+                  style={{ position: "relative", overflow: "hidden" }}
                   className={`flex-1 py-2 text-xs font-semibold transition-colors ${activeTab === "google" ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" : "text-muted-foreground hover:bg-muted"}`}
                 >
                   ⭐ Google{(place.rating ?? googleData?.rating) ? ` · ${place.rating ?? googleData?.rating}` : ""}
                 </button>
                 <button
-                  onClick={() => setActiveTab("community")}
+                  onClick={() => switchTab("community")}
+                  onPointerDown={addRipple}
+                  style={{ position: "relative", overflow: "hidden" }}
                   className={`flex-1 py-2 text-xs font-semibold transition-colors ${activeTab === "community" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
                 >
                   💬 Communauté{reviews.length > 0 ? ` · ${reviews.length}` : ""}
                 </button>
               </div>
+
+              <div key={tabKey} style={{ animation: `tab-slide-in-${tabDirRef.current} 0.22s ease-out both` }}>
 
               {activeTab === "google" &&
                 (() => {
@@ -1271,7 +1299,18 @@ const PlaceDetailPanel = ({
                     </div>
                   )}
                   {loadingReviews ? (
-                    <p className="text-xs text-muted-foreground text-center py-2">Chargement…</p>
+                    <div className="space-y-3 pt-1">
+                      {[0, 1].map(i => (
+                        <div key={i} className="rounded-xl border border-border p-3 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <div className="skeleton-shimmer w-6 h-6 rounded-full" />
+                            <div className="skeleton-shimmer h-3 w-24" />
+                          </div>
+                          <div className="skeleton-shimmer h-3 w-full" />
+                          <div className="skeleton-shimmer h-3 w-2/3" />
+                        </div>
+                      ))}
+                    </div>
                   ) : reviews.length === 0 ? (
                     <p className="text-xs text-muted-foreground italic text-center py-2">
                       Aucun avis. Sois le premier !
@@ -1473,6 +1512,8 @@ const PlaceDetailPanel = ({
                   )}
                 </div>
               )}
+
+              </div>{/* end tab animated wrapper */}
 
               {localOpeningHours && (
                 <div>
