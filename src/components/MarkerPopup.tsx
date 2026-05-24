@@ -206,6 +206,8 @@ export default function MarkerPopup({
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const { user, profile } = useAuthContext();
   const [reviewTab, setReviewTab] = useState<"google" | "community">("google");
+  const tabDirRef = useRef<"left" | "right">("right");
+  const [tabKey, setTabKey] = useState(0);
   const [communityReviews, setCommunityReviews] = useState<CommunityReview[]>([]);
   const [loadingCR, setLoadingCR] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -488,6 +490,24 @@ export default function MarkerPopup({
   const reviews = place.reviews || [];
   const hasGoogleData = reviews.length > 0 || !!place.rating;
 
+  const switchTab = (tab: "google" | "community") => {
+    tabDirRef.current = tab === "community" ? "right" : "left";
+    setTabKey(k => k + 1);
+    setReviewTab(tab);
+  };
+
+  const addRipple = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const btn = e.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 2;
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+    const ripple = document.createElement("span");
+    ripple.style.cssText = `position:absolute;border-radius:50%;width:${size}px;height:${size}px;left:${x}px;top:${y}px;background:currentColor;pointer-events:none;animation:ripple-expand 0.5s ease-out forwards;`;
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 550);
+  };
+
   const toggleReviewExpand = (i: number) => {
     setExpandedReviews(prev => ({ ...prev, [i]: !prev[i] }));
   };
@@ -502,6 +522,7 @@ export default function MarkerPopup({
 
   const baseOffset = snap === "half" ? 52 : 0;
   const currentOffset = Math.max(0, baseOffset + dragDelta);
+  const panelOpacity = dragDelta > 5 ? Math.max(0.6, 1 - dragDelta * 0.009) : 1;
 
   function handleDragStart(e: React.TouchEvent) {
     isDragging.current = true;
