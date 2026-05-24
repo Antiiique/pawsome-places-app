@@ -119,6 +119,17 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
           </div>
         )}
 
+        {user && !isMobile && (
+          <button
+            onClick={onProfileClick}
+            title="Mon profil"
+            className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150 text-sm font-bold"
+            style={{ ...fabStyle, backgroundColor: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}
+          >
+            {initial}
+          </button>
+        )}
+
         {!user && (
             <button
               onClick={() => setShowAuthModal(true)}
