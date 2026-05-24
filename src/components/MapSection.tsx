@@ -488,7 +488,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       if (cluster.properties.cluster) {
         el.style.cssText = "cursor:pointer;";
         const inner = document.createElement("div");
-        inner.style.cssText = "background:linear-gradient(145deg, rgba(255,255,255,0.28) 0%, rgba(0,0,0,0.15) 100%), hsl(var(--primary));color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 3px 10px rgba(0,0,0,.25);transform-origin:center center;";
+        inner.style.cssText = "background:linear-gradient(145deg, rgba(255,255,255,0.18) 0%, rgba(0,0,0,0.22) 100%), #3D7A8A;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 3px 10px rgba(0,0,0,.25);transform-origin:center center;";
         const posKey = `cpos-${Math.round(lat * 1000) / 1000}-${Math.round(lng * 1000) / 1000}`;
         if (!animatedMarkerIds.current.has(posKey)) {
           inner.style.animation = `markerPopIn 0.5s cubic-bezier(0.16,1,0.3,1) both`;
