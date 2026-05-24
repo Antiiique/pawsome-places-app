@@ -284,6 +284,11 @@ const PlaceDetailPanel = ({
     outdoor_seating: place?.outdoor_seating ?? false,
     dogs_on_leash_only: place?.dogs_on_leash_only ?? false,
   });
+  const [localAddress, setLocalAddress] = useState<string | null>(place?.address ?? null);
+  const [localCity, setLocalCity] = useState<string | null>(place?.city ?? null);
+  const [localPhone, setLocalPhone] = useState<string | null>(place?.phone ?? null);
+  const [localWebsite, setLocalWebsite] = useState<string | null>(place?.website ?? null);
+  const [localOpeningHours, setLocalOpeningHours] = useState<string | null>(place?.opening_hours ?? null);
   const [localFlagged, setLocalFlagged] = useState(place?.is_flagged ?? false);
   const [savingMeta, setSavingMeta] = useState(false);
 
@@ -320,6 +325,11 @@ const PlaceDetailPanel = ({
       outdoor_seating: place?.outdoor_seating ?? false,
       dogs_on_leash_only: place?.dogs_on_leash_only ?? false,
     });
+    setLocalAddress(place?.address ?? null);
+    setLocalCity(place?.city ?? null);
+    setLocalPhone(place?.phone ?? null);
+    setLocalWebsite(place?.website ?? null);
+    setLocalOpeningHours(place?.opening_hours ?? null);
     setLocalFlagged(place?.is_flagged ?? false);
   }, [place?.id]);
 
@@ -644,9 +654,15 @@ const PlaceDetailPanel = ({
       return;
     }
     setLocalCategory(editForm.category);
+    setLocalSubcategory(editForm.subcategory || "");
     setLocalName(editForm.name);
     setLocalVerified(editForm.verified);
     setLocalDescription(editForm.description || null);
+    setLocalAddress(editForm.address || null);
+    setLocalCity(editForm.city || null);
+    setLocalPhone(editForm.phone || null);
+    setLocalWebsite(editForm.website || null);
+    setLocalOpeningHours(editForm.opening_hours || null);
     setLocalPetFlags({
       accepts_dogs: editForm.accepts_dogs,
       accepts_cats: editForm.accepts_cats,
@@ -1432,44 +1448,44 @@ const PlaceDetailPanel = ({
                 </div>
               )}
 
-              {place.opening_hours && (
+              {localOpeningHours && (
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Horaires</p>
-                  <p className="text-sm whitespace-pre-line">{place.opening_hours}</p>
+                  <p className="text-sm whitespace-pre-line">{localOpeningHours}</p>
                 </div>
               )}
-              {(place.address || place.city || googleData?.formattedAddress) && (
+              {(localAddress || localCity || googleData?.formattedAddress) && (
                 <div className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                   <p className="text-sm">
                     {googleData?.formattedAddress
                       ? googleData.formattedAddress
-                      : [place.address, place.city].filter(Boolean).join(", ")}
+                      : [localAddress, localCity].filter(Boolean).join(", ")}
                   </p>
                 </div>
               )}
-              {place.phone && (
+              {localPhone && (
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
-                  {getSafePhone(place.phone) ? (
-                    <a href={`tel:${getSafePhone(place.phone)}`} className="text-sm text-primary hover:underline">
-                      {place.phone}
+                  {getSafePhone(localPhone) ? (
+                    <a href={`tel:${getSafePhone(localPhone)}`} className="text-sm text-primary hover:underline">
+                      {localPhone}
                     </a>
                   ) : (
-                    <span className="text-sm text-muted-foreground">{place.phone}</span>
+                    <span className="text-sm text-muted-foreground">{localPhone}</span>
                   )}
                 </div>
               )}
-              {getSafeUrl(place.website) && (
+              {getSafeUrl(localWebsite) && (
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
                   <a
-                    href={getSafeUrl(place.website)!}
+                    href={getSafeUrl(localWebsite)!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-primary hover:underline truncate"
                   >
-                    {place.website}
+                    {localWebsite}
                   </a>
                 </div>
               )}
