@@ -472,7 +472,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     );
 
     const visible = new Set<string>();
-    let newMarkerCount = 0;
 
     clusters.forEach((cluster: any) => {
       const [lng, lat] = cluster.geometry.coordinates;
@@ -483,16 +482,13 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
       if (markersRef.current.has(id)) return;
 
-      const animDelay = Math.min(newMarkerCount * 25, 250);
-      newMarkerCount++;
-
       const el = document.createElement("div");
 
       if (cluster.properties.cluster) {
         el.style.cssText = "cursor:pointer;";
         const inner = document.createElement("div");
         inner.style.cssText = "background:hsl(var(--primary));color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3);transform-origin:center center;";
-        inner.style.animation = `markerPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1) ${animDelay}ms both`;
+        inner.style.animation = `markerPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both`;
         inner.textContent = String(cluster.properties.point_count);
         el.appendChild(inner);
         el.addEventListener("click", (e) => {
@@ -508,7 +504,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));";
         const wrapper = document.createElement("div");
         wrapper.style.cssText = "display:flex;flex-direction:column;align-items:center;transform-origin:bottom center;";
-        wrapper.style.animation = `markerPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1) ${animDelay}ms both`;
+        wrapper.style.animation = `markerPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both`;
         wrapper.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:${color};border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transition:box-shadow 0.2s ease;">${emoji}</div><div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid ${color};margin-top:-1px;"></div>`;
         el.appendChild(wrapper);
         const circleEl = wrapper.firstElementChild as HTMLElement | null;
