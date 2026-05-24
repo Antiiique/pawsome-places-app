@@ -1161,6 +1161,7 @@ export default function MarkerPopup({
                   ) : <p className="text-xs text-muted-foreground italic text-center">Connecte-toi pour laisser un avis.</p>}
                 </div>
               )}
+              </div>
             </div>
 
           </div>
