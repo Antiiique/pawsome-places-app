@@ -219,7 +219,10 @@ html, body, #root {
   100% { transform: scale(1);    opacity: 1; }
 }
 .badge-verified {
-  animation: verified-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  display: inline-flex;
+  transform-origin: center;
+  animation: verified-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.18s both;
+  will-change: transform, opacity;
 }
 
 /* Mapbox attribution — keep legally visible but reduce visual weight */
