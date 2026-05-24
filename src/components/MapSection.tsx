@@ -656,6 +656,34 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
     map.on("load", () => {
       POI_LAYERS.forEach((layer) => { try { map.setLayoutProperty(layer, "visibility", "none"); } catch {} });
+
+      // ── Google Maps color palette ──
+      const gmColors: Array<[string, string, any]> = [
+        ["land",                        "background-color", "#F2EFE9"],
+        ["landuse",                     "fill-color",       ["match", ["get", "class"], ["park","grass","meadow","pitch","playground","recreation_ground"], "#C8E6C9", ["cemetery","allotments"], "#DCE9D8", "hospital", "#FDE0DC", ["school","kindergarten","college","university"], "#F3E9C8", ["commercial","retail"], "#EEE8E0", "industrial", "#EDE8DF", "#F2EFE9"]],
+        ["national-park",               "fill-color",       "#C8E6C9"],
+        ["water",                       "fill-color",       "#BED4E4"],
+        ["water-shadow",                "fill-color",       "#A8C8DF"],
+        ["building",                    "fill-color",       "#E8E0D8"],
+        ["building",                    "fill-outline-color","#D8D0C8"],
+        ["road-path",                   "line-color",       "#F0EDE8"],
+        ["road-minor",                  "line-color",       "#FFFFFF"],
+        ["road-minor-low",              "line-color",       "#FFFFFF"],
+        ["road-street",                 "line-color",       "#FFFFFF"],
+        ["road-street-low",             "line-color",       "#FFFFFF"],
+        ["road-minor-case",             "line-color",       "#D6D1C8"],
+        ["road-street-case",            "line-color",       "#D6D1C8"],
+        ["road-secondary-tertiary",     "line-color",       "#FFFFFF"],
+        ["road-secondary-tertiary-case","line-color",       "#CFCAC2"],
+        ["road-primary",                "line-color",       "#FDD663"],
+        ["road-primary-case",           "line-color",       "#E8C040"],
+        ["road-motorway-trunk",         "line-color",       "#FDD663"],
+        ["road-motorway-trunk-case",    "line-color",       "#E8C040"],
+        ["road-rail",                   "line-color",       "#B0AAA4"],
+        ["road-rail-tracks",            "line-color",       "#C8C4C0"],
+      ];
+      gmColors.forEach(([id, prop, value]) => { try { map.setPaintProperty(id, prop, value); } catch {} });
+
       setIsLoaded(true);
 
       // ── User location dot ──
