@@ -49,9 +49,6 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
     return () => window.removeEventListener("open-submit-modal", handler);
   }, [user]);
 
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const initial = profile?.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
-
   const fabStyle = {
     background: "color-mix(in srgb, var(--card) 92%, transparent)",
     border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)",
