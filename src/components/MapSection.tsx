@@ -657,30 +657,51 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     map.on("load", () => {
       POI_LAYERS.forEach((layer) => { try { map.setLayoutProperty(layer, "visibility", "none"); } catch {} });
 
-      // ── Google Maps color palette ──
+      // ── Google Maps colors (accurate) ──
       const gmColors: Array<[string, string, any]> = [
-        ["land",                        "background-color", "#F2EFE9"],
-        ["landuse",                     "fill-color",       ["match", ["get", "class"], ["park","grass","meadow","pitch","playground","recreation_ground"], "#C8E6C9", ["cemetery","allotments"], "#DCE9D8", "hospital", "#FDE0DC", ["school","kindergarten","college","university"], "#F3E9C8", ["commercial","retail"], "#EEE8E0", "industrial", "#EDE8DF", "#F2EFE9"]],
-        ["national-park",               "fill-color",       "#C8E6C9"],
-        ["water",                       "fill-color",       "#BED4E4"],
-        ["water-shadow",                "fill-color",       "#A8C8DF"],
-        ["building",                    "fill-color",       "#E8E0D8"],
-        ["building",                    "fill-outline-color","#D8D0C8"],
-        ["road-path",                   "line-color",       "#F0EDE8"],
-        ["road-minor",                  "line-color",       "#FFFFFF"],
-        ["road-minor-low",              "line-color",       "#FFFFFF"],
-        ["road-street",                 "line-color",       "#FFFFFF"],
-        ["road-street-low",             "line-color",       "#FFFFFF"],
-        ["road-minor-case",             "line-color",       "#D6D1C8"],
-        ["road-street-case",            "line-color",       "#D6D1C8"],
-        ["road-secondary-tertiary",     "line-color",       "#FFFFFF"],
-        ["road-secondary-tertiary-case","line-color",       "#CFCAC2"],
-        ["road-primary",                "line-color",       "#FDD663"],
-        ["road-primary-case",           "line-color",       "#E8C040"],
-        ["road-motorway-trunk",         "line-color",       "#FDD663"],
-        ["road-motorway-trunk-case",    "line-color",       "#E8C040"],
-        ["road-rail",                   "line-color",       "#B0AAA4"],
-        ["road-rail-tracks",            "line-color",       "#C8C4C0"],
+        // Fond terre — beige chaud Google
+        ["land",                         "background-color",  "#F2EFE9"],
+        // Zones d'usage du sol
+        ["landuse",                      "fill-color",        ["match", ["get", "class"],
+          ["park","grass","meadow","pitch","playground","recreation_ground"], "#C8E6C9",
+          ["cemetery","allotments"],  "#D5E8CC",
+          "hospital",                 "#FDEAE2",
+          ["school","kindergarten","college","university"], "#F3EAC8",
+          ["commercial","retail"],    "#EDE8DF",
+          "industrial",               "#E8E2D8",
+          "#F2EFE9"]],
+        ["national-park",                "fill-color",        "#C8E6C9"],
+        // Eau — bleu Google Maps
+        ["water",                        "fill-color",        "#A8D8EA"],
+        ["water-shadow",                 "fill-color",        "#94C8DC"],
+        // Bâtiments — gris chaud léger
+        ["building",                     "fill-color",        "#E8E0D8"],
+        ["building",                     "fill-outline-color","#D4CDC5"],
+        // Chemins piétons — très discret
+        ["road-path",                    "line-color",        "#F0EDE8"],
+        ["road-path-bg",                 "line-color",        "#E8E4DF"],
+        // Petites rues / résidentielles — blanc
+        ["road-minor",                   "line-color",        "#FFFFFF"],
+        ["road-minor-low",               "line-color",        "#FFFFFF"],
+        ["road-minor-case",              "line-color",        "#DDD9D5"],
+        // Rues normales — blanc
+        ["road-street",                  "line-color",        "#FFFFFF"],
+        ["road-street-low",              "line-color",        "#FFFFFF"],
+        ["road-street-case",             "line-color",        "#DDD9D5"],
+        // Routes secondaires/tertiaires — blanc
+        ["road-secondary-tertiary",      "line-color",        "#FFFFFF"],
+        ["road-secondary-tertiary-case", "line-color",        "#D0CBC4"],
+        // Routes primaires — blanc (pas orange sur Google Maps)
+        ["road-primary",                 "line-color",        "#FFFFFF"],
+        ["road-primary-case",            "line-color",        "#C8C3BC"],
+        // Autoroutes & nationales — orange ambre Google Maps
+        ["road-motorway-trunk",          "line-color",        "#F5A623"],
+        ["road-motorway-trunk-case",     "line-color",        "#E08C10"],
+        // Ferroviaire — gris discret
+        ["road-rail",                    "line-color",        "#B8B4B0"],
+        ["road-rail-tracks",             "line-color",        "#C8C4C0"],
+        ["bridge-rail",                  "line-color",        "#B8B4B0"],
+        ["bridge-rail-tracks",           "line-color",        "#C8C4C0"],
       ];
       gmColors.forEach(([id, prop, value]) => { try { map.setPaintProperty(id, prop, value); } catch {} });
 
