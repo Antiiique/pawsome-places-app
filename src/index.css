@@ -39,8 +39,8 @@ html, body, #root {
     --popover: 0 0% 100%;
     --popover-foreground: 220 26% 18%;
 
-    --primary: 37 100% 64%;          /* #FFB947 — jaune soleil */
-    --primary-foreground: 220 26% 15%; /* #1A2332 — WCAG AAA ~7.7:1 */
+    --primary: 16 100% 66%;           /* #FF7F50 — corail */
+    --primary-foreground: 220 26% 15%; /* #1A2332 — WCAG AA ~5.9:1 */
 
     --secondary: 210 20% 94%;        /* #EEF1F5 — gris bleuté doux */
     --secondary-foreground: 220 26% 18%;
@@ -48,26 +48,26 @@ html, body, #root {
     --muted: 210 20% 94%;
     --muted-foreground: 215 16% 47%; /* #64748B — slate gray */
 
-    --accent: 16 100% 66%;           /* #FF7F50 — corail */
-    --accent-foreground: 220 26% 15%; /* #1A2332 — WCAG AA ~5.9:1 */
+    --accent: 37 100% 64%;           /* #FFB947 — jaune soleil */
+    --accent-foreground: 220 26% 15%; /* #1A2332 — WCAG AAA ~7.7:1 */
 
     --destructive: 4 60% 44%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 214 32% 91%;           /* #E2E8F0 */
     --input: 214 32% 91%;
-    --ring: 37 100% 64%;
+    --ring: 16 100% 66%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 220 26% 18%;
-    --sidebar-primary: 37 100% 64%;
+    --sidebar-primary: 16 100% 66%;
     --sidebar-primary-foreground: 220 26% 15%;
     --sidebar-accent: 210 20% 94%;
     --sidebar-accent-foreground: 220 26% 18%;
     --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 37 100% 64%;
+    --sidebar-ring: 16 100% 66%;
 
     --success: 143 34% 64%;          /* #82C29B */
     --warning: 35 60% 46%;
@@ -78,7 +78,7 @@ html, body, #root {
 
     --accent-hover: 16 100% 56%;     /* corail foncé au hover */
     --accent-soft: 16 100% 95%;      /* teinte corail très douce */
-    --pet: 37 100% 64%;
+    --pet: 16 100% 66%;
   }
 
   .dark {
