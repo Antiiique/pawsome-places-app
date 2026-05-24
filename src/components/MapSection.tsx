@@ -489,9 +489,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         el.style.cssText = "cursor:pointer;";
         const inner = document.createElement("div");
         inner.style.cssText = "background:hsl(var(--primary));color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3);transform-origin:center center;";
-        if (!animatedMarkerIds.current.has(id)) {
+        const posKey = `cpos-${Math.round(lat * 1000) / 1000}-${Math.round(lng * 1000) / 1000}`;
+        if (!animatedMarkerIds.current.has(posKey)) {
           inner.style.animation = `markerPopIn 0.5s cubic-bezier(0.16,1,0.3,1) both`;
-          animatedMarkerIds.current.add(id);
+          animatedMarkerIds.current.add(posKey);
         }
         inner.textContent = String(cluster.properties.point_count);
         el.appendChild(inner);
