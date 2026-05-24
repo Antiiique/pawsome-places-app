@@ -198,7 +198,8 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
         top: 0,
         paddingTop: snapState === "full" ? "env(safe-area-inset-top)" : 0,
         transform: `translateY(${open ? currentPct : 100}%)`,
-        transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
+        opacity: open ? 1 : 0,
+        transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease, padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
       }}
     >
       {/* Drag handle */}

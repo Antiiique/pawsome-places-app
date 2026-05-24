@@ -1,7 +1,7 @@
 import { useUserNotifications } from "@/hooks/useUserNotifications";
 import { Skeleton } from "@/components/ui/skeleton";
 import { X } from "lucide-react";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 
 interface NotificationPanelProps {
   open: boolean;
@@ -36,6 +36,19 @@ const typeConfig: Record<string, { icon: string; borderColor: string; bgColor: s
 export default function NotificationPanel({ open, onClose }: NotificationPanelProps) {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useUserNotifications();
   const panelRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      requestAnimationFrame(() => setVisible(true));
+    } else {
+      setVisible(false);
+      const t = setTimeout(() => setMounted(false), 300);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -46,7 +59,7 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
     return () => document.removeEventListener("mousedown", handler);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!mounted) return null;
 
   const handleNotificationClick = (n: (typeof notifications)[number]) => {
     if (!n.is_read) markAsRead(n.id);
@@ -73,6 +86,9 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
         style={{
           width: "min(360px, calc(100vw - 16px))",
           maxHeight: "min(520px, calc(100dvh - 120px))",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(-8px)",
+          transition: "opacity 0.3s ease, transform 0.3s ease",
           background: "color-mix(in srgb, var(--card) 60%, transparent)",
           border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
           backdropFilter: "blur(24px)",
