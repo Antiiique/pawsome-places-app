@@ -488,7 +488,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       if (cluster.properties.cluster) {
         el.style.cssText = "cursor:pointer;";
         const inner = document.createElement("div");
-        inner.style.cssText = "background:hsl(var(--primary));color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3);transform-origin:center center;";
+        inner.style.cssText = "background:linear-gradient(145deg, rgba(255,255,255,0.28) 0%, rgba(0,0,0,0.15) 100%), hsl(var(--primary));color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 3px 10px rgba(0,0,0,.25);transform-origin:center center;";
         const posKey = `cpos-${Math.round(lat * 1000) / 1000}-${Math.round(lng * 1000) / 1000}`;
         if (!animatedMarkerIds.current.has(posKey)) {
           inner.style.animation = `markerPopIn 0.5s cubic-bezier(0.16,1,0.3,1) both`;
@@ -506,9 +506,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         if (!place) return;
         const color = place.accepts_dogs ? (CATEGORY_COLORS[place.category] || "#4CAF50") : "#9E9E9E";
         const emoji = CATEGORY_EMOJIS[place.category] || "📍";
-        el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));";
+        el.style.cssText = `display:flex;flex-direction:column;align-items:center;cursor:pointer;filter:drop-shadow(0 4px 12px ${color}88);`;
         const wrapper = document.createElement("div");
-        wrapper.style.cssText = "display:flex;flex-direction:column;align-items:center;transform-origin:bottom center;";
+        wrapper.style.cssText = "display:flex;flex-direction:column;align-items:center;transform-origin:bottom center;position:relative;";
         if (!animatedMarkerIds.current.has(id)) {
           wrapper.style.animation = `markerPopIn 0.5s cubic-bezier(0.16,1,0.3,1) both`;
           animatedMarkerIds.current.add(id);
@@ -532,6 +532,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           e.stopPropagation();
           markerClickedRef.current = true;
           setTimeout(() => { markerClickedRef.current = false; }, 300);
+          const pulse = document.createElement("div");
+          pulse.style.cssText = `position:absolute;width:36px;height:36px;border-radius:50%;border:2.5px solid ${color};top:0;left:0;pointer-events:none;animation:markerPulse 0.65s ease-out forwards;`;
+          wrapper.appendChild(pulse);
+          setTimeout(() => pulse.remove(), 750);
           const rect = mapContainerRef.current?.getBoundingClientRect();
           const pt = map.project([place.longitude, place.latitude]);
           const position = { x: (rect?.left || 0) + pt.x, y: (rect?.top || 0) + pt.y };
@@ -1245,6 +1249,10 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       @keyframes markerPopIn {
         from { opacity: 0; transform: scale(0.6); }
         to   { opacity: 1; transform: scale(1); }
+      }
+      @keyframes markerPulse {
+        from { transform: scale(1); opacity: 0.75; }
+        to   { transform: scale(2.4); opacity: 0; }
       }
     `;
     document.head.appendChild(style);
