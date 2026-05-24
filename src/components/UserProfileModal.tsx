@@ -723,6 +723,18 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
         </button>
       </div>
 
+      {/* Counter-transform: content stays fixed while panel frame moves */}
+      <div
+        className="flex-1 min-h-0 flex flex-col overflow-hidden"
+        style={{
+          transform: dragProgress !== undefined
+            ? `translateX(-${(1 - dragProgress) * 100}%)`
+            : swipeDelta > 0
+              ? `translateX(-${swipeDelta}px)`
+              : "none",
+          transition: (dragProgress !== undefined || swipeDelta > 0) ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+        }}
+      >
       <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <div className="flex-1 min-h-0 overflow-y-auto" style={{ touchAction: "pan-y" }}>
 
@@ -1563,6 +1575,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
           </TabsList>
         </div>
       </Tabs>
+      </div>
     </div>
     </>
   );
