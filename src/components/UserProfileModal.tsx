@@ -496,12 +496,13 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
         bio: profile.bio || null,
         age: profile.age,
         city: profile.city || null,
+        alert_radius_km: profile.alert_radius_km,
       } as any).eq("id", user.id);
       setSaving(false);
       if (error) toast.error("Erreur de sauvegarde : " + error.message);
     }, 800);
     return () => clearTimeout(saveTimerRef.current);
-  }, [profile.display_name, profile.bio, profile.age, profile.city, user]);
+  }, [profile.display_name, profile.bio, profile.age, profile.city, profile.alert_radius_km, user]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
