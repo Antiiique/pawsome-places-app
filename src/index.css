@@ -29,56 +29,56 @@ html, body, #root {
 
 @layer base {
   :root {
-    /* Stone & Slate — Quiet Luxury 2026 */
-    --background: 32 18% 96%;        /* #F7F5F1 — pierre blanche */
-    --foreground: 20 15% 9%;         /* #191614 — noir chaud */
+    /* Pêche & Lumière */
+    --background: 30 60% 98%;        /* #FDFAF7 — crème chaude */
+    --foreground: 218 23% 23%;       /* #2D3748 — gris ardoise */
 
-    --card: 30 30% 99%;              /* #FEFDFB — blanc nacré */
-    --card-foreground: 20 15% 9%;
+    --card: 20 100% 97%;             /* #FFF5F0 — pêche très doux */
+    --card-foreground: 218 23% 23%;
 
-    --popover: 30 30% 99%;
-    --popover-foreground: 20 15% 9%;
+    --popover: 20 100% 97%;
+    --popover-foreground: 218 23% 23%;
 
-    --primary: 205 18% 40%;          /* #546674 — ardoise bleue */
-    --primary-foreground: 0 0% 100%;
+    --primary: 11 100% 68%;          /* #FF7A5C — pêche-corail */
+    --primary-foreground: 218 23% 23%; /* WCAG AA ~4.6:1 */
 
-    --secondary: 30 14% 91%;         /* #EDEAE5 — pierre douce */
-    --secondary-foreground: 20 12% 22%;
+    --secondary: 20 60% 94%;         /* pêche secondaire */
+    --secondary-foreground: 218 23% 23%;
 
-    --muted: 30 14% 91%;
-    --muted-foreground: 25 8% 46%;   /* #787370 — gris chaud */
+    --muted: 20 60% 94%;
+    --muted-foreground: 218 15% 46%; /* slate moyen */
 
-    --accent: 22 32% 46%;            /* #987055 — noyer chaud */
-    --accent-foreground: 0 0% 100%;
+    --accent: 42 100% 70%;           /* #FFD166 — ambre */
+    --accent-foreground: 218 23% 23%; /* WCAG AAA ~8.1:1 */
 
     --destructive: 4 60% 44%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 12% 86%;            /* #DDD9D3 — pierre clair */
-    --input: 30 12% 86%;
-    --ring: 205 18% 40%;
+    --border: 20 50% 90%;            /* bordure pêche douce */
+    --input: 20 50% 90%;
+    --ring: 11 100% 68%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;                  /* 16px — très arrondi */
 
-    --sidebar-background: 32 18% 96%;
-    --sidebar-foreground: 20 15% 9%;
-    --sidebar-primary: 205 18% 40%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 14% 91%;
-    --sidebar-accent-foreground: 20 12% 22%;
-    --sidebar-border: 30 12% 86%;
-    --sidebar-ring: 205 18% 40%;
+    --sidebar-background: 30 60% 98%;
+    --sidebar-foreground: 218 23% 23%;
+    --sidebar-primary: 11 100% 68%;
+    --sidebar-primary-foreground: 218 23% 23%;
+    --sidebar-accent: 20 60% 94%;
+    --sidebar-accent-foreground: 218 23% 23%;
+    --sidebar-border: 20 50% 90%;
+    --sidebar-ring: 11 100% 68%;
 
-    --success: 158 30% 36%;
-    --warning: 35 60% 46%;
+    --success: 142 36% 50%;
+    --warning: 42 100% 70%;
     --danger: 4 60% 44%;
 
-    --surface: 30 14% 91%;
-    --text-sub: 25 8% 50%;
+    --surface: 20 60% 94%;
+    --text-sub: 218 15% 46%;
 
-    --accent-hover: 205 22% 34%;
-    --accent-soft: 205 18% 92%;
-    --pet: 205 18% 40%;
+    --accent-hover: 11 100% 60%;     /* corail foncé */
+    --accent-soft: 11 100% 94%;      /* pêche très pâle */
+    --pet: 11 100% 68%;
   }
 
   .dark {
@@ -129,20 +129,20 @@ html, body, #root {
   .hero-gradient {
     background: linear-gradient(
       135deg,
-      hsla(205, 18%, 30%, 0.90) 0%,
-      hsla(205, 18%, 18%, 0.82) 50%,
-      hsla(20, 15%, 6%, 0.96) 100%
+      hsla(11, 100%, 50%, 0.88) 0%,
+      hsla(11, 80%, 35%, 0.82) 50%,
+      hsla(20, 40%, 10%, 0.96) 100%
     );
   }
   .category-shadow {
-    box-shadow: 0 4px 20px -4px hsla(205, 18%, 40%, 0.14);
+    box-shadow: 0 4px 20px -4px hsla(11, 100%, 68%, 0.20);
   }
   .card-hover {
     @apply transition-all duration-300;
   }
   .card-hover:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px -8px hsla(205, 18%, 40%, 0.16);
+    box-shadow: 0 12px 32px -8px hsla(11, 100%, 68%, 0.22);
   }
   .animate-slide-in-right {
     animation: slideInRight 0.3s ease-out;
@@ -161,7 +161,7 @@ html, body, #root {
 #map,
 .map-container,
 [class*="map-wrapper"] {
-  background: hsl(32 18% 96%) !important;
+  background: hsl(30 60% 98%) !important;
 }
 
 .gm-style .gm-style-iw-c,
