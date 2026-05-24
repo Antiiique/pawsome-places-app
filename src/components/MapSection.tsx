@@ -472,6 +472,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     );
 
     const visible = new Set<string>();
+    let newMarkerCount = 0;
 
     clusters.forEach((cluster: any) => {
       const [lng, lat] = cluster.geometry.coordinates;
@@ -481,6 +482,9 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       visible.add(id);
 
       if (markersRef.current.has(id)) return;
+
+      const animDelay = Math.min(newMarkerCount * 25, 250);
+      newMarkerCount++;
 
       const el = document.createElement("div");
 
@@ -575,6 +579,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           });
         });
       }
+
+      el.style.opacity = "0";
+      el.style.transform = "scale(0.3)";
+      el.style.transformOrigin = cluster.properties.cluster ? "center center" : "bottom center";
+      el.style.transition = "opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1)";
+      setTimeout(() => { el.style.opacity = "1"; el.style.transform = "scale(1)"; }, animDelay);
 
       const anchor = cluster.properties.cluster ? "center" : "bottom";
       const marker = new mapboxgl.Marker({ element: el, anchor }).setLngLat([lng, lat]).addTo(map);
