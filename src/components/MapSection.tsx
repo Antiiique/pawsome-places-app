@@ -1560,7 +1560,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         style={{ bottom: "calc(10rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal perdu"
       >
-        <span className="text-[#ffb947]" style={{ fontSize: 20, lineHeight: 1 }}>​​🆘</span>
+        <span className="text-[#ffb947]" style={{ fontSize: 20, lineHeight: 1 }}>​🆘</span>
       </button>
 
       {/* Stray report FAB */}
