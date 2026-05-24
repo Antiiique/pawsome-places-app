@@ -254,7 +254,7 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
           style={{ touchAction: "none" }}
         >
           <div>
-            <h2 className="font-bold text-lg text-foreground">​🆘 Signaler un animal perdu</h2>
+            <h2 className="font-bold text-lg text-foreground">🆘 Signaler un animal perdu</h2>
             <p className="text-xs text-muted-foreground mt-0.5">Les utilisateurs à moins de 50 km seront notifiés</p>
           </div>
           <div className={`flex items-center gap-1 shrink-0 ${isLeftHanded ? "flex-row-reverse" : ""}`}>
@@ -368,7 +368,7 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
           </div>
 
           <Button onClick={handleSubmit} disabled={submitting || !form.pet_name.trim()} className="w-full gap-2 bg-amber-500 hover:bg-amber-600 text-white">
-            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Publication…</> : "​🆘 Publier l'annonce"}
+            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Publication…</> : "🆘 Publier l'annonce"}
           </Button>
         </div>
       </div>

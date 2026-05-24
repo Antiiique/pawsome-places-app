@@ -26,7 +26,7 @@ const CATEGORY_FILTERS: { value: string | null; label: string; emoji: string }[]
   { value: "plage",       label: "Plage",       emoji: "🏖️" },
   { value: "camping",     label: "Camping",     emoji: "⛺" },
   { value: "__strays__",  label: "Errants",     emoji: "🚨" },
-  { value: "__lost__",    label: "Perdus",      emoji: "​🆘" },
+  { value: "__lost__",    label: "Perdus",      emoji: "🆘" },
 ];
 
 const CATEGORY_ICONS: Record<string, string> = Object.fromEntries(
@@ -434,14 +434,14 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
           {/* Lost pets */}
           {lostPets.length > 0 && (
             <section>
-              <SectionHeader label={`​🆘 Animaux perdus (${lostPets.length})`} />
+              <SectionHeader label={`🆘 Animaux perdus (${lostPets.length})`} />
               {lostPets.map(r => (
                 <button key={r.id} onClick={() => { if (chipScrolling.current) return; handleSearchResult(r); }}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/60 active:bg-muted/80 transition-colors text-left">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-xl ${
                     r.status === "active" ? "bg-amber-100 dark:bg-amber-900/30" : "bg-green-100 dark:bg-green-900/30"
                   }`}>
-                    {r.status === "active" ? "​🆘" : "✅"}
+                    {r.status === "active" ? "🆘" : "✅"}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground truncate">{r.pet_name}{r.breed ? ` · ${r.breed}` : ""}</p>
