@@ -691,12 +691,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         // Routes secondaires/tertiaires — blanc
         ["road-secondary-tertiary",      "line-color",        "#FFFFFF"],
         ["road-secondary-tertiary-case", "line-color",        "#D0CBC4"],
-        // Routes primaires — blanc (pas orange sur Google Maps)
+        // Routes primaires — blanc
         ["road-primary",                 "line-color",        "#FFFFFF"],
         ["road-primary-case",            "line-color",        "#C8C3BC"],
-        // Autoroutes & nationales — orange ambre Google Maps
-        ["road-motorway-trunk",          "line-color",        "#F5A623"],
-        ["road-motorway-trunk-case",     "line-color",        "#E08C10"],
+        // Autoroutes & nationales — blanc, contour gris moyen
+        ["road-motorway-trunk",          "line-color",        "#FFFFFF"],
+        ["road-motorway-trunk-case",     "line-color",        "#BEBAB6"],
         // Ferroviaire — gris discret
         ["road-rail",                    "line-color",        "#B8B4B0"],
         ["road-rail-tracks",             "line-color",        "#C8C4C0"],
