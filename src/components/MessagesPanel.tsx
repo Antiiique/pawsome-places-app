@@ -398,7 +398,8 @@ export default function MessagesPanel({ open, onClose, initialConvId, initialOth
           top: 0,
           paddingTop: snap === "full" ? "env(safe-area-inset-top)" : 0,
           transform: `translateY(${visible ? currentOffset : 100}%)`,
-          transition: isDragging.current ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
+          opacity: visible ? 1 : 0,
+          transition: isDragging.current ? "none" : "opacity 0.3s ease, transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
           willChange: "transform",
         }}
       >
