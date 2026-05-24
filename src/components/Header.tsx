@@ -47,6 +47,8 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
     return () => window.removeEventListener("open-submit-modal", handler);
   }, [user]);
 
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const initial = profile?.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
 
   const fabStyle = {
     background: "color-mix(in srgb, var(--card) 92%, transparent)",
@@ -115,6 +117,17 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
             )}
             {createPortal(<StreakBanner />, document.body)}
           </div>
+        )}
+
+        {user && !isMobile && (
+          <button
+            onClick={onProfileClick}
+            title="Mon profil"
+            className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150 text-sm font-bold"
+            style={{ ...fabStyle, backgroundColor: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}
+          >
+            {initial}
+          </button>
         )}
 
         {!user && (
