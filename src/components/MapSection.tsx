@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Supercluster from "supercluster";
-import { Camera, Loader2, Locate, Plus, SlidersHorizontal, X, ChevronUp } from "lucide-react";
+import { Camera, Loader2, Locate, Plus, SlidersHorizontal, X, ChevronUp, PawPrint } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PlaceDetailPanel, { type PetPlace } from "./PlaceDetailPanel";
 import MarkerPopup, { type UniversalPlace } from "./MarkerPopup";
@@ -1560,7 +1560,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         style={{ bottom: "calc(10rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal perdu"
       >
-        <span style={{ fontSize: 20, lineHeight: 1 }}>🆘</span>
+        <PawPrint className="w-5 h-5 text-primary" />
       </button>
 
       {/* Stray report FAB */}
@@ -1573,7 +1573,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         style={{ bottom: "calc(6rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 55%, transparent)", border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal errant"
       >
-        <Camera className="w-5 h-5 text-destructive" />
+        <Camera className="w-5 h-5 text-primary" />
       </button>
 
       {/* Locate me — hidden when place detail panel is open */}
