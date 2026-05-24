@@ -1593,7 +1593,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           }));
         }}
         className={`absolute ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
-        style={{ bottom: "calc(14rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 4px 20px rgba(0,0,0,0.18)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
+        style={{ bottom: "calc(14rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 2px 6px rgba(0,0,0,0.22), 0 6px 24px rgba(0,0,0,0.14)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Ajouter un lieu"
       >
         <Plus className="w-5 h-5 text-primary" />
@@ -1606,7 +1606,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           setLostPetModal(true);
         }}
         className={`absolute ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
-        style={{ bottom: "calc(10rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 4px 20px rgba(0,0,0,0.18)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
+        style={{ bottom: "calc(10rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 2px 6px rgba(0,0,0,0.22), 0 6px 24px rgba(0,0,0,0.14)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal perdu"
       >
         <AlertCircle className="w-5 h-5 text-primary" />
@@ -1619,7 +1619,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           setStrayModal(true);
         }}
         className={`absolute ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
-        style={{ bottom: "calc(6rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 4px 20px rgba(0,0,0,0.18)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
+        style={{ bottom: "calc(6rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 2px 6px rgba(0,0,0,0.22), 0 6px 24px rgba(0,0,0,0.14)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal errant"
       >
         <Camera className="w-5 h-5 text-primary" />
@@ -1634,7 +1634,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           onClick={handleLocateMe}
           disabled={locating}
           className="relative w-12 h-12 rounded-full flex items-center justify-center active:scale-90 transition-transform duration-100"
-          style={{ background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 4px 20px rgba(0,0,0,0.18)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
+          style={{ background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 2px 6px rgba(0,0,0,0.22), 0 6px 24px rgba(0,0,0,0.14)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
           title="Ma position"
         >
           {locating

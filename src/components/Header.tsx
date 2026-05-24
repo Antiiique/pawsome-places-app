@@ -52,7 +52,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
   const fabStyle = {
     background: "color-mix(in srgb, var(--card) 92%, transparent)",
     border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.18)",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.22), 0 6px 24px rgba(0,0,0,0.14)",
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",
   };
