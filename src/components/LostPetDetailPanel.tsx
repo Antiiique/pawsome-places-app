@@ -201,7 +201,7 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
                 ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
                 : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
             }`}>
-              {isFound ? "✅ RETROUVÉ" : "🆘 PERDU"}
+              {isFound ? "✅ RETROUVÉ" : "​🆘 PERDU"}
             </span>
             <h2 className="font-bold text-lg text-foreground mt-1 truncate">{lostPet.pet_name}</h2>
             <div className="flex flex-wrap gap-1.5 mt-1">
