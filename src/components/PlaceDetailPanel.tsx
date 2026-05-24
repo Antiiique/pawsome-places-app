@@ -828,7 +828,7 @@ const PlaceDetailPanel = ({
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-2xl shadow-2xl flex flex-col"
+      className="fixed bottom-0 left-0 right-0 z-[600] bg-card rounded-t-2xl shadow-2xl flex flex-col"
       ref={panelRef}
       style={{
         height: "100dvh",
@@ -1185,7 +1185,7 @@ const PlaceDetailPanel = ({
                     {hasBadges ? (
                       <div className="flex flex-wrap gap-2">
                         {localVerified && (
-                          <Badge key="verified" variant="secondary" className="badge-verified bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 border border-green-400 flex items-center gap-1">
+                          <Badge key={`verified-${place.id}-${entered ? "entered" : "entering"}`} variant="secondary" className="badge-verified bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 border border-green-400 flex items-center gap-1">
                             <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
                             Vérifié
                           </Badge>

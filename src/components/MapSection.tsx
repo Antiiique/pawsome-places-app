@@ -1685,7 +1685,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       {selectedPlace && (
         <>
           <div
-            className="fixed inset-0 z-[49] bg-black/50"
+            className="fixed inset-0 z-[599] bg-black/50"
             style={{ opacity: panelVisible ? 1 : 0, transition: "opacity 0.3s ease", touchAction: "none" }}
             onClick={closePanel}
           />
