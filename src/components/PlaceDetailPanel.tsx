@@ -260,8 +260,11 @@ const CATS = [
 function VerifiedBadge() {
   const [show, setShow] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setShow(true), 50);
-    return () => clearTimeout(t);
+    // Two rAF: first paints initial hidden state, second triggers the transition
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setShow(true));
+    });
+    return () => cancelAnimationFrame(id);
   }, []);
   return (
     <Badge
@@ -269,11 +272,9 @@ function VerifiedBadge() {
       className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 border border-green-400 flex items-center gap-1"
       style={{
         display: "inline-flex",
-        transform: show ? "scale(1)" : "scale(0.3)",
+        transform: show ? "scale(1)" : "scale(0.4)",
         opacity: show ? 1 : 0,
-        transition: show
-          ? "transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease"
-          : "none",
+        transition: "transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease",
         transformOrigin: "center left",
       }}
     >

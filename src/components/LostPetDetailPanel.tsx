@@ -61,12 +61,6 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
     setTimeout(() => setVisible(true), 10);
   }, [lostPet?.id]);
 
-  // Opacity via ref — React style prop must NOT include opacity or it overwrites drag feedback
-  useEffect(() => {
-    if (!panelRef.current) return;
-    panelRef.current.style.opacity = visible ? "1" : "0";
-  }, [visible]);
-
   const handleClose = () => {
     setVisible(false);
     setTimeout(onClose, 300);
@@ -92,15 +86,11 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
     lastTouchTime.current = now;
     const delta = y - dragStartY.current;
     setDragDelta(delta);
-    if (panelRef.current && delta > 0) {
-      panelRef.current.style.opacity = String(Math.max(0.3, 1 - (delta / window.innerHeight) * 2));
-    }
   };
 
   const handleDragEnd = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    if (panelRef.current) panelRef.current.style.opacity = "1";
     setDragging(false);
     const h = window.innerHeight - 56;
     const deltaPct = h > 0 ? (dragDelta / h) * 100 : 0;
@@ -169,6 +159,13 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
   const dragPct = dragging && h > 0 ? (dragDelta / h) * 100 : 0;
   const currentPct = Math.max(0, Math.min(100, snapBase + dragPct));
 
+  // Opacity derived purely from state — no ref tricks
+  const panelOpacity = !visible
+    ? 0
+    : dragging && dragDelta > 0
+      ? Math.max(0.3, 1 - (dragDelta / window.innerHeight) * 2)
+      : 1;
+
   return (
     <>
       {/* Scrim */}
@@ -186,6 +183,7 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
           top: 0,
           paddingTop: snapState === "full" ? "env(safe-area-inset-top)" : 0,
           transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
+          opacity: panelOpacity,
           transition: dragging ? "none" : "opacity 0.3s ease, transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
         }}
       >

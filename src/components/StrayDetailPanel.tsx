@@ -85,17 +85,11 @@ export default function StrayDetailPanel({ report, onClose, onDeleted }: StrayDe
     lastTouchTime.current = now;
     const delta = y - dragStartY.current;
     setDragDelta(delta);
-    if (panelRef.current && delta > 0) {
-      panelRef.current.style.opacity = String(Math.max(0.3, 1 - (delta / window.innerHeight) * 2));
-    } else if (panelRef.current) {
-      panelRef.current.style.opacity = "1";
-    }
   };
 
   const handleDragEnd = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    if (panelRef.current) panelRef.current.style.opacity = "1";
     setDragging(false);
     const h = window.innerHeight - 56;
     const deltaPct = h > 0 ? (dragDelta / h) * 100 : 0;
@@ -118,12 +112,6 @@ export default function StrayDetailPanel({ report, onClose, onDeleted }: StrayDe
       .maybeSingle()
       .then(({ data }) => setPoster(data));
   }, [report?.user_id]);
-
-  // Opacity via ref — React style prop must NOT include opacity or it overwrites drag feedback
-  useEffect(() => {
-    if (!panelRef.current) return;
-    panelRef.current.style.opacity = visible ? "1" : "0";
-  }, [visible]);
 
   useEffect(() => {
     if (!report) return;
@@ -164,6 +152,13 @@ export default function StrayDetailPanel({ report, onClose, onDeleted }: StrayDe
   const dragPct = dragging && h > 0 ? (dragDelta / h) * 100 : 0;
   const currentPct = Math.max(0, Math.min(100, snapBase + dragPct));
 
+  // Opacity derived purely from state — no ref tricks
+  const panelOpacity = !visible
+    ? 0
+    : dragging && dragDelta > 0
+      ? Math.max(0.3, 1 - (dragDelta / window.innerHeight) * 2)
+      : 1;
+
   return (
     <>
       {/* Scrim */}
@@ -181,6 +176,7 @@ export default function StrayDetailPanel({ report, onClose, onDeleted }: StrayDe
           top: 0,
           paddingTop: snapState === "full" ? "env(safe-area-inset-top)" : 0,
           transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
+          opacity: panelOpacity,
           transition: dragging ? "none" : "opacity 0.3s ease, transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
         }}
       >
