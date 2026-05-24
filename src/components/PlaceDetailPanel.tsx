@@ -140,6 +140,7 @@ const categoryLabels: Record<string, string> = {
   services: "Services ❤️",
   animalerie: "Animalerie 🐾",
   station_carburant: "Station essence ⛽",
+  commerce: "Commerce 🏪",
   other: "Autre",
 };
 
@@ -168,6 +169,7 @@ const categoryInfo: Record<string, { icon: string; title: string; fallback: stri
   transport:         { icon: "🚇", title: "Transport",            fallback: "Transport en commun" },
   evenement:         { icon: "📅", title: "Événement",            fallback: "Événement pet-friendly" },
   services:          { icon: "❤️", title: "Services",            fallback: "Services pour animaux" },
+  commerce:          { icon: "🏪", title: "Commerce",            fallback: "Commerce · Animaux acceptés" },
   other:             { icon: "📍", title: "Lieu",                 fallback: "Lieu pet-friendly" },
 };
 
@@ -178,6 +180,7 @@ const categoryBgColors: Record<string, string> = {
   services: "bg-red-500",
   animalerie: "bg-purple-500",
   station_carburant: "bg-yellow-500",
+  commerce: "bg-indigo-500",
   other: "bg-gray-500",
 };
 
@@ -204,6 +207,7 @@ const KNOWN_CATEGORIES = [
   "aire_repos",
   "transport",
   "evenement",
+  "commerce",
   "other",
 ];
 
@@ -249,6 +253,7 @@ const CATS = [
   { value: "station_carburant", label: "Stations essence ⛽" },
   { value: "transport", label: "Transport 🚇" },
   { value: "evenement", label: "Événements 📅" },
+  { value: "commerce", label: "Commerce 🏪" },
   { value: "other", label: "Autres 📍" },
 ];
 

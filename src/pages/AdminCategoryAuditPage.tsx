@@ -27,6 +27,7 @@ const CATS = [
   { value: "station_carburant", label: "Stations essence ⛽" },
   { value: "transport", label: "Transport 🚇" },
   { value: "evenement", label: "Événements 📅" },
+  { value: "commerce", label: "Commerce 🏪" },
   { value: "other", label: "Autres 📍" },
 ];
 
