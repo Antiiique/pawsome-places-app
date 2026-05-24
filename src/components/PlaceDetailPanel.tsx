@@ -433,6 +433,7 @@ const PlaceDetailPanel = ({
   const snapRef = useRef<"half" | "full">(initialAdminEdit ? "full" : "half");
   const dragDeltaRef = useRef(0);
   const isDragging = useRef(false);
+  const panelRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef<number | null>(null);
   const velPrevY = useRef<number | null>(null);
   const velPrevT = useRef<number | null>(null);
@@ -459,7 +460,6 @@ const PlaceDetailPanel = ({
 
   const baseOffset = snap === "half" ? 55 : 0; // % translateY
   const currentOffset = isClosing ? 100 : entered ? Math.max(0, baseOffset + dragDelta) : 100;
-  const panelOpacity = dragDelta > 5 ? Math.max(0.6, 1 - dragDelta * 0.009) : 1;
 
   const handleDragStart = (e: React.TouchEvent) => {
     isDragging.current = true;
@@ -482,11 +482,15 @@ const PlaceDetailPanel = ({
     const deltaPercent = (dy / window.innerHeight) * 100;
     dragDeltaRef.current = deltaPercent;
     setDragDelta(deltaPercent);
+    if (panelRef.current && dy > 0) {
+      panelRef.current.style.opacity = String(Math.max(0.5, 1 - (dy / window.innerHeight) * 1.5));
+    }
   };
 
   const handleDragEnd = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
+    if (panelRef.current) panelRef.current.style.opacity = "1";
 
     const vel =
       velPrevY.current !== null &&
@@ -825,15 +829,15 @@ const PlaceDetailPanel = ({
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-2xl shadow-2xl flex flex-col"
+      ref={panelRef}
       style={{
         height: "100dvh",
         paddingTop: snap === "full" ? "env(safe-area-inset-top)" : 0,
         transform: `translateY(${currentOffset}%)`,
-        opacity: panelOpacity,
         transition:
           isDragging.current && !isClosing
             ? "none"
-            : "transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.15s ease",
+            : "transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
         willChange: "transform",
       }}
     >
