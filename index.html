@@ -35,10 +35,11 @@
     <div id="root"></div>
     <script>
       window.addEventListener('error', function(e) {
-        document.body.innerHTML = '<div style="padding:20px;font-family:monospace;background:#fee;color:#900;border:2px solid #900;margin:20px;border-radius:8px"><b>ERREUR JS:</b><br>' + e.message + '<br><small>' + (e.filename || '') + ':' + e.lineno + '</small></div>';
+        if (!e.message || e.message === 'Script error.' || e.message === 'Script error' || !e.filename || !e.filename.includes(location.hostname)) return;
+        console.error('App error:', e.message, e.filename, e.lineno);
       });
       window.addEventListener('unhandledrejection', function(e) {
-        document.body.innerHTML = '<div style="padding:20px;font-family:monospace;background:#fee;color:#900;border:2px solid #900;margin:20px;border-radius:8px"><b>ERREUR PROMISE:</b><br>' + (e.reason?.message || e.reason) + '</div>';
+        console.error('Unhandled promise rejection:', e.reason?.message || e.reason);
       });
     </script>
     <script type="module" src="/src/main.tsx"></script>
