@@ -668,73 +668,24 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
 
   const initial = open ? (profile.display_name?.[0] || user?.email?.[0] || "?").toUpperCase() : "?";
 
-  // Swipe-to-close (swipe right on the panel)
-  const [swipeDelta, setSwipeDelta] = useState(0);
-  const swipingRef = useRef(false);
-  const swipeStartX = useRef(0);
-  const swipeStartT = useRef(0);
-
-  const handleSwipeStart = (e: React.TouchEvent) => {
-    swipingRef.current = true;
-    swipeStartX.current = e.touches[0].clientX;
-    swipeStartT.current = Date.now();
-    setSwipeDelta(0);
-  };
-  const handleSwipeMove = (e: React.TouchEvent) => {
-    if (!swipingRef.current) return;
-    const dx = e.touches[0].clientX - swipeStartX.current;
-    if (dx > 0) setSwipeDelta(dx);
-  };
-  const handleSwipeEnd = (e: React.TouchEvent) => {
-    if (!swipingRef.current) return;
-    swipingRef.current = false;
-    const dx = e.changedTouches[0].clientX - swipeStartX.current;
-    const dt = Date.now() - swipeStartT.current;
-    const vel = dt > 0 ? dx / dt : 0;
-    if (dx > window.innerWidth * 0.35 || vel > 0.5) onClose();
-    setSwipeDelta(0);
-  };
-
-  const swipeProgress = swipeDelta > 0 ? Math.max(0, 1 - swipeDelta / window.innerWidth) : 1;
-
   return (
     <>
     <div
       data-panel
-      className="fixed z-[600] inset-0 bg-card shadow-2xl flex flex-col rounded-l-2xl"
+      className="fixed z-[600] inset-0 bg-card shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-l-2xl"
       style={{
         overflow: "hidden",
         ...(dragProgress !== undefined
           ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" }
-          : swipeDelta > 0
-            ? { transform: `translateX(${swipeDelta}px)`, transition: "none" }
-            : { transform: open ? "translateX(0%)" : "translateX(100%)", transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)" }),
+          : { transform: open ? "translateX(0%)" : "translateX(100%)" }),
       }}
     >
-      <div
-        className={`flex-shrink-0 flex items-center justify-end px-4 py-3 border-b border-border ${isLeftHanded ? "flex-row-reverse" : ""}`}
-        onTouchStart={handleSwipeStart}
-        onTouchMove={handleSwipeMove}
-        onTouchEnd={handleSwipeEnd}
-        style={{ touchAction: "none" }}
-      >
+      <div className={`flex-shrink-0 flex items-center justify-end px-4 py-3 border-b border-border ${isLeftHanded ? "flex-row-reverse" : ""}`}>
         <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
           <X className="w-5 h-5 text-muted-foreground" />
         </button>
       </div>
 
-      {/* Counter-transform: content stays fixed while panel frame moves */}
-      <div
-        className="flex-1 min-h-0 flex flex-col overflow-hidden"
-        style={{
-          transform: dragProgress !== undefined
-            ? `translateX(-${(1 - dragProgress) * 100}%)`
-            : swipeDelta > 0
-              ? `translateX(-${swipeDelta}px)`
-              : "none",
-          transition: (dragProgress !== undefined || swipeDelta > 0) ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
-        }}
-      >
       <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <div className="flex-1 min-h-0 overflow-y-auto" style={{ touchAction: "pan-y" }}>
 
@@ -1575,7 +1526,6 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
           </TabsList>
         </div>
       </Tabs>
-      </div>
     </div>
     </>
   );
