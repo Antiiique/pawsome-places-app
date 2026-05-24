@@ -52,6 +52,7 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
   const lastTouchY    = useRef(0);
   const lastTouchTime = useRef(0);
   const lastVelocity  = useRef(0);
+  const panelRef      = useRef<HTMLDivElement>(null);
 
   // Entry animation
   useEffect(() => {
@@ -83,12 +84,17 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
     if (dt > 0) lastVelocity.current = (y - lastTouchY.current) / dt;
     lastTouchY.current = y;
     lastTouchTime.current = now;
-    setDragDelta(y - dragStartY.current);
+    const delta = y - dragStartY.current;
+    setDragDelta(delta);
+    if (panelRef.current && delta > 0) {
+      panelRef.current.style.opacity = String(Math.max(0.3, 1 - (delta / window.innerHeight) * 2));
+    }
   };
 
   const handleDragEnd = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
+    if (panelRef.current) panelRef.current.style.opacity = "1";
     setDragging(false);
     const h = window.innerHeight - 56;
     const deltaPct = h > 0 ? (dragDelta / h) * 100 : 0;
@@ -168,6 +174,7 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
 
       {/* Panel */}
       <div
+        ref={panelRef}
         className="fixed left-0 right-0 bottom-0 z-[650] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
           top: 0,

@@ -932,14 +932,14 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                   {isAdmin && (
                     <button
                       onClick={() => { window.location.href = "/admin"; }}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border hover:bg-muted transition-colors text-sm font-medium text-foreground"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-border hover:bg-muted transition-colors text-sm font-medium text-foreground"
                     >
                       <span>⚙️</span> Administration
                     </button>
                   )}
                   <button
                     onClick={async () => { await signOut(); onClose(); }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border border-destructive/30 text-destructive hover:bg-destructive/5 transition-colors text-sm font-medium"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-destructive/30 text-destructive hover:bg-destructive/5 transition-colors text-sm font-medium"
                   >
                     Se déconnecter
                   </button>

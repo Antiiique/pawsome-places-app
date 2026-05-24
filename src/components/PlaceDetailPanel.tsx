@@ -1185,7 +1185,14 @@ const PlaceDetailPanel = ({
                     {hasBadges ? (
                       <div className="flex flex-wrap gap-2">
                         {localVerified && (
-                          <span key={`verified-${place.id}`} className="badge-verified">
+                          <span
+                            key={`verified-${place.id}`}
+                            style={{
+                              display: "inline-flex",
+                              transformOrigin: "center",
+                              animation: "verified-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.7s both",
+                            }}
+                          >
                             <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 border border-green-400 flex items-center gap-1">
                               <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
                               Vérifié
