@@ -211,7 +211,7 @@ const SNAP_VELOCITY = 0.4;
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, onNavigateAway, initialSnap }: UserProfilePanelProps) {
-  const { user: me } = useAuthContext();
+  const { user: me, signOut, profile: myProfile } = useAuthContext();
 
   // Mount / visibility animation
   const [mounted, setMounted] = useState(false);
@@ -927,6 +927,26 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, 
                   {starting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
                   Envoyer un message
                 </Button>
+              )}
+
+              {/* ── Actions compte — profil propre uniquement ── */}
+              {me?.id === userId && (
+                <div className="pt-2 border-t border-border space-y-2">
+                  {myProfile?.is_admin && (
+                    <button
+                      onClick={() => { window.location.href = "/admin"; }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border hover:bg-muted transition-colors text-sm font-medium text-foreground"
+                    >
+                      <span>⚙️</span> Administration
+                    </button>
+                  )}
+                  <button
+                    onClick={async () => { await signOut(); onClose(); }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border border-destructive/30 text-destructive hover:bg-destructive/5 transition-colors text-sm font-medium"
+                  >
+                    Se déconnecter
+                  </button>
+                </div>
               )}
 
             </div>

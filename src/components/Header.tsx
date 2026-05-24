@@ -1,6 +1,4 @@
 import { Navigation, Heart, UserCircle, Bell, MessageCircle } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -25,17 +23,9 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitCoords, setSubmitCoords] = useState<{ lat: number; lng: number; address?: string } | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const { user, profile, signOut } = useAuthContext();
+  const { user, profile } = useAuthContext();
   const { unreadCount } = useUserNotifications();
   const { unreadCount: unreadMessages } = useUnreadMessages();
-
-  const handleSignOut = async () => {
-    await signOut();
-    toast("À bientôt ! 👋");
-  };
-
-  const initial = profile?.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
 
   useEffect(() => {
     const handler = () => setShowAuthModal(true);
@@ -127,50 +117,7 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
           </div>
         )}
 
-        {user ? (
-          <Popover open={profileMenuOpen} onOpenChange={setProfileMenuOpen}>
-            <PopoverTrigger asChild>
-              <button
-                className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold focus:outline-none"
-                style={{ backgroundColor: "#FF6B35", boxShadow: "0 4px 24px rgba(0,0,0,0.10)" }}
-                title={profile?.display_name || "Mon compte"}
-              >
-                {initial}
-              </button>
-            </PopoverTrigger>
-              <PopoverContent className="w-56 p-2 z-[9999]" align="end">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">👤 {profile?.display_name || "Utilisateur"}</p>
-                  <p className="text-xs text-muted-foreground">{user.email}</p>
-                </div>
-                <Separator className="my-1" />
-                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); setShowSubmitModal(true); }}>
-                  ➕ Ajouter un lieu
-                </button>
-                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onProfileClick?.(); }}>
-                  👤 Mon profil
-                </button>
-                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onFavoritesClick?.(); }}>
-                  ❤️ Mes favoris
-                </button>
-                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); onItineraryClick?.(); }}>
-                  🗺️ Mes itinéraires
-                </button>
-                {profile?.is_admin && (
-                  <>
-                    <Separator className="my-1" />
-                    <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); window.location.href = "/admin"; }}>
-                      ⚙️ Administration
-                    </button>
-                  </>
-                )}
-                <Separator className="my-1" />
-                <button className="w-full text-left px-2 py-1.5 text-sm text-destructive hover:bg-muted rounded-sm transition-colors" onClick={() => { setProfileMenuOpen(false); handleSignOut(); }}>
-                  Se déconnecter
-                </button>
-              </PopoverContent>
-            </Popover>
-          ) : (
+        {!user && (
             <button
               onClick={() => setShowAuthModal(true)}
               className="flex items-center gap-1.5 h-11 px-4 rounded-full text-sm font-semibold text-foreground active:scale-95 transition-all duration-150"
