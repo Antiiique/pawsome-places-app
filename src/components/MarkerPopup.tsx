@@ -909,6 +909,7 @@ export default function MarkerPopup({
                 </div>
               )}
 
+              <div key={tabKey} style={{ animation: `tab-slide-in-${tabDirRef.current} 0.22s ease-out both` }}>
               {reviewTab === "google" && (reviews.length > 0 ? (
                 <div className="space-y-2.5">
                   {reviews.map((r, i) => (
@@ -961,7 +962,18 @@ export default function MarkerPopup({
                     </div>
                   )}
                   {loadingCR ? (
-                    <p className="text-xs text-muted-foreground text-center py-2">Chargement…</p>
+                    <div className="space-y-3 pt-1">
+                      {[0, 1].map(i => (
+                        <div key={i} className="rounded-xl border border-border p-3 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <div className="skeleton-shimmer w-6 h-6 rounded-full" />
+                            <div className="skeleton-shimmer h-3 w-24" />
+                          </div>
+                          <div className="skeleton-shimmer h-3 w-full" />
+                          <div className="skeleton-shimmer h-3 w-2/3" />
+                        </div>
+                      ))}
+                    </div>
                   ) : communityReviews.length === 0 ? (
                     <p className="text-xs text-muted-foreground text-center py-2">Aucun avis communauté. Sois le premier !</p>
                   ) : (
