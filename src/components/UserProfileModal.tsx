@@ -162,7 +162,6 @@ const EMPTY_PET_FORM = {
 const STATUS_TABS = [
   { key: "approved", label: "Approuvés", color: "text-green-600 dark:text-green-400", activeBar: "bg-green-500" },
   { key: "pending",  label: "En attente", color: "text-yellow-600 dark:text-yellow-400", activeBar: "bg-yellow-500" },
-  { key: "rejected", label: "Refusés",   color: "text-red-500 dark:text-red-400", activeBar: "bg-red-500" },
 ] as const;
 
 type StatusKey = typeof STATUS_TABS[number]["key"];
@@ -223,10 +222,8 @@ function PlacesSubTabs({ submissions, onClose }: { submissions: UserSubmission[]
   const [approvedCollapsed, setApprovedCollapsed] = useState(false);
 
   const visibleByStatus: Record<StatusKey, UserSubmission[]> = {
-    // Only approved places that exist on the map (linked_place present)
     approved: submissions.filter(s => s.status === "approved" && !!s.linked_place?.id),
     pending:  submissions.filter(s => s.status === "pending"),
-    rejected: submissions.filter(s => s.status === "rejected"),
   };
 
   const filtered = visibleByStatus[activeStatus];
@@ -234,13 +231,11 @@ function PlacesSubTabs({ submissions, onClose }: { submissions: UserSubmission[]
   const emptyLabel: Record<StatusKey, string> = {
     approved: "Aucun lieu approuvé visible sur la carte",
     pending:  "Aucun lieu en attente",
-    rejected: "Aucun lieu refusé",
   };
 
   const emptyEmoji: Record<StatusKey, string> = {
     approved: "✅",
     pending:  "⏳",
-    rejected: "❌",
   };
 
   return (
