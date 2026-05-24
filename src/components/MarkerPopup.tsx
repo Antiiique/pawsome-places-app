@@ -872,15 +872,17 @@ export default function MarkerPopup({
                 const dx = e.changedTouches[0].clientX - swipeStartX.current;
                 swipeStartX.current = null;
                 if (Math.abs(dx) < 40) return;
-                if (dx < 0 && reviewTab === "google" && dbId) setReviewTab("community");
-                else if (dx > 0 && reviewTab === "community") setReviewTab("google");
+                if (dx < 0 && reviewTab === "google" && dbId) switchTab("community");
+                else if (dx > 0 && reviewTab === "community") switchTab("google");
               }}
             >
               {(hasGoogleData || !!dbId) && (
                 <div className="flex gap-2 p-1 rounded-xl bg-muted">
                   {hasGoogleData && (
                     <button
-                      onClick={() => setReviewTab("google")}
+                      onClick={() => switchTab("google")}
+                      onPointerDown={addRipple}
+                      style={{ position: "relative", overflow: "hidden" }}
                       className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                         reviewTab === "google"
                           ? "bg-amber-400 text-white shadow-sm"
@@ -892,7 +894,9 @@ export default function MarkerPopup({
                   )}
                   {!!dbId && (
                     <button
-                      onClick={() => setReviewTab("community")}
+                      onClick={() => switchTab("community")}
+                      onPointerDown={addRipple}
+                      style={{ position: "relative", overflow: "hidden" }}
                       className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                         reviewTab === "community"
                           ? "bg-primary text-primary-foreground shadow-sm"
