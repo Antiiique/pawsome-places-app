@@ -134,11 +134,11 @@ function getBadges(
     { id: "first_review", emoji: "🐾", label: "Premier pas",   unlocked: reviewCount >= 1,      tip: "1 avis",                 cat: "Action" },
     { id: "critic",       emoji: "📝", label: "Critique",      unlocked: reviewCount >= 10,     tip: "10 avis",                cat: "Action" },
     { id: "explorer",     emoji: "🗺️", label: "Explorateur",   unlocked: reviewCount >= 50,     tip: "50 avis",                cat: "Action" },
-    { id: "rescuer1",     emoji: "🆘", label: "Secouriste",    unlocked: strayCount >= 1,       tip: "1 signalement",          cat: "Action" },
+    { id: "rescuer1",     emoji: "​🆘", label: "Secouriste",    unlocked: strayCount >= 1,       tip: "1 signalement",          cat: "Action" },
     { id: "watcher",      emoji: "🐕", label: "Veilleur",      unlocked: strayCount >= 5,       tip: "5 signalements",         cat: "Action" },
     { id: "rescuer10",    emoji: "🏆", label: "Sauveteur",     unlocked: strayCount >= 10,      tip: "10 signalements",        cat: "Action" },
     { id: "pioneer",      emoji: "📍", label: "Pionnier",      unlocked: approvedSubCount >= 1, tip: "1 lieu ajouté",          cat: "Action" },
-    { id: "guardian",     emoji: "🆘", label: "Gardien",       unlocked: lostPetCount >= 3,     tip: "3 animaux perdus signalés", cat: "Action" },
+    { id: "guardian",     emoji: "​🆘", label: "Gardien",       unlocked: lostPetCount >= 3,     tip: "3 animaux perdus signalés", cat: "Action" },
     // Points
     { id: "ambassador",   emoji: "🌟", label: "Ambassadeur",   unlocked: points >= 500,         tip: "500 points",             cat: "Points" },
     { id: "legend",       emoji: "💎", label: "Légende",       unlocked: points >= 1500,        tip: "1 500 points",           cat: "Points" },
@@ -870,7 +870,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, 
                     >
                       <div className="flex items-center justify-between gap-2">
                         <p className="font-semibold text-foreground text-sm">{pet.pet_name}</p>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">🆘 Perdu</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">​🆘 Perdu</span>
                       </div>
                       <div className="flex gap-2 text-xs text-muted-foreground flex-wrap mt-0.5">
                         {pet.breed && <span>{pet.breed}</span>}
