@@ -703,7 +703,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         ["bridge-rail",                  "line-color",        "#B8B4B0"],
         ["bridge-rail-tracks",           "line-color",        "#C8C4C0"],
       ];
-      gmColors.forEach(([id, prop, value]) => { try { map.setPaintProperty(id, prop, value); } catch {} });
+      gmColors.forEach(([id, prop, value]) => { try { map.setPaintProperty(id, prop as any, value); } catch {} });
 
       setIsLoaded(true);
 
