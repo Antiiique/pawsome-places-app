@@ -226,11 +226,13 @@ export default function LostPetModal({ open, onClose, onPublished }: LostPetModa
           const h = window.innerHeight - headerH;
           const dragPct = dragging && h > 0 ? (dragDelta / h) * 100 : 0;
           const currentPct = Math.max(0, Math.min(100, snapBase + dragPct));
+          const panelOpacity = !visible ? 0 : dragging && dragDelta > 0 ? Math.max(0.3, 1 - (dragDelta / window.innerHeight) * 2) : 1;
           return {
             top: 0,
             paddingTop: snapState === "full" ? "env(safe-area-inset-top)" : 0,
             transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
-            transition: dragging ? "none" : "transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
+            opacity: panelOpacity,
+            transition: dragging ? "none" : "opacity 0.3s ease, transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
           };
         })()}
       >
