@@ -765,10 +765,10 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
               onClick={() => setSnapState(s => s === "half" ? "full" : "half")}
               className="p-1.5 rounded-full hover:bg-muted transition-colors"
             >
-              <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snapState === "full" ? "rotate-180" : ""}`} />
+              <ChevronUp className={`w-5 h-5 text-primary transition-transform duration-300 ${snapState === "full" ? "rotate-180" : ""}`} />
             </button>
             <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
-              <X className="w-5 h-5 text-muted-foreground" />
+              <X className="w-5 h-5 text-primary" />
             </button>
           </div>
         </div>

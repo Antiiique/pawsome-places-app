@@ -901,11 +901,11 @@ const PlaceDetailPanel = ({
             className="p-1.5 rounded-full hover:bg-muted transition-colors"
           >
             <ChevronUp
-              className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${snap === "full" ? "rotate-180" : ""}`}
+              className={`w-5 h-5 text-primary transition-transform duration-300 ${snap === "full" ? "rotate-180" : ""}`}
             />
           </button>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
-            <X className="w-5 h-5 text-muted-foreground" />
+            <X className="w-5 h-5 text-primary" />
           </button>
         </div>
       </div>
