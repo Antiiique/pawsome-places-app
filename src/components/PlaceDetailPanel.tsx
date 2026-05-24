@@ -669,6 +669,29 @@ const PlaceDetailPanel = ({
       outdoor_seating: editForm.outdoor_seating,
       dogs_on_leash_only: editForm.dogs_on_leash_only,
     });
+    window.dispatchEvent(new CustomEvent("place-updated", {
+      detail: {
+        id: place.id,
+        changes: {
+          name: editForm.name,
+          category: editForm.category,
+          subcategory: editForm.subcategory || null,
+          address: editForm.address || null,
+          city: editForm.city || null,
+          country: editForm.country || null,
+          phone: editForm.phone || null,
+          website: editForm.website || null,
+          opening_hours: editForm.opening_hours || null,
+          description: editForm.description || null,
+          photo_url: editForm.photo_url || null,
+          accepts_dogs: editForm.accepts_dogs,
+          accepts_cats: editForm.accepts_cats,
+          dogs_on_leash_only: editForm.dogs_on_leash_only,
+          outdoor_seating: editForm.outdoor_seating,
+          verified: editForm.verified,
+        },
+      },
+    }));
     toast.success(`✅ "${editForm.name}" mis à jour`);
     setAdminEditOpen(false);
   }
