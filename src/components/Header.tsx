@@ -26,6 +26,8 @@ const Header = ({ onItineraryClick, onFavoritesClick, onProfileClick, onMessages
   const { user, profile } = useAuthContext();
   const { unreadCount } = useUserNotifications();
   const { unreadCount: unreadMessages } = useUnreadMessages();
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const initial = profile?.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
 
   useEffect(() => {
     const handler = () => setShowAuthModal(true);
