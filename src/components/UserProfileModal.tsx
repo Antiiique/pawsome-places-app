@@ -705,10 +705,10 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
       style={{
         overflow: "hidden",
         ...(dragProgress !== undefined
-          ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, opacity: Math.max(0.3, dragProgress), transition: "none" }
+          ? { transform: `translateX(${(1 - dragProgress) * 100}%)`, transition: "none" }
           : swipeDelta > 0
-            ? { transform: `translateX(${swipeDelta}px)`, opacity: Math.max(0.3, swipeProgress), transition: "none" }
-            : { transform: open ? "translateX(0%)" : "translateX(100%)", opacity: open ? 1 : 0, transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease" }),
+            ? { transform: `translateX(${swipeDelta}px)`, transition: "none" }
+            : { transform: open ? "translateX(0%)" : "translateX(100%)", transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)" }),
       }}
     >
       <div
