@@ -29,56 +29,56 @@ html, body, #root {
 
 @layer base {
   :root {
-    /* Stone & Slate — Quiet Luxury 2026 */
-    --background: 32 18% 96%;        /* #F7F5F1 — pierre blanche */
-    --foreground: 20 15% 9%;         /* #191614 — noir chaud */
+    /* Nouvelle charte — Soleil & Corail 2026 */
+    --background: 0 0% 97.6%;       /* #F9F9F9 — fond application */
+    --foreground: 0 0% 0%;          /* #000000 — texte principal */
 
-    --card: 30 30% 99%;              /* #FEFDFB — blanc nacré */
-    --card-foreground: 20 15% 9%;
+    --card: 0 0% 100%;              /* #FFFFFF — surface cartes */
+    --card-foreground: 0 0% 0%;
 
-    --popover: 30 30% 99%;
-    --popover-foreground: 20 15% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 205 18% 40%;          /* #546674 — ardoise bleue */
+    --primary: 37 100% 60%;         /* #FFB947 — accent soleil (navigation active) */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 30 14% 91%;         /* #EDEAE5 — pierre douce */
-    --secondary-foreground: 20 12% 22%;
+    --secondary: 210 16% 71%;       /* #A1B1C8 — header/nav secondaire */
+    --secondary-foreground: 0 0% 0%;
 
-    --muted: 30 14% 91%;
-    --muted-foreground: 25 8% 46%;   /* #787370 — gris chaud */
+    --muted: 210 16% 71%;           /* #A1B1C8 — texte secondaire */
+    --muted-foreground: 210 16% 71%;
 
-    --accent: 22 32% 46%;            /* #987055 — noyer chaud */
+    --accent: 15 100% 63%;          /* #FF7F50 — action corail (boutons CTA) */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 4 60% 44%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 12% 86%;            /* #DDD9D3 — pierre clair */
-    --input: 30 12% 86%;
-    --ring: 205 18% 40%;
+    --border: 0 0% 88.2%;           /* #E2E8F0 — ombres douces */
+    --input: 0 0% 88.2%;
+    --ring: 37 100% 60%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 32 18% 96%;
-    --sidebar-foreground: 20 15% 9%;
-    --sidebar-primary: 205 18% 40%;
+    --sidebar-background: 0 0% 97.6%;
+    --sidebar-foreground: 0 0% 0%;
+    --sidebar-primary: 37 100% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 14% 91%;
-    --sidebar-accent-foreground: 20 12% 22%;
-    --sidebar-border: 30 12% 86%;
-    --sidebar-ring: 205 18% 40%;
+    --sidebar-accent: 15 100% 63%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 88.2%;
+    --sidebar-ring: 37 100% 60%;
 
-    --success: 158 30% 36%;
+    --success: 152 41% 54%;          /* #82C29B — validation */
     --warning: 35 60% 46%;
     --danger: 4 60% 44%;
 
-    --surface: 30 14% 91%;
-    --text-sub: 25 8% 50%;
+    --surface: 0 0% 100%;            /* #FFFFFF — cartes et éléments superposés */
+    --text-sub: 210 16% 71%;
 
-    --accent-hover: 205 22% 34%;
-    --accent-soft: 205 18% 92%;
-    --pet: 205 18% 40%;
+    --accent-hover: 15 100% 55%;
+    --accent-soft: 0 0% 96%;
+    --pet: 37 100% 60%;
   }
 
   .dark {
@@ -129,13 +129,12 @@ html, body, #root {
   .hero-gradient {
     background: linear-gradient(
       135deg,
-      hsla(205, 18%, 30%, 0.90) 0%,
-      hsla(205, 18%, 18%, 0.82) 50%,
-      hsla(20, 15%, 6%, 0.96) 100%
+      hsla(37, 100%, 60%, 0.90) 0%,
+      hsla(15, 100%, 63%, 0.82) 100%
     );
   }
   .category-shadow {
-    box-shadow: 0 4px 20px -4px hsla(205, 18%, 40%, 0.14);
+    box-shadow: 0 4px 20px -4px hsla(0, 0%, 0%, 0.14);
   }
   .card-hover {
     @apply transition-all duration-300;
@@ -161,16 +160,16 @@ html, body, #root {
 #map,
 .map-container,
 [class*="map-wrapper"] {
-  background: hsl(32 18% 96%) !important;
+  background: hsl(0 0% 97.6%) !important;
 }
 
 .gm-style .gm-style-iw-c,
 .gm-style .gm-style-iw-d {
-  background: hsl(30 30% 99%) !important;
-  color: hsl(20 15% 9%) !important;
+  background: hsl(0 0% 100%) !important;
+  color: hsl(0 0% 0%) !important;
 }
 .gm-style .gm-style-iw-tc::after {
-  background: hsl(30 30% 99%) !important;
+  background: hsl(0 0% 100%) !important;
 }
 
 @keyframes pulse {
