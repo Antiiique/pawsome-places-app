@@ -197,6 +197,7 @@ const CATEGORY_FILTERS = [
   { key: "station_carburant", label: "Stations",    emoji: "⛽" },
   { key: "transport",      label: "Transport",      emoji: "🚇" },
   { key: "evenement",      label: "Événements",     emoji: "📅" },
+  { key: "commerce",       label: "Commerce",       emoji: "🏪" },
   { key: "other",          label: "Autres",         emoji: "📍" },
 ];
 
@@ -225,6 +226,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   transport:      "#1565C0",
   comportementaliste: "#5C6BC0",
   evenement:      "#7B1FA2",
+  commerce:       "#4F46E5",
   other:          "#9E9E9E",
 };
 
@@ -253,6 +255,7 @@ const CATEGORY_EMOJIS: Record<string, string> = {
   station_carburant: "⛽",
   transport:      "🚇",
   evenement:      "📅",
+  commerce:       "🏪",
   other:          "📍",
 };
 
