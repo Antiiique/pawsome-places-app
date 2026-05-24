@@ -335,7 +335,7 @@ const glassStyle: React.CSSProperties = {
 };
 
 export default function UserProfileModal({ open, onClose, dragProgress }: UserProfileModalProps) {
-  const { user, profile: authProfile } = useAuthContext();
+  const { user, profile: authProfile, signOut } = useAuthContext();
   const { isLeftHanded, setIsLeftHanded } = useHandedness();
   const isAdmin = authProfile?.is_admin === true || ADMIN_EMAILS.includes(user?.email ?? "");
   const { prefs, loading: prefsLoading, saving: prefsSaving, updatePref } = useNotificationPreferences();
@@ -926,6 +926,24 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                 {saving && (
                   <p className="text-center text-[11px] text-muted-foreground animate-pulse">💾 Sauvegarde…</p>
                 )}
+
+                {/* ── Déconnexion + Admin ── */}
+                <div className="pt-4 border-t border-border space-y-2 mt-4">
+                  {isAdmin && (
+                    <button
+                      onClick={() => { window.location.href = "/admin"; }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border hover:bg-muted transition-colors text-sm font-medium text-foreground"
+                    >
+                      <span>⚙️</span> Administration
+                    </button>
+                  )}
+                  <button
+                    onClick={async () => { await signOut(); onClose(); }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border border-destructive/30 text-destructive hover:bg-destructive/5 transition-colors text-sm font-medium"
+                  >
+                    Se déconnecter
+                  </button>
+                </div>
               </>
             )}
           </TabsContent>

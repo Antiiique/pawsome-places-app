@@ -76,6 +76,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
   const dragStartY   = useRef(0);
   const dragDeltaRef = useRef(0);
   const gestureStart = useRef(0);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) setSnapState("half");
@@ -150,11 +151,15 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
     const delta = e.touches[0].clientY - dragStartY.current;
     dragDeltaRef.current = delta;
     setDragDelta(delta);
+    if (panelRef.current && delta > 0) {
+      panelRef.current.style.opacity = String(Math.max(0.3, 1 - (delta / window.innerHeight) * 2));
+    }
   };
 
   const handleDragEnd = (e: React.TouchEvent) => {
     e.stopPropagation();
     isDragging.current = false;
+    if (panelRef.current) panelRef.current.style.opacity = "1";
     setDragging(false);
     const delta = dragDeltaRef.current;
     const h = window.innerHeight - 56;
@@ -192,6 +197,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
 
   return (
     <div
+      ref={panelRef}
       data-panel
       className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col rounded-t-2xl"
       style={{

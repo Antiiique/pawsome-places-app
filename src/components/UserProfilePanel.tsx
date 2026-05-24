@@ -223,6 +223,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, 
   const isDragging = useRef(false);
   const dragStartY = useRef(0);
   const dragStartTime = useRef(0);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Avatar zoom
   const [avatarZoomed, setAvatarZoomed] = useState(false);
@@ -373,10 +374,15 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, 
   };
   const handleDragMove = (e: React.TouchEvent) => {
     if (!isDragging.current) return;
-    setDragDelta(e.touches[0].clientY - dragStartY.current);
+    const delta = e.touches[0].clientY - dragStartY.current;
+    setDragDelta(delta);
+    if (panelRef.current && delta > 0) {
+      panelRef.current.style.opacity = String(Math.max(0.3, 1 - (delta / window.innerHeight) * 2));
+    }
   };
   const handleDragEnd = (e: React.TouchEvent) => {
     if (!isDragging.current) return;
+    if (panelRef.current) panelRef.current.style.opacity = "1";
     isDragging.current = false;
     const delta = e.changedTouches[0].clientY - dragStartY.current;
     const elapsed = Date.now() - dragStartTime.current;
@@ -450,6 +456,7 @@ export default function UserProfilePanel({ userId, onClose, onOpenChat, onBack, 
 
       {/* Sheet */}
       <div
+        ref={panelRef}
         className="fixed left-0 right-0 bottom-0 z-[700] bg-card rounded-t-2xl shadow-2xl flex flex-col"
         style={{
           top: 0,

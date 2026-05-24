@@ -315,6 +315,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
   const sheetDragStartY = useRef(0);
   const sheetDragDeltaRef = useRef(0);
   const sheetGestureStart = useRef(0);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const { itineraries, save, remove, count: savedCount } = useSavedItineraries();
 
@@ -394,11 +395,15 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
     const delta = e.touches[0].clientY - sheetDragStartY.current;
     sheetDragDeltaRef.current = delta;
     setSheetDragDelta(delta);
+    if (panelRef.current && delta > 0) {
+      panelRef.current.style.opacity = String(Math.max(0.3, 1 - (delta / window.innerHeight) * 2));
+    }
   };
 
   const handleSheetTouchEnd = (e: React.TouchEvent) => {
     e.stopPropagation();
     isSheetDragging.current = false;
+    if (panelRef.current) panelRef.current.style.opacity = "1";
     setSheetDragging(false);
     const delta = sheetDragDeltaRef.current;
     const h = window.innerHeight - 56;
@@ -728,6 +733,7 @@ export default function ItineraryPanel({ open, onClose, onRouteCalculated, onVie
     <>
       {/* Mobile backdrop */}
       <div
+        ref={panelRef}
         data-panel
         className="fixed z-[600] inset-x-0 bottom-0 bg-card shadow-2xl flex flex-col rounded-t-2xl"
         style={{
