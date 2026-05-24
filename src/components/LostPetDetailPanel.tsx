@@ -61,6 +61,12 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
     setTimeout(() => setVisible(true), 10);
   }, [lostPet?.id]);
 
+  // Opacity via ref — React style prop must NOT include opacity or it overwrites drag feedback
+  useEffect(() => {
+    if (!panelRef.current) return;
+    panelRef.current.style.opacity = visible ? "1" : "0";
+  }, [visible]);
+
   const handleClose = () => {
     setVisible(false);
     setTimeout(onClose, 300);
@@ -180,7 +186,6 @@ export default function LostPetDetailPanel({ lostPet, onClose, onStatusChanged }
           top: 0,
           paddingTop: snapState === "full" ? "env(safe-area-inset-top)" : 0,
           transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
-          opacity: visible ? 1 : 0,
           transition: dragging ? "none" : "opacity 0.3s ease, transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
         }}
       >

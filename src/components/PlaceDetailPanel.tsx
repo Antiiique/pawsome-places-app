@@ -257,6 +257,32 @@ const CATS = [
   { value: "other", label: "Autres 📍" },
 ];
 
+function VerifiedBadge() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShow(true), 50);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <Badge
+      variant="secondary"
+      className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 border border-green-400 flex items-center gap-1"
+      style={{
+        display: "inline-flex",
+        transform: show ? "scale(1)" : "scale(0.3)",
+        opacity: show ? 1 : 0,
+        transition: show
+          ? "transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease"
+          : "none",
+        transformOrigin: "center left",
+      }}
+    >
+      <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
+      Vérifié
+    </Badge>
+  );
+}
+
 const PlaceDetailPanel = ({
   place,
   googleData,
@@ -1185,19 +1211,7 @@ const PlaceDetailPanel = ({
                     {hasBadges ? (
                       <div className="flex flex-wrap gap-2">
                         {localVerified && (
-                          <span
-                            key={`verified-${place.id}`}
-                            style={{
-                              display: "inline-flex",
-                              transformOrigin: "center",
-                              animation: "verified-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.7s both",
-                            }}
-                          >
-                            <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 border border-green-400 flex items-center gap-1">
-                              <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
-                              Vérifié
-                            </Badge>
-                          </span>
+                          <VerifiedBadge key={`verified-${place.id}`} />
                         )}
                         {localPetFlags.accepts_dogs && (
                           <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">

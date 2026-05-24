@@ -87,6 +87,8 @@ export default function StrayDetailPanel({ report, onClose, onDeleted }: StrayDe
     setDragDelta(delta);
     if (panelRef.current && delta > 0) {
       panelRef.current.style.opacity = String(Math.max(0.3, 1 - (delta / window.innerHeight) * 2));
+    } else if (panelRef.current) {
+      panelRef.current.style.opacity = "1";
     }
   };
 
@@ -116,6 +118,12 @@ export default function StrayDetailPanel({ report, onClose, onDeleted }: StrayDe
       .maybeSingle()
       .then(({ data }) => setPoster(data));
   }, [report?.user_id]);
+
+  // Opacity via ref — React style prop must NOT include opacity or it overwrites drag feedback
+  useEffect(() => {
+    if (!panelRef.current) return;
+    panelRef.current.style.opacity = visible ? "1" : "0";
+  }, [visible]);
 
   useEffect(() => {
     if (!report) return;
@@ -173,7 +181,6 @@ export default function StrayDetailPanel({ report, onClose, onDeleted }: StrayDe
           top: 0,
           paddingTop: snapState === "full" ? "env(safe-area-inset-top)" : 0,
           transform: `translateY(${visible ? currentPct + "%" : "100%"})`,
-          opacity: visible ? 1 : 0,
           transition: dragging ? "none" : "opacity 0.3s ease, transform 0.3s cubic-bezier(0.4,0,0.2,1), padding-top 0.3s cubic-bezier(0.4,0,0.2,1)",
         }}
       >
