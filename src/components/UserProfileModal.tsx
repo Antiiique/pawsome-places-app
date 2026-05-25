@@ -373,6 +373,7 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
   const [newPetAvatar, setNewPetAvatar] = useState<File | null>(null);
   const [newPetAvatarPreview, setNewPetAvatarPreview] = useState<string | null>(null);
   const newPetAvatarInputRef = useRef<HTMLInputElement>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const [submissions, setSubmissions] = useState<UserSubmission[]>([]);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
@@ -749,6 +750,30 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                   </Button>
                 </div>
 
+                {/* Mes animaux */}
+                {pets.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center">Mes animaux</p>
+                    <div className="flex gap-4 justify-center flex-wrap">
+                      {pets.map(pet => (
+                        <button
+                          key={pet.id}
+                          onClick={() => setActiveMainTab("pets")}
+                          className="flex flex-col items-center gap-1.5 group"
+                        >
+                          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-border group-hover:border-primary transition-colors bg-muted flex items-center justify-center shadow-sm">
+                            {pet.avatar_url
+                              ? <img src={pet.avatar_url} alt={pet.name} className="w-full h-full object-cover" />
+                              : <span className="text-2xl">{getSpeciesEmoji(pet.species)}</span>
+                            }
+                          </div>
+                          <p className="text-[10px] font-medium text-muted-foreground truncate max-w-[64px]">{pet.name}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Niveau & progression */}
                 {(() => {
                   const lvl = getLevel(profile.points);
@@ -969,9 +994,14 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
                     <div className="flex items-center gap-3">
                       <div className="shrink-0">
                         {pet.avatar_url ? (
-                          <img src={pet.avatar_url} alt={pet.name} className="w-14 h-14 rounded-full object-cover border border-border" />
+                          <button
+                            onClick={() => setLightboxUrl(pet.avatar_url)}
+                            className="block w-20 h-20 rounded-full overflow-hidden border-2 border-border hover:border-primary transition-colors shadow-sm active:scale-95"
+                          >
+                            <img src={pet.avatar_url} alt={pet.name} className="w-full h-full object-cover" />
+                          </button>
                         ) : (
-                          <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center text-2xl border border-border">
+                          <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-3xl border-2 border-border shadow-sm">
                             {getSpeciesEmoji(pet.species)}
                           </div>
                         )}
@@ -1527,6 +1557,21 @@ export default function UserProfileModal({ open, onClose, dragProgress }: UserPr
         </div>
       </Tabs>
     </div>
+
+    {/* Lightbox photo animal */}
+    {lightboxUrl && (
+      <div
+        className="fixed inset-0 z-[700] flex items-center justify-center bg-black/85"
+        onClick={() => setLightboxUrl(null)}
+      >
+        <img
+          src={lightboxUrl}
+          alt="Photo animal"
+          className="max-w-[88vw] max-h-[80vh] rounded-2xl object-contain shadow-2xl"
+          onClick={e => e.stopPropagation()}
+        />
+      </div>
+    )}
     </>
   );
 }
