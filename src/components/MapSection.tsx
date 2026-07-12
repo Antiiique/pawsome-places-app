@@ -18,6 +18,7 @@ import type { FavoritePlace } from "@/hooks/useFavorites";
 import { detectCategoryFromTypes } from "@/hooks/useFavorites";
 import type { ItineraryMapData } from "./itinerary/types";
 import type { PickMode } from "./itinerary/ItineraryPanel";
+import { CategoryIcon, categoryIconSvg } from "@/lib/categoryIcons";
 
 const MAPBOX_TOKEN = (import.meta.env.VITE_MAPBOX_TOKEN as string) || "pk.eyJ1IjoiZWx2aW5hZ2QiLCJhIjoiY21vNzlzaTZ5MDUxMTJxc2V1Ym5sZzVxNyJ9.QVzHhHQIH-DsrHzfi-STRA";
 const GOOGLE_API_KEY = (import.meta.env.VITE_GOOGLE_API_KEY as string) || "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
@@ -201,62 +202,35 @@ const CATEGORY_FILTERS = [
   { key: "other",          label: "Autres",         emoji: "📍" },
 ];
 
+// Gamme harmonisée & désaturée (S~40-50 %, L~50-60 %) — distinctes mais cohérentes,
+// ancrées sur la terre cuite / sauge de la marque.
 const CATEGORY_COLORS: Record<string, string> = {
-  veterinaire:    "#E53935",
-  restaurant:     "#FF6B35",
-  hotel:          "#4285F4",
-  outdoor:        "#4CAF50",
-  parc_chiens:    "#8BC34A",
-  animalerie:     "#9C27B0",
-  pension:        "#3F51B5",
-  toiletteur:     "#00BCD4",
-  educateur:      "#FF9800",
-  masseur:        "#E91E63",
-  pet_sitter:     "#607D8B",
-  dog_walker:     "#009688",
-  camping:        "#33691E",
-  plage:          "#0288D1",
-  loisir:         "#F57C00",
-  refuge:         "#5D4037",
-  spa:            "#E65100",
-  cafe_animalier: "#6D4C41",
-  aeroport:       "#455A64",
-  aire_repos:     "#546E7A",
-  station_carburant: "#EAB308",
-  transport:      "#1565C0",
-  comportementaliste: "#5C6BC0",
-  evenement:      "#7B1FA2",
-  commerce:       "#4F46E5",
-  other:          "#9E9E9E",
-};
-
-const CATEGORY_EMOJIS: Record<string, string> = {
-  veterinaire:    "🏥",
-  restaurant:     "🍽️",
-  hotel:          "🛏️",
-  outdoor:        "🌿",
-  parc_chiens:    "🐕",
-  animalerie:     "🐾",
-  pension:        "🏠",
-  toiletteur:     "🛁",
-  educateur:      "🎓",
-  masseur:        "💆",
-  pet_sitter:     "🏡",
-  dog_walker:     "🦮",
-  camping:        "⛺",
-  plage:          "🏖️",
-  loisir:         "🎯",
-  refuge:         "🏚️",
-  spa:            "🐾",
-  cafe_animalier: "☕",
-  comportementaliste: "🧠",
-  aeroport:       "✈️",
-  aire_repos:     "🛣️",
-  station_carburant: "⛽",
-  transport:      "🚇",
-  evenement:      "📅",
-  commerce:       "🏪",
-  other:          "📍",
+  veterinaire:    "#D0533F",
+  restaurant:     "#E08A3C",
+  hotel:          "#4E7CA8",
+  outdoor:        "#6E9A55",
+  parc_chiens:    "#86A94E",
+  animalerie:     "#9B6BA3",
+  pension:        "#5566A8",
+  toiletteur:     "#4FA3AE",
+  educateur:      "#D98C43",
+  masseur:        "#C56B86",
+  pet_sitter:     "#6D8A96",
+  dog_walker:     "#4E9E8F",
+  camping:        "#5E7D3E",
+  plage:          "#3E92C4",
+  loisir:         "#DB8038",
+  refuge:         "#8A6A54",
+  spa:            "#C86A4A",
+  cafe_animalier: "#8A6650",
+  aeroport:       "#5B7286",
+  aire_repos:     "#6E8290",
+  station_carburant: "#C9A13C",
+  transport:      "#4676B0",
+  comportementaliste: "#7A73B0",
+  evenement:      "#B65C8A",
+  commerce:       "#6A6FB0",
+  other:          "#9A8F82",
 };
 
 const POI_LAYERS = ["poi-label", "transit-label", "poi-scalerank1", "poi-scalerank2", "poi-scalerank3", "poi-scalerank4"];
@@ -504,8 +478,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       } else {
         const place = currentPlaces[cluster.properties.placeIndex];
         if (!place) return;
-        const color = place.accepts_dogs ? (CATEGORY_COLORS[place.category] || "#4CAF50") : "#9E9E9E";
-        const emoji = CATEGORY_EMOJIS[place.category] || "📍";
+        const color = place.accepts_dogs ? (CATEGORY_COLORS[place.category] || "#6E9A55") : "#9A8F82";
+        const iconSvg = categoryIconSvg(place.category, { size: 21, color: "#fff" });
         el.style.cssText = `display:flex;flex-direction:column;align-items:center;cursor:pointer;filter:drop-shadow(0 4px 12px ${color}88);`;
         const wrapper = document.createElement("div");
         wrapper.style.cssText = "display:flex;flex-direction:column;align-items:center;transform-origin:bottom center;position:relative;";
@@ -513,7 +487,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           wrapper.style.animation = `markerPopIn 0.5s cubic-bezier(0.16,1,0.3,1) both`;
           animatedMarkerIds.current.add(id);
         }
-        wrapper.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:${color};border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transition:box-shadow 0.2s ease;">${emoji}</div><div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid ${color};margin-top:-1px;"></div>`;
+        wrapper.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:${color};border:2.5px solid white;display:flex;align-items:center;justify-content:center;line-height:1;transition:box-shadow 0.2s ease;">${iconSvg}</div><div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid ${color};margin-top:-1px;"></div>`;
         el.appendChild(wrapper);
         const circleEl = wrapper.firstElementChild as HTMLElement | null;
         if (circleEl) {
@@ -1456,12 +1430,14 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
             } as React.CSSProperties}
             title="Filtrer par catégorie"
           >
-            <SlidersHorizontal className={`w-4 h-4 ${hasFilter ? "text-primary-foreground" : "text-foreground"}`} />
+            {activeCategories.length === 1 && activeCf
+              ? <CategoryIcon category={activeCf.key} className={`w-4 h-4 ${hasFilter ? "text-primary-foreground" : "text-foreground"}`} />
+              : <SlidersHorizontal className={`w-4 h-4 ${hasFilter ? "text-primary-foreground" : "text-foreground"}`} />}
             <span className={`text-sm font-semibold ${hasFilter ? "text-primary-foreground" : "text-foreground"}`}>
               {activeCategories.length === 0
                 ? "Filtrer"
                 : activeCategories.length === 1
-                  ? activeCf?.emoji
+                  ? activeCf?.label
                   : `${activeCategories.length} filtres`}
             </span>
           </button>
@@ -1542,11 +1518,12 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           <div className="overflow-y-auto flex-1 px-3 pt-3 pb-2">
             <button
               onClick={() => { setActiveCategories([]); setShowFilterSheet(false); }}
-              className={`w-full mb-3 py-3 rounded-xl font-semibold text-sm transition-all active:scale-[0.98] ${
+              className={`w-full mb-3 py-3 rounded-xl font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${
                 activeCategories.length === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
               }`}
             >
-              🐾 Tous les lieux
+              <CategoryIcon category="__all__" className="w-5 h-5" />
+              Tous les lieux
             </button>
             <div className="grid grid-cols-3 gap-2">
               {CATEGORY_FILTERS.filter(cf => cf.key !== null).map((cf) => {
@@ -1564,7 +1541,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
                       active ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                     }`}
                   >
-                    <span className="text-2xl leading-none">{cf.emoji}</span>
+                    <CategoryIcon category={cf.key} className={`w-7 h-7 ${active ? "text-primary-foreground" : "text-primary"}`} />
                     <span className="text-[10px] font-medium leading-tight text-center">{cf.label}</span>
                   </button>
                 );
