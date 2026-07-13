@@ -1,197 +1,47 @@
 import React from "react";
 
 /**
- * Jeu d'icônes catégories « duotone détaillé » — dessiné maison pour Pawsome Places.
+ * Icônes catégories — jeu pro **Solar Bold Duotone** (open-source), inliné et teinté.
+ * Chaque valeur est le contenu interne d'un SVG viewBox 0 0 24 24 dont les couches
+ * utilisent `currentColor` avec des opacités (effet duotone / relief). La couleur
+ * est pilotée par le contexte : terracotta/corail sur les filtres, blanc dans le pin.
  *
- * Source unique : chaque icône est un fragment SVG interne (viewBox 0 0 24 24) qui
- * utilise `currentColor` pour le glyphe et une forme douce à faible opacité (duotone).
- * La couleur est pilotée par le contexte :
- *   - tuile filtre inactive -> terracotta (text-primary)
- *   - tuile filtre active    -> blanc (sur fond primary)
- *   - pin de carte            -> blanc (dans la goutte colorée)
- *
- * Trois consommateurs :
- *   - <CategoryIcon />   UI React (filtres, listes, formulaires)
- *   - categoryIconSvg()  chaîne SVG simple (fallbacks divers)
- *   - categoryPinSvg()   goutte HD complète pour les marqueurs Mapbox (innerHTML)
+ * Consommateurs :
+ *   - <CategoryIcon />   UI React (filtres, listes)
+ *   - categoryIconSvg()  chaîne SVG simple
+ *   - categoryPinSvg()   pin "nuage" complet pour les marqueurs Mapbox (innerHTML)
  */
 
 const P: Record<string, string> = {
-  // ── Soins & santé ─────────────────────────────────────────
-  veterinaire: `
-    <path d="M4.5 9.5h15v8a1.6 1.6 0 0 1-1.6 1.6H6.1A1.6 1.6 0 0 1 4.5 17.5z" fill="currentColor" opacity="0.22"/>
-    <path d="M4.7 9.7h14.6v7.8a1.5 1.5 0 0 1-1.5 1.5H6.2a1.5 1.5 0 0 1-1.5-1.5z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/>
-    <path d="M9 9.7V8.1a3 3 0 0 1 6 0v1.6" stroke="currentColor" stroke-width="1.7" fill="none"/>
-    <path d="M12 12v4.2M9.9 14.1h4.2" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>`,
-  toiletteur: `
-    <circle cx="6.6" cy="16.2" r="1.9" stroke="currentColor" stroke-width="1.6" fill="none"/>
-    <circle cx="6.6" cy="9.6" r="1.9" stroke="currentColor" stroke-width="1.6" fill="none"/>
-    <path d="M8.4 15.2L17.5 6M8.4 10.6l5.6 5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-    <path d="M13 20.2h6.4v-2.4M14.4 17.9v2.3M15.9 17.9v2.3M17.4 17.9v2.3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
-  masseur: `
-    <circle cx="12" cy="12" r="9" fill="currentColor" opacity="0.12"/>
-    <path d="M8 13V8.4a1.15 1.15 0 0 1 2.3 0M10.3 12.4V6.8a1.15 1.15 0 0 1 2.3 0V12.2M12.6 12.2V7.3a1.15 1.15 0 0 1 2.3 0v6.4c0 3-2.1 5-5.1 5-1.8 0-3-.8-4-2.2l-1.7-2.5a1.25 1.25 0 0 1 1.95-1.55l1.2 1.15" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-    <path d="M17 6.6c1 .7 1 2 0 2.7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>`,
-  comportementaliste: `
-    <path d="M6.5 10.2a5.5 5.5 0 1 1 10.2 2.7c-.4.7-.7 1.2-.7 2v.6h-6v-.6c0-.8-.3-1.2-.7-1.9a5.5 5.5 0 0 1-3.6-2.8Z" fill="currentColor" opacity="0.18"/>
-    <path d="M6.5 10.2a5.5 5.5 0 1 1 10.2 2.7c-.4.7-.7 1.2-.7 2v.6h-6v-.6c0-.8-.3-1.2-.7-1.9a5.5 5.5 0 0 1-3.6-2.8Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
-    <path d="M10.4 12.6c0-1 .7-1.6 1.6-1.6s1.6.6 1.6 1.6M12 11v-2.1" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-    <path d="M9.9 17.6h4.2M10.6 19.6h2.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`,
-  spa: `
-    <circle cx="12" cy="12.5" r="8.6" fill="currentColor" opacity="0.12"/>
-    <path d="M12 5.6c1.8 2.2 1.8 5 0 7.6-1.8-2.6-1.8-5.4 0-7.6Z" fill="currentColor"/>
-    <path d="M12 13.4C9.2 10.7 6.3 10.9 4.4 12.9c1.2 3 4.5 3.9 7.6.5ZM12 13.4c2.8-2.7 5.7-2.5 7.6-.5-1.2 3-4.5 3.9-7.6.5Z" fill="currentColor" opacity="0.6"/>
-    <path d="M4.5 16.4c2.2 1.4 4.4 1.9 7.5 1.9s5.3-.5 7.5-1.9" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.7"/>`,
-
-  // ── Hébergement & garde ───────────────────────────────────
-  hotel: `
-    <rect x="4.5" y="12.8" width="15.5" height="4.6" rx="2" fill="currentColor" opacity="0.22"/>
-    <path d="M3 8.4v10.2M3 13.2h13.2a4 4 0 0 1 4 4v1.4M3 17.4h17.2M20.2 18.6V17.4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <rect x="5.4" y="10.6" width="5.4" height="3" rx="1.5" fill="currentColor"/>`,
-  pension: `
-    <path d="M5 11.4l7-4.4 7 4.4V19H5z" fill="currentColor" opacity="0.2"/>
-    <path d="M4 11.7L12 6.6l8 5.1M6 11.2V19h12v-7.6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M9.4 19v-3.4a2.6 2.6 0 0 1 5.2 0V19" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/>`,
-  pet_sitter: `
-    <path d="M12 20s-7-4.3-7-9.3a3.7 3.7 0 0 1 7-1.6 3.7 3.7 0 0 1 7 1.6c0 5-7 9.3-7 9.3Z" fill="currentColor" opacity="0.18"/>
-    <path d="M12 19.4s-6.4-4-6.4-8.7a3.4 3.4 0 0 1 6.4-1.5 3.4 3.4 0 0 1 6.4 1.5c0 4.7-6.4 8.7-6.4 8.7Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
-    <ellipse cx="12" cy="12.6" rx="1.7" ry="1.4" fill="currentColor"/>
-    <circle cx="9.7" cy="10.9" r="0.85" fill="currentColor"/>
-    <circle cx="11.1" cy="9.7" r="0.85" fill="currentColor"/>
-    <circle cx="12.9" cy="9.7" r="0.85" fill="currentColor"/>
-    <circle cx="14.3" cy="10.9" r="0.85" fill="currentColor"/>`,
-  refuge: `
-    <path d="M5 11.2l7-5.6 7 5.6V19H5z" fill="currentColor" opacity="0.2"/>
-    <path d="M4.3 11.4L12 5.4l7.7 6M6.4 11V19.4h11.2V11" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M12 17.7s-2.7-1.7-2.7-3.5a1.5 1.5 0 0 1 2.7-.9 1.5 1.5 0 0 1 2.7.9c0 1.8-2.7 3.5-2.7 3.5Z" fill="currentColor"/>`,
-  camping: `
-    <path d="M12 6.6l8 12H4z" fill="currentColor" opacity="0.2"/>
-    <path d="M12 6.6L4 18.5h16L12 6.6Z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
-    <path d="M12 10.6l-2.6 7.9M12 10.6l2.6 7.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-    <path d="M12 6.6V3.9l2.2.9-2.2 1M3 20l1.4-1.5M21 20l-1.4-1.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
-
-  // ── Restauration ──────────────────────────────────────────
-  restaurant: `
-    <path d="M8 3.6v4.7a1.7 1.7 0 0 0 3.4 0V3.6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>
-    <path d="M8 3.6v3.2M11.4 3.6v3.2M9.7 8.3V20.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-    <path d="M16 3.6c1.6.5 2.3 3 2.3 5.4 0 2.1-.8 3.4-2.3 3.7V20.4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
-  cafe_animalier: `
-    <path d="M5.6 8.8h9.8v3.2a4.9 4.9 0 0 1-9.8 0z" fill="currentColor" opacity="0.2"/>
-    <path d="M6 9.1h9v3a4.5 4.5 0 0 1-9 0V9.1Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/>
-    <path d="M15 10h1.5a1.9 1.9 0 0 1 0 3.8h-1.1" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-    <path d="M4.5 18.4h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-    <path d="M8.4 4.6c-.6.9-.6 1.7 0 2.6M11.4 4.6c-.6.9-.6 1.7 0 2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>`,
-
-  // ── Nature & plein air ────────────────────────────────────
-  outdoor: `
-    <path d="M12 4a4 4 0 0 0-3.7 5.6A3.4 3.4 0 0 0 9 16.3h6a3.4 3.4 0 0 0 .7-6.7A4 4 0 0 0 12 4Z" fill="currentColor" opacity="0.2"/>
-    <path d="M12 4.4a3.7 3.7 0 0 0-3.4 5.2A3.15 3.15 0 0 0 9.2 15.8h5.6a3.15 3.15 0 0 0 .6-6.2A3.7 3.7 0 0 0 12 4.4Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/>
-    <path d="M12 15.8V20.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>`,
-  parc_chiens: `
-    <path d="M9 9.5h6v8.5a1.6 1.6 0 0 1-1.6 1.6h-2.8A1.6 1.6 0 0 1 9 18z" fill="currentColor" opacity="0.2"/>
-    <path d="M9 19V9.7a3 3 0 0 1 6 0V19M7.7 19.4h8.6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M9 8.6c.4-1.4 1.6-2.2 3-2.2s2.6.8 3 2.2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>
-    <path d="M15.2 11.5h2.3M6.5 11.5H4.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-    <circle cx="12" cy="11.2" r="1.15" fill="currentColor"/>`,
-  plage: `
-    <path d="M5.4 12.4a6.6 6.6 0 0 1 13.2 0z" fill="currentColor" opacity="0.2"/>
-    <path d="M5.4 12.4a6.6 6.6 0 0 1 13.2 0" stroke="currentColor" stroke-width="1.7" fill="none"/>
-    <path d="M5.4 12.4q2.2-1.6 4.4 0t4.4 0 4.4 0" stroke="currentColor" stroke-width="1.5" fill="none"/>
-    <path d="M12 6V12.4M12 20.4V12.4M12 20.4a2 2 0 0 0 2.2-.7" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>
-    <circle cx="17.6" cy="5.6" r="1.7" stroke="currentColor" stroke-width="1.4" fill="none"/>
-    <path d="M17.6 2.9v1M17.6 8.3v-1M15 5.6h1M20.2 5.6h-1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>`,
-  loisir: `
-    <ellipse cx="12" cy="13" rx="8.5" ry="3.5" fill="currentColor" opacity="0.2"/>
-    <ellipse cx="12" cy="12" rx="8.5" ry="3.4" stroke="currentColor" stroke-width="1.7" fill="none"/>
-    <path d="M3.5 12c0 1.9 3.8 3.4 8.5 3.4s8.5-1.5 8.5-3.4" stroke="currentColor" stroke-width="1.7" fill="none"/>
-    <ellipse cx="12" cy="12" rx="2.6" ry="1" fill="currentColor"/>`,
-  evenement: `
-    <rect x="4" y="6" width="16" height="14" rx="3.2" fill="currentColor" opacity="0.18"/>
-    <rect x="4.5" y="6.5" width="15" height="13" rx="2.6" stroke="currentColor" stroke-width="1.7" fill="none"/>
-    <path d="M4.5 10.2h15M8 4.5v3M16 4.5v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-    <rect x="10.1" y="12.4" width="3.8" height="3.4" rx="1" fill="currentColor"/>`,
-
-  // ── Commerces & services ──────────────────────────────────
-  animalerie: `
-    <path d="M6.2 8.6h11.6l-1 10.4H7.2z" fill="currentColor" opacity="0.2"/>
-    <path d="M6.4 8.7h11.2l-1 10.4H7.4z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/>
-    <path d="M9.3 8.7V7.3a2.7 2.7 0 0 1 5.4 0v1.4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>
-    <path d="M10 15.4c-.55-.55-.55-1.35 0-1.9.5-.5 1.25-.45 1.75.05l.75.75.75-.75c.5-.5 1.25-.55 1.75-.05.55.55.55 1.35 0 1.9-.5.5-1.25.45-1.75-.05l-.75-.75-.75.75c-.5.5-1.25.55-1.75.05z" fill="currentColor"/>`,
-  commerce: `
-    <path d="M5 10.2h14V19H5z" fill="currentColor" opacity="0.18"/>
-    <path d="M4 10.2l1.2-4.2h13.6L20 10.2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/>
-    <path d="M4 10.2q2.2 1.7 4 0t4 0 4 0 4 0" stroke="currentColor" stroke-width="1.5" fill="none"/>
-    <path d="M5.4 11.4V19h13.2v-7.6M4 19h16" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M10 19v-3.8h4V19" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>`,
-  educateur: `
-    <path d="M12 5.8l9 4-9 4-9-4z" fill="currentColor" opacity="0.2"/>
-    <path d="M3 9.8l9-4 9 4-9 4-9-4Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/>
-    <path d="M7 11.6v3.8c0 1.1 2.2 2.1 5 2.1s5-1 5-2.1v-3.8" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M21 9.8v4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-    <circle cx="21" cy="14.6" r="1" fill="currentColor"/>`,
-  dog_walker: `
-    <circle cx="12" cy="12" r="9" fill="currentColor" opacity="0.1"/>
-    <circle cx="6.6" cy="5.6" r="1.6" stroke="currentColor" stroke-width="1.6" fill="none"/>
-    <path d="M6.6 7.2c0 4.2 2 6.2 5.6 6.2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>
-    <circle cx="14.8" cy="15.2" r="3.1" stroke="currentColor" stroke-width="1.7" fill="none"/>
-    <path d="M14.8 18.3v1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`,
-
-  // ── Transport & voyage ────────────────────────────────────
-  aeroport: `
-    <circle cx="12" cy="12" r="9" fill="currentColor" opacity="0.1"/>
-    <path d="M11 4.3a1.35 1.35 0 0 1 2 0l.9 6.2 5 3v1.9l-5-1.35v3.55l1.7 1.25v1.45l-3.3-.95-3.3.95V18.8l1.7-1.25V14l-5 1.35V13.5l5-3z" fill="currentColor"/>`,
-  transport: `
-    <rect x="5" y="4" width="14" height="14" rx="3.2" fill="currentColor" opacity="0.16"/>
-    <rect x="5.5" y="4.5" width="13" height="12" rx="2.6" stroke="currentColor" stroke-width="1.7" fill="none"/>
-    <path d="M5.5 11h13" stroke="currentColor" stroke-width="1.7"/>
-    <circle cx="8.6" cy="14" r="1.05" fill="currentColor"/>
-    <circle cx="15.4" cy="14" r="1.05" fill="currentColor"/>
-    <path d="M7.6 18l-1.2 2M16.4 18l1.2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`,
-  station_carburant: `
-    <rect x="5" y="5" width="8.5" height="14" rx="2.2" fill="currentColor" opacity="0.2"/>
-    <path d="M6 19V7.2a2 2 0 0 1 2-2h2.6a2 2 0 0 1 2 2V19M5 19h8.6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M7.6 9.3h3.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-    <path d="M12.6 8.6l2.6 2.1v5.6a1.5 1.5 0 0 0 3 0V11.6l-1.9-1.9" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
-  aire_repos: `
-    <circle cx="12" cy="12" r="9" fill="currentColor" opacity="0.1"/>
-    <circle cx="6.6" cy="8" r="2.6" stroke="currentColor" stroke-width="1.6" fill="none"/>
-    <path d="M6.6 10.6V15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-    <path d="M10 14.2h9M10 14.2V17M19 14.2V17M11.4 14.2v-1.6h6.2v1.6M12 17v1.6M17 17v1.6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
-
-  // ── Générique & alertes ───────────────────────────────────
-  other: `
-    <rect x="4" y="4" width="16" height="16" rx="5" fill="currentColor" opacity="0.16"/>
-    <circle cx="9" cy="9" r="1.8" fill="currentColor"/>
-    <circle cx="15" cy="9" r="1.8" fill="currentColor"/>
-    <circle cx="9" cy="15" r="1.8" fill="currentColor"/>
-    <circle cx="15" cy="15" r="1.8" fill="currentColor"/>`,
-  __all__: `
-    <ellipse cx="12" cy="14.6" rx="3.3" ry="2.7" fill="currentColor"/>
-    <ellipse cx="6.9" cy="11.4" rx="1.7" ry="2" fill="currentColor"/>
-    <ellipse cx="10.2" cy="8.6" rx="1.7" ry="2.1" fill="currentColor"/>
-    <ellipse cx="13.8" cy="8.6" rx="1.7" ry="2.1" fill="currentColor"/>
-    <ellipse cx="17.1" cy="11.4" rx="1.7" ry="2" fill="currentColor"/>`,
-  __strays__: `
-    <circle cx="12" cy="12" r="9" fill="currentColor" opacity="0.1"/>
-    <ellipse cx="14.6" cy="15.4" rx="2.2" ry="1.8" fill="currentColor"/>
-    <circle cx="11.9" cy="13.3" r="1.05" fill="currentColor"/>
-    <circle cx="13.4" cy="11.7" r="1.05" fill="currentColor"/>
-    <circle cx="15.8" cy="11.7" r="1.05" fill="currentColor"/>
-    <circle cx="17.3" cy="13.3" r="1.05" fill="currentColor"/>
-    <ellipse cx="7.4" cy="9" rx="1.5" ry="1.25" fill="currentColor" opacity="0.5"/>
-    <circle cx="5.8" cy="7.6" r="0.75" fill="currentColor" opacity="0.5"/>
-    <circle cx="6.8" cy="6.4" r="0.75" fill="currentColor" opacity="0.5"/>
-    <circle cx="8.4" cy="6.4" r="0.75" fill="currentColor" opacity="0.5"/>
-    <circle cx="9.2" cy="7.7" r="0.75" fill="currentColor" opacity="0.5"/>`,
-  __lost__: `
-    <circle cx="10.6" cy="10.6" r="6.6" fill="currentColor" opacity="0.16"/>
-    <circle cx="10.6" cy="10.6" r="5.6" stroke="currentColor" stroke-width="1.8" fill="none"/>
-    <path d="M15 15l4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    <ellipse cx="10.6" cy="11.4" rx="1.6" ry="1.3" fill="currentColor"/>
-    <circle cx="8.6" cy="9.9" r="0.8" fill="currentColor"/>
-    <circle cx="9.9" cy="8.8" r="0.8" fill="currentColor"/>
-    <circle cx="11.4" cy="8.8" r="0.8" fill="currentColor"/>
-    <circle cx="12.6" cy="9.9" r="0.8" fill="currentColor"/>`,
+  veterinaire: "<circle cx=\"19\" cy=\"16\" r=\"3\" fill=\"currentColor\"/><path fill=\"currentColor\" d=\"M12 1.25a.75.75 0 0 1 .75.75v.251a3.75 3.75 0 0 1 3.7 3.418c.014.166.014.354.014.629V7.52A7.464 7.464 0 0 1 9 14.985a7.75 7.75 0 0 1-7.75-7.75v-.937c0-.275 0-.463.015-.628A3.75 3.75 0 0 1 4.67 2.265a7 7 0 0 1 .58-.015V2a.75.75 0 1 1 1.5 0v2a.75.75 0 0 1-1.5 0v-.25c-.263 0-.366.001-.448.009a2.25 2.25 0 0 0-2.043 2.043c-.008.09-.009.206-.009.535v.898A6.25 6.25 0 0 0 9 13.485a5.964 5.964 0 0 0 5.964-5.964V6.337c0-.329 0-.445-.008-.535a2.25 2.25 0 0 0-2.206-2.05V4a.75.75 0 0 1-1.5 0V2a.75.75 0 0 1 .75-.75\"/><path fill=\"currentColor\" d=\"M8.25 14.95V17A5.75 5.75 0 0 0 14 22.75h.882a4.87 4.87 0 0 0 4.23-2.458c.247-.432.37-.896.43-1.34a3 3 0 0 1-1.5-.108a2.1 2.1 0 0 1-.232.705a3.37 3.37 0 0 1-2.928 1.701H14A4.25 4.25 0 0 1 9.75 17v-2.052a7.5 7.5 0 0 1-1.5.002\" opacity=\".5\"/>",  // solar:stethoscope
+  toiletteur: "<path fill=\"currentColor\" d=\"M6.654 1.633a.75.75 0 1 0-1.308.735L15.704 20.79a3.75 3.75 0 1 0-.136-3.303z\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M17.346 1.633a.75.75 0 0 1 1.308.735L8.296 20.79a3.75 3.75 0 1 1 .136-3.303z\"/>",  // solar:scissors
+  masseur: "<path fill=\"currentColor\" d=\"M7 4.83c0 1.547 1.726 3.178 3.15 4.26c.799.606 1.198.91 1.85.91s1.051-.304 1.85-.91C15.274 8.007 17 6.376 17 4.83c0-2.79-2.75-3.833-5-1.677C9.75.997 7 2.039 7 4.829\"/><path fill=\"currentColor\" d=\"M6.26 21.388H6c-.943 0-1.414 0-1.707-.293C4 20.804 4 20.332 4 19.389v-1.112c0-.518 0-.777.133-1.009s.334-.348.736-.582c2.646-1.539 6.403-2.405 8.91-.91q.253.151.45.368a1.49 1.49 0 0 1-.126 2.134a1 1 0 0 1-.427.24q.18-.021.345-.047c.911-.145 1.676-.633 2.376-1.162l1.808-1.365a1.89 1.89 0 0 1 2.22 0c.573.433.749 1.146.386 1.728c-.423.678-1.019 1.545-1.591 2.075s-1.426 1.004-2.122 1.34c-.772.373-1.624.587-2.491.728c-1.758.284-3.59.24-5.33-.118a15 15 0 0 0-3.017-.308\" opacity=\".5\"/>",  // solar:hand-heart
+  comportementaliste: "<path fill=\"currentColor\" d=\"M4 9.674C4 5.436 7.358 2 11.5 2S19 5.436 19 9.674a7.74 7.74 0 0 1-2.499 5.72c-.51.467-.889.814-1.157 1.066a15 15 0 0 0-.4.39l-.025.027l-.005.006l-.003.003c-.237.3-.288.376-.318.446s-.053.16-.113.54c-.023.15-.026.406-.026 1.105v.03c0 .409 0 .762-.025 1.051c-.027.306-.087.61-.248.895a2.07 2.07 0 0 1-.75.767c-.278.165-.575.226-.874.254c-.283.026-.628.026-1.028.026h-.058c-.4 0-.745 0-1.028-.026c-.3-.028-.596-.09-.875-.254a2.07 2.07 0 0 1-.749-.767c-.16-.285-.22-.588-.248-.895c-.026-.29-.026-.642-.026-1.051v-.03c0-.699-.002-.955-.026-1.105c-.06-.38-.081-.47-.112-.54c-.03-.07-.081-.147-.318-.446l-.003-.003l-.005-.006l-.025-.027l-.088-.09a15 15 0 0 0-.312-.3c-.268-.252-.647-.599-1.157-1.067A7.74 7.74 0 0 1 4 9.674\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M10.298 13.625a.75.75 0 1 0-1.299.75a2.76 2.76 0 0 0 1.632 1.271V17a.75.75 0 0 0 1.5 0v-1.353a2.76 2.76 0 0 0 1.632-1.271a.75.75 0 0 0-1.299-.751a1.249 1.249 0 0 1-2.166 0m-.384 6.05h3.17a4 4 0 0 1-.014.258c-.018.209-.05.285-.071.323a.7.7 0 0 1-.25.255c-.037.022-.111.054-.316.073c-.214.02-.496.02-.934.02c-.437 0-.72 0-.934-.02c-.204-.019-.279-.05-.316-.073a.7.7 0 0 1-.25-.255c-.02-.038-.052-.114-.07-.323a5 5 0 0 1-.015-.259\"/>",  // solar:lightbulb
+  spa: "<path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M2 11h-.25a.75.75 0 0 0 0 1.5H2v.355c0 .375 0 .595.016.84c.142 2.237 1.35 4.302 3.102 5.652c.157.126.913.588 1.27.803a7.4 7.4 0 0 0 2.581.765c.245.025.394.03.648.04h.007c.74.028 1.464.045 2.126.045s1.386-.017 2.126-.045h.007c.254-.01.404-.015.648-.04a7.4 7.4 0 0 0 2.58-.765c.339-.2 1.067-.639 1.272-.803c1.751-1.35 2.96-3.416 3.102-5.652c.015-.245.015-.465.015-.84v-.038c0-.06 0-.123-.004-.18a2 2 0 0 0-.014-.137h.268a.75.75 0 0 0 0-1.5z\" clip-rule=\"evenodd\"/><path fill=\"currentColor\" d=\"m5.118 19.347l-.039.068l-1 2a.75.75 0 1 0 1.342.67l.968-1.935c-.358-.215-1.114-.677-1.271-.803m11.993.803l.968 1.936a.75.75 0 1 0 1.342-.671l-1-2l-.039-.068c-.204.164-.932.604-1.27.803M3.5 4.135a1.635 1.635 0 0 1 3.153-.607l.144.358l1.36-.64l-.11-.275A3.135 3.135 0 0 0 2 4.135V11h1.5z\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M6.796 3.886a4.1 4.1 0 0 0-1.38 1.774a4.18 4.18 0 0 0-.019 3.107a.75.75 0 0 0 .994.414l5.961-2.567a.75.75 0 0 0 .402-.963a3.97 3.97 0 0 0-2.133-2.213a3.84 3.84 0 0 0-2.465-.192z\"/>",  // solar:bath
+  hotel: "<path fill=\"currentColor\" d=\"M3.002 12.267a2 2 0 0 0-.85.968C2 13.602 2 14.068 2 15s0 1.398.152 1.765a2 2 0 0 0 1.083 1.083c.252.104.55.137 1.015.147V20a.75.75 0 0 0 1.5 0v-2h12.5v2a.75.75 0 0 0 1.5 0v-2.005c.464-.01.763-.043 1.015-.147a2 2 0 0 0 1.083-1.083C22 16.398 22 15.932 22 15s0-1.398-.152-1.765a2 2 0 0 0-.85-.968L19.25 12H4.75z\"/><path fill=\"currentColor\" d=\"M10.998 4h2c3.77 0 5.656 0 6.828 1.172c1.023 1.022 1.153 2.588 1.17 5.477v1.617L19.25 12H4.75l-1.748.267H3V10.65c.017-2.889.147-4.455 1.17-5.477C5.34 4 7.225 4 10.997 4\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M19 10.5c0-1.186-.002-1.983-.081-2.578c-.076-.568-.206-.811-.365-.971c-.158-.16-.399-.293-.96-.37c-.589-.079-1.377-.081-2.55-.081h-2.131v4zm-7.913 0v-4h-2.13c-1.174 0-1.962.002-2.55.082c-.562.076-.803.208-.961.369c-.159.16-.29.403-.365.971C5.001 8.517 5 9.314 5 10.5z\"/>",  // solar:bed
+  pension: "<path fill=\"currentColor\" d=\"M2 12.204c0-2.289 0-3.433.52-4.381c.518-.949 1.467-1.537 3.364-2.715l2-1.241C9.889 2.622 10.892 2 12 2s2.11.622 4.116 1.867l2 1.241c1.897 1.178 2.846 1.766 3.365 2.715S22 9.915 22 12.203v1.522c0 3.9 0 5.851-1.172 7.063S17.771 22 14 22h-4c-3.771 0-5.657 0-6.828-1.212S2 17.626 2 13.725z\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M11.25 18a.75.75 0 0 0 1.5 0v-3a.75.75 0 0 0-1.5 0z\"/>",  // solar:home-2
+  pet_sitter: "<path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M8.106 18.247C5.298 16.083 2 13.542 2 9.137C2 4.274 7.5.825 12 5.501V20.5c-1 0-2-.77-3.038-1.59q-.417-.326-.856-.663\" clip-rule=\"evenodd\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M15.038 18.91C17.981 16.592 22 14 22 9.138S16.5.825 12 5.501V20.5c1 0 2-.77 3.038-1.59\"/>",  // solar:heart
+  refuge: "<path fill=\"currentColor\" d=\"M10.894 22h2.212c3.447 0 5.17 0 6.345-1.012s1.419-2.705 1.906-6.093l.279-1.937c.38-2.637.57-3.956.029-5.083s-1.691-1.813-3.992-3.183l-1.385-.825C14.2 2.622 13.154 2 12 2s-2.199.622-4.288 1.867l-1.385.825c-2.3 1.37-3.451 2.056-3.992 3.183s-.35 2.446.03 5.083l.278 1.937c.487 3.388.731 5.081 1.906 6.093S7.447 22 10.894 22\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M9.447 15.397a.75.75 0 0 0-.894 1.205A5.77 5.77 0 0 0 12 17.75a5.77 5.77 0 0 0 3.447-1.148a.75.75 0 0 0-.894-1.205A4.27 4.27 0 0 1 12 16.25a4.27 4.27 0 0 1-2.553-.853\"/>",  // solar:home-smile-angle
+  camping: "<g fill=\"currentColor\" fill-rule=\"evenodd\" clip-rule=\"evenodd\"><path d=\"M3.313 14.7a.75.75 0 0 1 .988-.387l5 2.188a.75.75 0 1 1-.601 1.374l-5-2.188a.75.75 0 0 1-.387-.987m17.374 0a.75.75 0 0 1-.386.987l-16 7a.75.75 0 0 1-.601-1.374l16-7a.75.75 0 0 1 .987.387m-6.874 4.593a.75.75 0 0 1 .988-.386l5.5 2.406a.75.75 0 1 1-.601 1.374l-5.5-2.406a.75.75 0 0 1-.387-.988\" opacity=\".5\"/><path d=\"M11.6 15c2.133 0 6.4-1.239 6.4-6.193c0-3.031-1.849-5.23-3.6-6.542c-.897-.674-2.047.025-2.047 1.124c0 .743-.21 1.977-.793 2.891c-.682 1.07-1.809.141-1.987-1.104c-.09-.624-.777-.882-1.312-.523C7.208 5.358 6 6.71 6 8.807C6 13.761 9.733 15 11.6 15m3.616-5.718a.75.75 0 0 1 .502.934c-.268.896-1.384 2.534-3.718 2.534a.75.75 0 0 1 0-1.5c1.506 0 2.15-1.028 2.282-1.466a.75.75 0 0 1 .934-.502\"/></g>",  // solar:bonfire
+  restaurant: "<path fill=\"currentColor\" d=\"M18.999 18H5.002c.01 1.397.082 2.912.584 3.414C6.172 22 7.115 22 9 22h6c1.886 0 2.829 0 3.415-.586c.502-.502.573-2.017.584-3.414\"/><path fill=\"currentColor\" d=\"M7 5a5 5 0 0 0-2 9.584V18h14v-3.416a5.001 5.001 0 0 0-2.737-9.53a4.502 4.502 0 0 0-8.526 0A5 5 0 0 0 7 5\" opacity=\".5\"/>",  // solar:chef-hat
+  cafe_animalier: "<path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M6.977 1.327a.75.75 0 0 1 .175 1.046l-.386.541c.626.474.765 1.364.306 2.007l-.41.576a.75.75 0 0 1-1.222-.871l.386-.542a1.457 1.457 0 0 1-.306-2.007l.411-.575a.75.75 0 0 1 1.046-.175m4 0a.75.75 0 0 1 .175 1.046l-.386.541c.626.474.765 1.364.306 2.007l-.41.576a.75.75 0 1 1-1.222-.871l.386-.542a1.457 1.457 0 0 1-.306-2.007l.411-.575a.75.75 0 0 1 1.046-.175m4 0a.75.75 0 0 1 .175 1.046l-.386.541c.626.474.765 1.364.306 2.007l-.41.576a.75.75 0 1 1-1.222-.871l.386-.542a1.457 1.457 0 0 1-.306-2.007l.411-.575a.75.75 0 0 1 1.046-.175\" clip-rule=\"evenodd\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M9.613 22h.774c2.66 0 3.991 0 4.856-.81c.67-.626.874-1.564 1.015-3.19H3.742c.14 1.626.344 2.564 1.014 3.19c.865.81 2.196.81 4.856.81\" opacity=\".5\"/><path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M3.284 11.266c-.133-2-.2-2.999.393-3.632C4.27 7 5.272 7 7.276 7h5.449c2.003 0 3.005 0 3.598.634c.162.173.275.374.35.616H17a4.75 4.75 0 1 1 0 9.5h-.722l-.02.25H3.742a86 86 0 0 1-.116-1.6zm13.1 4.984H17a3.25 3.25 0 0 0 0-6.5h-.2c-.012.43-.045.93-.084 1.516z\" clip-rule=\"evenodd\"/>",  // solar:cup-hot
+  outdoor: "<path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M12 22c-4.418 0-8-3.646-8-8.143c0-4.462 2.553-9.67 6.537-11.531A3.45 3.45 0 0 1 12 2z\" clip-rule=\"evenodd\"/><path fill=\"currentColor\" d=\"M13.463 2.326A3.45 3.45 0 0 0 12 2v7l4.432-4.432c-.863-.947-1.86-1.724-2.97-2.242\" opacity=\".3\"/><path fill=\"currentColor\" d=\"M12 9v5.5l6.614-6.614c-.572-1.22-1.308-2.357-2.182-3.318z\" opacity=\".4\"/><path fill=\"currentColor\" d=\"m12 19.5l7.811-7.811a15 15 0 0 0-1.197-3.803L12 14.5z\" opacity=\".6\"/><path fill=\"currentColor\" d=\"M19.811 11.689L12 19.5V22c4.418 0 8-3.646 8-8.143c0-.71-.064-1.438-.189-2.168\" opacity=\".7\"/>",  // solar:leaf
+  parc_chiens: "<path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M13.29 5.79c-.28-1.014.104-2.309.847-3.052A2.519 2.519 0 0 1 17.7 6.3a2.519 2.519 0 0 1 3.562 3.563c-.743.743-2.038 1.128-3.052.848c-.536-.149-1.185-.173-1.579.22L13.07 7.37c.393-.394.369-1.043.22-1.58m-5.921 7.279c-.394.393-1.043.369-1.58.22c-1.013-.28-2.308.105-3.051.848A2.519 2.519 0 0 0 6.3 17.7a2.519 2.519 0 0 0 3.563 3.562c.743-.743 1.128-2.038.848-3.052c-.149-.536-.173-1.185.22-1.579z\" clip-rule=\"evenodd\"/><path fill=\"currentColor\" d=\"m10.932 16.631l5.7-5.7l-3.563-3.562l-5.7 5.7z\" opacity=\".5\"/>",  // solar:bone
+  plage: "<path fill=\"currentColor\" d=\"M21.524 12H2.476A.476.476 0 0 1 2 11.524A9.524 9.524 0 0 1 11.524 2h.952A9.524 9.524 0 0 1 22 11.524a.476.476 0 0 1-.476.476\" opacity=\".5\"/><path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M11.25 20v-8h1.5v8a2.75 2.75 0 1 1-5.5 0v-1a.75.75 0 0 1 1.5 0v1a1.25 1.25 0 1 0 2.5 0\" clip-rule=\"evenodd\"/><path fill=\"currentColor\" d=\"M7.84 12c.143-1.354.477-3.733 1.184-5.771c.36-1.042.802-1.941 1.324-2.567c.514-.616 1.055-.912 1.652-.912c.598 0 1.139.296 1.652.912c.523.626.964 1.525 1.325 2.567c.707 2.038 1.04 4.417 1.183 5.771h1.509l-.008-.077c-.142-1.371-.489-3.94-1.267-6.185c-.388-1.12-.901-2.212-1.59-3.037a5 5 0 0 0-.506-.527A9.6 9.6 0 0 0 12.476 2h-.952q-.935.002-1.82.174a5 5 0 0 0-.508.527c-.688.825-1.201 1.917-1.59 3.037c-.778 2.244-1.125 4.814-1.266 6.185L6.332 12z\"/>",  // solar:umbrella
+  loisir: "<path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M15.602 2.422c-.22-.22-.496-.21-.648-.19c-.143.02-.315.068-.479.115l-.125.035l-.103-.064a3.4 3.4 0 0 0-.42-.24c-.15-.064-.401-.138-.666.001c-.26.137-.346.381-.38.537a4 4 0 0 0-.06.487l-.01.127v.01l-.112.093c-.134.11-.272.223-.37.33c-.104.114-.264.327-.223.625c.042.307.264.466.403.544c.126.07.292.13.447.188l.108.04l.04.109c.058.154.119.32.189.446c.077.14.236.362.544.404c.297.04.51-.12.624-.224c.107-.098.221-.236.33-.37l.092-.111h.011l.128-.01c.168-.014.345-.028.486-.06c.156-.035.4-.12.537-.38c.14-.265.066-.518 0-.667a3.4 3.4 0 0 0-.239-.42l-.064-.102l.036-.126c.046-.164.095-.336.114-.479c.02-.152.03-.428-.19-.648\" clip-rule=\"evenodd\"/><path fill=\"currentColor\" d=\"M10.187 2.16a.75.75 0 0 1 .248 1.032a.65.65 0 0 0 .095.8l.098.097c.589.589.806 1.454.565 2.25a.75.75 0 1 1-1.436-.433a.76.76 0 0 0-.19-.756l-.097-.098a2.15 2.15 0 0 1-.314-2.642a.75.75 0 0 1 1.03-.25M21.41 13.581a1.01 1.01 0 0 0-1.079.17a2.51 2.51 0 0 1-2.923.297l-.213-.123a.75.75 0 1 1 .75-1.3l.213.123c.377.218.852.17 1.178-.119a2.51 2.51 0 0 1 2.674-.422l.291.127a.75.75 0 1 1-.6 1.375zm-8.494-6.402a.536.536 0 1 0-.758.759a.536.536 0 0 0 .758-.76\"/><path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M22.524 8.864c.256.554.083 1.183-.384 1.65c-.27.27-.634.394-.957.451c-.33.059-.68.06-.986.04a7 7 0 0 1-1.116-.163l-.02-.005l-.005-.001h-.003a.5.5 0 0 1-.365-.366l.485-.12l-.485.119l-.001-.002l-.001-.006l-.005-.02l-.016-.07a7 7 0 0 1-.148-1.045a4.2 4.2 0 0 1 .04-.986c.058-.324.18-.687.452-.957c.467-.468 1.096-.64 1.65-.384c.42.194.693.586.796 1.069c.482.103.875.376 1.07.796\" clip-rule=\"evenodd\"/><path fill=\"currentColor\" d=\"M17.69 4.744a.75.75 0 0 1 .588.882l-.144.72c-.198.99-.912 1.8-1.87 2.119c-.448.15-.782.527-.874.99l-.144.72a.75.75 0 0 1-1.471-.294l.144-.72c.198-.99.912-1.8 1.87-2.119c.448-.15.782-.527.874-.99l.145-.72a.75.75 0 0 1 .882-.588M6.929 3.963a.536.536 0 1 1 .758.758a.536.536 0 0 1-.758-.758\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M19.817 15.335a.536.536 0 1 0-.759.76a.536.536 0 0 0 .759-.76\" opacity=\".7\"/><path fill=\"currentColor\" d=\"M17.158 10.18a.536.536 0 1 1 .759.757a.536.536 0 0 1-.759-.758\" opacity=\".2\"/><path fill=\"currentColor\" d=\"m4.012 15.762l1.69-5.069c.766-2.298 1.149-3.447 2.055-3.66c.906-.215 1.763.642 3.475 2.355l3.38 3.379c1.712 1.713 2.569 2.569 2.355 3.475s-1.363 1.29-3.661 2.055l-5.069 1.69c-2.765.922-4.148 1.383-4.878.653s-.269-2.113.653-4.878\" opacity=\".5\"/><path fill=\"currentColor\" d=\"m8.8 7.504l.05-.245c-.392-.23-.739-.31-1.093-.227a1.2 1.2 0 0 0-.397.175l.696.144c-.478-.1-.641-.133-.696-.144l-.035.024l-.005.026a26 26 0 0 0-.138.73a51 51 0 0 0-.311 1.939c-.215 1.533-.415 3.492-.312 5.057c.062.948.26 2.123.435 3.04a51 51 0 0 0 .312 1.503l.021.093l.006.025l.002.009l.73-.17l-.73.17l.137.588l.765-.254l.664-.221l-.106-.46l-.006-.021l-.02-.088l-.072-.33a49 49 0 0 1-.23-1.125c-.173-.907-.355-2.007-.411-2.857c-.092-1.404.088-3.235.3-4.75a50 50 0 0 1 .434-2.582l.008-.037l.002-.01zm4.24 10.882l-1.424.475l-.092-.278l.712-.237l-.712.237l-.001-.003l-.002-.006l-.007-.022a10 10 0 0 1-.115-.37c-.074-.247-.172-.59-.27-.983c-.192-.77-.402-1.792-.402-2.644s.21-1.874.402-2.643a22 22 0 0 1 .385-1.354l.007-.021l.002-.007v-.001l.713.235l-.712-.236l.212-.637l1.186 1.187l-.004.014l-.082.267c-.069.23-.16.55-.252.916c-.187.75-.357 1.622-.357 2.28s.17 1.531.357 2.28a21 21 0 0 0 .356 1.253l.006.017l.001.004z\"/>",  // solar:confetti
+  evenement: "<path fill=\"currentColor\" d=\"M6.94 2c.416 0 .753.324.753.724v1.46c.668-.012 1.417-.012 2.26-.012h4.015c.842 0 1.591 0 2.259.013v-1.46c0-.4.337-.725.753-.725s.753.324.753.724V4.25c1.445.111 2.394.384 3.09 1.055c.698.67.982 1.582 1.097 2.972L22 9H2v-.724c.116-1.39.4-2.302 1.097-2.972s1.645-.944 3.09-1.055V2.724c0-.4.337-.724.753-.724\"/><path fill=\"currentColor\" d=\"M22 14v-2c0-.839-.004-2.335-.017-3H2.01c-.013.665-.01 2.161-.01 3v2c0 3.771 0 5.657 1.172 6.828S6.228 22 10 22h4c3.77 0 5.656 0 6.828-1.172S22 17.772 22 14\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M18 17a1 1 0 1 1-2 0a1 1 0 0 1 2 0m0-4a1 1 0 1 1-2 0a1 1 0 0 1 2 0m-5 4a1 1 0 1 1-2 0a1 1 0 0 1 2 0m0-4a1 1 0 1 1-2 0a1 1 0 0 1 2 0m-5 4a1 1 0 1 1-2 0a1 1 0 0 1 2 0m0-4a1 1 0 1 1-2 0a1 1 0 0 1 2 0\"/>",  // solar:calendar
+  animalerie: "<path fill=\"currentColor\" d=\"M4.035 11.573c.462-2.309.693-3.463 1.522-4.143s2.007-.68 4.362-.68h4.162c2.355 0 3.532 0 4.361.68c.83.68 1.06 1.834 1.523 4.143l.6 3c.664 3.32.996 4.98.096 6.079s-2.594 1.098-5.98 1.098H9.32c-3.386 0-5.08 0-5.98-1.098s-.568-2.758.096-6.079z\" opacity=\".5\"/><circle cx=\"15\" cy=\"9.75\" r=\"1\" fill=\"currentColor\"/><circle cx=\"9\" cy=\"9.75\" r=\"1\" fill=\"currentColor\"/><path fill=\"currentColor\" d=\"M9.75 5.75a2.25 2.25 0 0 1 4.5 0v1h.431q.565 0 1.069.002V5.75a3.75 3.75 0 1 0-7.5 0v1.002q.504-.003 1.069-.002h.431z\"/>",  // solar:bag-4
+  commerce: "<path fill=\"currentColor\" d=\"M14.5 21.991V18.5c0-.935 0-1.402-.201-1.75a1.5 1.5 0 0 0-.549-.549C13.402 16 12.935 16 12 16s-1.402 0-1.75.201a1.5 1.5 0 0 0-.549.549c-.201.348-.201.815-.201 1.75v3.491z\"/><path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M5.732 12c-.89 0-1.679-.376-2.232-.967V14c0 3.771 0 5.657 1.172 6.828c.943.944 2.348 1.127 4.828 1.163h5c2.48-.036 3.885-.22 4.828-1.163C20.5 19.657 20.5 17.771 20.5 14v-2.966a3.06 3.06 0 0 1-5.275-1.789l-.073-.728a3.167 3.167 0 1 1-6.307.038l-.069.69A3.06 3.06 0 0 1 5.732 12m8.768 6.5v3.491h-5V18.5c0-.935 0-1.402.201-1.75a1.5 1.5 0 0 1 .549-.549C10.598 16 11.065 16 12 16s1.402 0 1.75.201a1.5 1.5 0 0 1 .549.549c.201.348.201.815.201 1.75\" clip-rule=\"evenodd\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M9.5 2h5l.652 6.517a3.167 3.167 0 1 1-6.304 0z\"/><path fill=\"currentColor\" d=\"M3.33 5.351c.178-.89.267-1.335.448-1.696a3 3 0 0 1 1.889-1.548C6.057 2 6.51 2 7.418 2h2.083l-.725 7.245a3.06 3.06 0 1 1-6.044-.904zm17.34 0c-.178-.89-.267-1.335-.448-1.696a3 3 0 0 0-1.888-1.548C17.944 2 17.49 2 16.582 2H14.5l.725 7.245a3.06 3.06 0 1 0 6.043-.904z\" opacity=\".7\"/>",  // solar:shop
+  educateur: "<path fill=\"currentColor\" d=\"M14.217 3.5a5.17 5.17 0 0 0-4.434 0L3.092 6.637c-1.076.504-1.357 1.927-.842 2.91V14.5a.75.75 0 0 0 1.5 0v-3.828L9.783 13.5a5.17 5.17 0 0 0 4.434 0l6.691-3.137c1.456-.682 1.456-3.044 0-3.726z\"/><path fill=\"currentColor\" d=\"M5 11.258L9.783 13.5a5.17 5.17 0 0 0 4.434 0L19 11.258v5.367c0 1.008-.503 1.952-1.385 2.44C16.146 19.88 13.796 21 12 21s-4.146-1.121-5.615-1.935C5.504 18.577 5 17.633 5 16.625z\" opacity=\".5\"/>",  // solar:square-academic-cap
+  dog_walker: "<path fill=\"currentColor\" d=\"M20.75 4.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0\"/><path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M9.802 5.93a4 4 0 0 1 .721-.043q.12.006.273.02c2.383.248 4.15 2.036 5.328 3.802l.063.094a3.25 3.25 0 0 0 2.704 1.447h1.86a.75.75 0 0 1 0 1.5h-1.86a4.75 4.75 0 0 1-3.952-2.115l-.063-.094A11 11 0 0 0 14 9.39l-1.884 2.355c-.427.534-.714.894-.907 1.19c-.187.286-.24.445-.255.566c-.023.2.002.403.073.591c.044.114.135.256.386.487c.26.24.626.518 1.172.93l.095.073c.72.546 1.22.924 1.566 1.428c.196.287.351.6.462.93c.193.58.193 1.206.193 2.11V22a.75.75 0 1 1-1.5 0v-1.83c0-1.07-.01-1.435-.116-1.755a2.3 2.3 0 0 0-.277-.558c-.19-.278-.476-.505-1.33-1.152l-.028-.021c-.51-.386-.933-.707-1.252-1.001c-.333-.307-.611-.635-.772-1.056a2.75 2.75 0 0 1-.162-1.3c.053-.448.242-.835.49-1.214c.237-.362.57-.778.968-1.277l1.984-2.479c-.687-.523-1.444-.871-2.263-.956a3 3 0 0 0-.185-.014a2.5 2.5 0 0 0-.45.03c-1.065.148-2.132.74-4.45 2.057l-1.436.815a.75.75 0 1 1-.741-1.304l1.435-.815l.153-.087c2.119-1.204 3.448-1.96 4.834-2.151\" clip-rule=\"evenodd\"/><path fill=\"currentColor\" d=\"M9.23 16.424a.75.75 0 0 1 .096 1.056l-1 1.201l-.097.116c-.642.772-1.113 1.338-1.771 1.646s-1.395.308-2.4.307H2.75a.75.75 0 0 1 0-1.5h1.158c1.222 0 1.596-.017 1.913-.165c.318-.149.57-.426 1.352-1.364l1-1.201a.75.75 0 0 1 1.057-.096\" opacity=\".5\"/>",  // solar:running
+  aeroport: "<path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"m16.245 7.76l5.172-5.171l-.003-.003c-1.187-1.187-3.436-.438-7.935 1.062L8.33 5.364C4.7 6.574 2.885 7.18 2.37 8.067a2.72 2.72 0 0 0 0 2.73c.515.888 2.33 1.493 5.96 2.704c.45.15.957.042 1.294-.291l5.506-5.455a.79.79 0 0 1 1.116.005\" clip-rule=\"evenodd\"/><path fill=\"currentColor\" d=\"m18.635 15.67l1.717-5.15c1.498-4.495 2.248-6.744 1.064-7.932l-5.172 5.171a.79.79 0 0 1-.005 1.117l-5.416 5.367a1.4 1.4 0 0 0-.324 1.426c1.21 3.631 1.815 5.446 2.703 5.962a2.71 2.71 0 0 0 2.73 0c.888-.516 1.493-2.33 2.703-5.962\" opacity=\".5\"/>",  // solar:plain
+  transport: "<path fill=\"currentColor\" d=\"M14.5 19.982c1.573-.04 2.677-.167 3.5-.567V21a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1zM6 19.415c.823.4 1.927.527 3.5.567V21a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z\"/><path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M5.172 3.172C6.343 2 8.229 2 12 2s5.657 0 6.828 1.172C19.892 4.235 19.99 5.886 20 9v4c-.01 3.114-.108 4.765-1.172 5.828a3 3 0 0 1-.828.587c-.823.4-1.927.527-3.5.567C13.773 20 12.946 20 12 20s-1.773 0-2.5-.018c-1.573-.04-2.677-.167-3.5-.567a3 3 0 0 1-.828-.587C4.108 17.765 4.009 16.114 4 13V9c.01-3.114.108-4.765 1.172-5.828\" clip-rule=\"evenodd\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M17.75 16a.75.75 0 0 0-.75-.75h-1.5a.75.75 0 0 0 0 1.5H17a.75.75 0 0 0 .75-.75m-11.5 0a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H7a.75.75 0 0 1-.75-.75M5.5 9.5c0 1.414 0 2.121.44 2.56c.439.44 1.146.44 2.56.44h7c1.414 0 2.121 0 2.56-.44c.44-.439.44-1.146.44-2.56V7c0-1.414 0-2.121-.44-2.56C17.622 4 16.915 4 15.5 4h-7c-1.414 0-2.121 0-2.56.44C5.5 4.878 5.5 5.585 5.5 7zm-3.1 2.3L4 13V9H3a1 1 0 0 0-1 1v1a1 1 0 0 0 .4.8M21 9h-1.001L20 13l1.6-1.2a1 1 0 0 0 .4-.8v-1a1 1 0 0 0-1-1\"/>",  // solar:bus
+  station_carburant: "<path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M9.75 2h-1c-2.828 0-4.243 0-5.121.879C2.75 3.757 2.75 5.172 2.75 8v13.25h13V8c0-2.828 0-4.243-.879-5.121C13.993 2 12.578 2 9.75 2\" clip-rule=\"evenodd\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M2.75 21.25h-1a.75.75 0 0 0 0 1.5h15.123a.75.75 0 0 0 0-1.5zM8 6h3c.943 0 1.414 0 1.707.293S13 7.057 13 8s0 1.414-.293 1.707S11.943 10 11 10H8c-.943 0-1.414 0-1.707-.293S6 8.943 6 8s0-1.414.293-1.707S7.057 6 8 6M7 16.25a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5zm8.75 1.5h1.571c.375 0 .679.304.679.679v.071a2.25 2.25 0 1 0 4.5 0V7.602c0-.157 0-.265-.006-.37a3.75 3.75 0 0 0-1.24-2.582a9 9 0 0 0-.286-.236l-1.25-1a.75.75 0 1 0-.936 1.172l1.233.986c.144.116.194.156.237.195c.443.397.711.954.745 1.549a6 6 0 0 1 .003.306V8h-.75a1.5 1.5 0 0 0-1.5 1.5v2.419a1.5 1.5 0 0 0 1.026 1.423L21 13.75v4.75a.75.75 0 0 1-1.5 0v-.071a2.18 2.18 0 0 0-2.179-2.179H15.75z\"/>",  // solar:gas-station
+  aire_repos: "<path fill=\"currentColor\" d=\"M16.533 18H6.75v2a.75.75 0 1 1-1.5 0v-2.324c-.829-.362-1.49-1.005-1.808-1.817l-.039-.102L2.1 12.264C1.685 11.15 2.613 10 3.927 10c.81 0 1.534.453 1.81 1.134l1.098 2.706c.1.246.15.37.222.47a1.2 1.2 0 0 0 .74.463c.13.027.277.027.57.027h6.98c.569 0 .853 0 1.091-.098q.196-.082.349-.219c.184-.166.281-.405.475-.883l1.001-2.466c.276-.68 1-1.134 1.81-1.134c1.314 0 2.242 1.15 1.827 2.264l-1.12 3c-.195.524-.292.785-.421 1.008a3.43 3.43 0 0 1-1.609 1.404V20a.75.75 0 1 1-1.5 0v-2.005c-.187.005-.415.005-.717.005\"/><path fill=\"currentColor\" d=\"M13.236 3.5h-2.472c-1.1 0-1.976 0-2.66.088c-.706.09-1.285.28-1.746.72c-.464.441-.669 1.003-.765 1.685c-.093.658-.093 1.495-.093 2.54v2.195q.147.186.237.406l1.098 2.706c.1.246.15.37.222.47a1.2 1.2 0 0 0 .74.463c.13.027.277.027.57.027h6.98c.569 0 .853 0 1.091-.098q.196-.082.349-.219c.184-.166.281-.405.475-.883l1.001-2.466q.09-.221.237-.406V8.533c0-1.045 0-1.882-.093-2.54c-.096-.682-.301-1.244-.765-1.686c-.46-.438-1.04-.629-1.745-.72c-.685-.087-1.56-.087-2.661-.087\" opacity=\".5\"/>",  // solar:armchair-2
+  other: "<path fill=\"currentColor\" d=\"M12 2c-4.418 0-8 4.003-8 8.5c0 4.462 2.553 9.312 6.537 11.174a3.45 3.45 0 0 0 2.926 0C17.447 19.812 20 14.962 20 10.5C20 6.003 16.418 2 12 2\" opacity=\".5\"/><path fill=\"currentColor\" d=\"M12 12.5a2.5 2.5 0 1 0 0-5a2.5 2.5 0 0 0 0 5\"/>",  // solar:map-point
+  __all__: "<path fill=\"currentColor\" d=\"M6.145 5.527c.412 1.631 1.576 2.717 2.6 2.426c1.025-.292 1.522-1.85 1.11-3.48c-.412-1.631-1.576-2.717-2.6-2.426c-1.025.292-1.522 1.85-1.11 3.48m11.71 0c-.412 1.631-1.576 2.717-2.6 2.426c-1.025-.292-1.522-1.85-1.11-3.48c.412-1.631 1.576-2.717 2.6-2.426c1.025.292 1.522 1.85 1.11 3.48m-15.653 6.77c.45 1.205 1.508 1.937 2.363 1.635s1.183-1.524.733-2.73c-.45-1.204-1.508-1.936-2.363-1.634s-1.183 1.524-.733 2.73m19.596-.001c-.45 1.205-1.508 1.937-2.363 1.635s-1.183-1.524-.733-2.73c.45-1.204 1.508-1.936 2.363-1.634s1.183 1.524.733 2.73\"/><path fill=\"currentColor\" d=\"M7.57 15.376c1.586-3.228 2.38-4.842 3.52-5.227a2.85 2.85 0 0 1 1.82 0c1.14.385 1.934 1.999 3.52 5.227l.878 1.79c.41.833.614 1.25.663 1.534c.201 1.179-.67 2.265-1.846 2.3c-.283.008-.725-.113-1.61-.356a17 17 0 0 0-1.01-.259a7.6 7.6 0 0 0-3.01 0c-.252.051-.505.12-1.01.26c-.885.242-1.327.363-1.61.355c-1.175-.035-2.047-1.121-1.846-2.3c.048-.284.253-.7.663-1.535z\" opacity=\".5\"/>",  // solar:paw
+  __strays__: "<path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M3.464 20.536C4.93 22 7.286 22 12 22s7.071 0 8.535-1.465C22 19.072 22 16.714 22 12s0-7.071-1.465-8.536C19.072 2 16.714 2 12 2S4.929 2 3.464 3.464C2 4.93 2 7.286 2 12s0 7.071 1.464 8.535\" clip-rule=\"evenodd\" opacity=\".5\"/><path fill=\"currentColor\" d=\"m13.423 17.362l3.512-9.166a.863.863 0 0 0-1.131-1.13l-9.166 3.511c-.83.319-.857 1.483-.04 1.731l3.477 1.057c.27.082.478.29.56.56l1.057 3.477c.248.817 1.412.79 1.73-.04\"/>",  // solar:map-arrow-square
+  __lost__: "<path fill=\"currentColor\" d=\"M20.313 11.157a9.157 9.157 0 1 1-18.313 0a9.157 9.157 0 0 1 18.313 0\" opacity=\".5\"/><path fill=\"currentColor\" d=\"m17.1 18.122l3.666 3.666a.723.723 0 0 0 1.023-1.022L18.122 17.1a9 9 0 0 1-1.022 1.022\"/>",  // solar:magnifer
 };
 
 // Alias de clés (variantes présentes dans certains composants).
@@ -203,7 +53,6 @@ const ALIASES: Record<string, string> = {
 
 export type CategoryKey = keyof typeof P | string | null | undefined;
 
-/** Résout une clé de catégorie (y compris null=Tous et clés spéciales) vers un fragment SVG. */
 function resolve(category: CategoryKey): string {
   if (category == null) return P.__all__;
   const key = ALIASES[category] ?? category;
@@ -221,7 +70,6 @@ export function CategoryIcon({ category, className, size }: CategoryIconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="none"
       width={size}
       height={size}
       className={className}
@@ -236,7 +84,7 @@ export function categoryIconSvg(
   category: CategoryKey,
   { size = 20, color = "#fff" }: { size?: number; color?: string } = {},
 ): string {
-  return `<svg viewBox="0 0 24 24" fill="none" width="${size}" height="${size}" style="color:${color}">${resolve(category)}</svg>`;
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="color:${color}">${resolve(category)}</svg>`;
 }
 
 /** Éclaircit (amt>0) ou assombrit (amt<0) une couleur hex #RRGGBB. */
@@ -253,28 +101,28 @@ function shade(hex: string, amt: number): string {
   return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
-// Silhouette de la goutte (viewBox 0 0 48 54) : gros bulbe rond + pointe courte, tip à (24,53).
-const DROP_PATH = "M24 53C24 53 8 33 8 20A16 16 0 0 1 40 20C40 33 24 53 24 53Z";
+// Silhouette "nuage" (viewBox 0 0 48 44). Ancrage au centre (pas de pointe).
+const CLOUD_PATH = "M12.5 39C6.7 39 2 34.3 2 28.5C2 23.2 5.9 18.8 11 18.1C11.8 11.8 17.3 7 24 7C29.9 7 35 10.9 36.6 16.4C42 16.8 46 21.3 46 26.8C46 33.5 40.5 39 33.8 39Z";
 
 /**
- * Goutte HD complète pour un marqueur Mapbox : dégradé, reflet, ombre douce, contour blanc
- * et l'icône blanche à l'intérieur. Les ids de gradient sont dérivés de la couleur pour
- * éviter les collisions entre marqueurs dans le même document. La pointe (bas) est le point d'ancrage.
+ * Pin "nuage" complet pour un marqueur Mapbox : dégradé, reflet doux (glow réduit),
+ * ombre légère, contour blanc, icône Solar blanche à l'intérieur. Ids de gradient
+ * dérivés de la couleur (anti-collision). Ancrage au centre du nuage.
  */
-export function categoryPinSvg(category: CategoryKey, color: string, size = 40): string {
-  const light = shade(color, 0.22);
-  const dark = shade(color, -0.16);
+export function categoryPinSvg(category: CategoryKey, color: string, size = 44): string {
+  const light = shade(color, 0.16);
+  const dark = shade(color, -0.15);
   const uid = color.replace("#", "");
-  const height = Math.round((size * 54) / 48);
-  return `<svg width="${size}" height="${height}" viewBox="0 0 48 54" fill="none" style="overflow:visible;display:block">
+  const height = Math.round((size * 44) / 48);
+  return `<svg width="${size}" height="${height}" viewBox="0 0 48 44" fill="none" style="overflow:visible;display:block">
     <defs>
-      <linearGradient id="g_${uid}" x1="24" y1="4" x2="24" y2="53" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${light}"/><stop offset="0.55" stop-color="${color}"/><stop offset="1" stop-color="${dark}"/></linearGradient>
-      <radialGradient id="h_${uid}" cx="0.35" cy="0.28" r="0.55"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
-      <filter id="s_${uid}" x="-45%" y="-30%" width="190%" height="175%"><feDropShadow dx="0" dy="2.5" stdDeviation="2.4" flood-color="${dark}" flood-opacity="0.5"/></filter>
+      <linearGradient id="g_${uid}" x1="24" y1="4" x2="24" y2="39" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${light}"/><stop offset="0.55" stop-color="${color}"/><stop offset="1" stop-color="${dark}"/></linearGradient>
+      <radialGradient id="h_${uid}" cx="0.36" cy="0.32" r="0.5"><stop offset="0" stop-color="#fff" stop-opacity="0.3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+      <filter id="s_${uid}" x="-45%" y="-30%" width="190%" height="180%"><feDropShadow dx="0" dy="2" stdDeviation="1.9" flood-color="${dark}" flood-opacity="0.38"/></filter>
     </defs>
-    <path d="${DROP_PATH}" fill="url(#g_${uid})" stroke="#fff" stroke-width="2" filter="url(#s_${uid})"/>
-    <path d="${DROP_PATH}" fill="url(#h_${uid})"/>
-    <ellipse cx="17.5" cy="13" rx="6.2" ry="3.6" fill="#fff" opacity="0.28" transform="rotate(-32 17.5 13)"/>
-    <g transform="translate(12,8)" style="color:#fff"><svg viewBox="0 0 24 24" width="24" height="24" fill="none">${resolve(category)}</svg></g>
+    <path d="${CLOUD_PATH}" fill="url(#g_${uid})" stroke="#fff" stroke-width="2" filter="url(#s_${uid})"/>
+    <path d="${CLOUD_PATH}" fill="url(#h_${uid})"/>
+    <ellipse cx="17" cy="17" rx="5" ry="3" fill="#fff" opacity="0.13" transform="rotate(-25 17 17)"/>
+    <g transform="translate(13.4,12) scale(0.9)" style="color:#fff"><svg viewBox="0 0 24 24" width="24" height="24">${resolve(category)}</svg></g>
   </svg>`;
 }

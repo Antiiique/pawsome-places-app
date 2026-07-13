@@ -506,7 +506,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           markerClickedRef.current = true;
           setTimeout(() => { markerClickedRef.current = false; }, 300);
           const pulse = document.createElement("div");
-          pulse.style.cssText = `position:absolute;width:34px;height:34px;border-radius:50%;border:2.5px solid ${color};top:-1px;left:3px;pointer-events:none;animation:markerPulse 0.65s ease-out forwards;`;
+          pulse.style.cssText = `position:absolute;width:34px;height:34px;border-radius:50%;border:2.5px solid ${color};top:3px;left:5px;pointer-events:none;animation:markerPulse 0.65s ease-out forwards;`;
           wrapper.appendChild(pulse);
           setTimeout(() => pulse.remove(), 750);
           const rect = mapContainerRef.current?.getBoundingClientRect();
@@ -569,8 +569,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         });
       }
 
-      const anchor = cluster.properties.cluster ? "center" : "bottom";
-      const marker = new mapboxgl.Marker({ element: el, anchor }).setLngLat([lng, lat]).addTo(map);
+      // Pin "nuage" : ancrage au centre (pas de pointe basse comme la goutte).
+      const marker = new mapboxgl.Marker({ element: el, anchor: "center" }).setLngLat([lng, lat]).addTo(map);
       markersRef.current.set(id, marker);
     });
 
@@ -1263,11 +1263,6 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     const style = document.createElement("style");
     style.id = "marker-glow-style";
     style.textContent = `
-      @keyframes markerGoldGlow {
-        0%, 100% { box-shadow: 0 0 0 3px rgba(251,191,36,0.55), 0 0 10px 3px rgba(251,191,36,0.2); }
-        50%       { box-shadow: 0 0 0 5px rgba(251,191,36,0.40), 0 0 18px 6px rgba(251,191,36,0.3); }
-      }
-      .marker-selected-glow { animation: markerGoldGlow 2s ease-in-out infinite; }
       @keyframes markerPopIn {
         from { opacity: 0; transform: scale(0.6); }
         to   { opacity: 1; transform: scale(1); }
