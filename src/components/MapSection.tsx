@@ -1397,46 +1397,54 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         </div>
       )}
 
-      {/* Filter FAB — opposite side from main FABs */}
-      {(() => {
-        const activeCf = activeCategories.length === 1
-          ? CATEGORY_FILTERS.find(cf => cf.key === activeCategories[0])
-          : null;
-        const hasFilter = activeCategories.length > 0;
-        return (
+      {/* Barre de chips catégories rapides — bas, centrée, sans chevaucher les autres éléments */}
+      <div
+        className="absolute inset-x-0 z-40 flex justify-center px-16 pointer-events-none"
+        style={{ bottom: "calc(1.5rem + var(--safe-bottom, 0px))" }}
+      >
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide max-w-full pointer-events-auto py-1">
+          {([
+            { key: null as string | null, label: "Tous" },
+            { key: "veterinaire", label: "Vétos" },
+            { key: "restaurant", label: "Restaurants" },
+            { key: "hotel", label: "Hôtels" },
+            { key: "outdoor", label: "Parcs" },
+            { key: "cafe_animalier", label: "Cafés" },
+          ]).map((q) => {
+            const active = q.key === null ? activeCategories.length === 0 : activeCategories.includes(q.key);
+            return (
+              <button
+                key={q.key ?? "all"}
+                onClick={() =>
+                  q.key === null
+                    ? setActiveCategories([])
+                    : setActiveCategories((prev) =>
+                        prev.includes(q.key!) ? prev.filter((c) => c !== q.key) : [...prev, q.key!],
+                      )
+                }
+                className={`shrink-0 inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all active:scale-95 ${active ? "text-primary-foreground" : "text-foreground"}`}
+                style={
+                  active
+                    ? { backgroundColor: "hsl(var(--primary))", boxShadow: "0 4px 14px rgba(0,0,0,0.16)", touchAction: "manipulation" }
+                    : ({ background: "color-mix(in srgb, hsl(var(--card)) 82%, transparent)", border: "1px solid color-mix(in srgb, hsl(var(--border)) 65%, transparent)", boxShadow: "0 4px 14px rgba(0,0,0,0.12)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", touchAction: "manipulation" } as React.CSSProperties)
+                }
+              >
+                <CategoryIcon category={q.key} className={`w-[18px] h-[18px] ${active ? "text-primary-foreground" : "text-primary"}`} />
+                {q.label}
+              </button>
+            );
+          })}
           <button
             onClick={() => setShowFilterSheet(true)}
-            className={`absolute ${filterSide} z-40 h-12 px-4 rounded-full flex items-center gap-2 active:scale-95 transition-all duration-150`}
-            style={{
-              bottom: "calc(2rem + var(--safe-bottom, 0px))",
-              ...(hasFilter ? {
-                backgroundColor: "var(--primary)",
-                boxShadow: "0 4px 24px rgba(0,0,0,0.20)",
-                touchAction: "manipulation",
-              } : {
-                background: "color-mix(in srgb, var(--card) 55%, transparent)",
-                border: "1px solid color-mix(in srgb, var(--border) 50%, transparent)",
-                boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
-                backdropFilter: "blur(24px)",
-                WebkitBackdropFilter: "blur(24px)",
-                touchAction: "manipulation",
-              }),
-            } as React.CSSProperties}
-            title="Filtrer par catégorie"
+            className="shrink-0 inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-all active:scale-95 text-foreground"
+            style={{ background: "color-mix(in srgb, hsl(var(--card)) 82%, transparent)", border: "1px solid color-mix(in srgb, hsl(var(--border)) 65%, transparent)", boxShadow: "0 4px 14px rgba(0,0,0,0.12)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", touchAction: "manipulation" } as React.CSSProperties}
+            title="Toutes les catégories"
           >
-            {activeCategories.length === 1 && activeCf
-              ? <CategoryIcon category={activeCf.key} className={`w-4 h-4 ${hasFilter ? "text-primary-foreground" : "text-foreground"}`} />
-              : <SlidersHorizontal className={`w-4 h-4 ${hasFilter ? "text-primary-foreground" : "text-foreground"}`} />}
-            <span className={`text-sm font-semibold ${hasFilter ? "text-primary-foreground" : "text-foreground"}`}>
-              {activeCategories.length === 0
-                ? "Filtrer"
-                : activeCategories.length === 1
-                  ? activeCf?.label
-                  : `${activeCategories.length} filtres`}
-            </span>
+            <SlidersHorizontal className="w-[18px] h-[18px] text-primary" />
+            Plus
           </button>
-        );
-      })()}
+        </div>
+      </div>
 
       {/* Filter bottom sheet — même pattern de swipe que LostPetDetailPanel */}
       <>
