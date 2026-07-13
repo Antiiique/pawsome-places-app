@@ -101,8 +101,12 @@ export function categoryPinSvg(
   const outline =
     "drop-shadow(.7px 0 0 #fff) drop-shadow(-.7px 0 0 #fff) drop-shadow(0 .7px 0 #fff) drop-shadow(0 -.7px 0 #fff)";
   const depth = "drop-shadow(0 1.4px 1.4px rgba(0,0,0,.32))";
-  const redGlow = alert
-    ? " drop-shadow(0 0 3px rgba(220,38,38,.95)) drop-shadow(0 0 6px rgba(220,38,38,.5))"
-    : "";
-  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="display:block;overflow:visible;color:${color};filter:${outline} ${depth}${redGlow};cursor:pointer">${resolve(category)}</svg>`;
+  const icon = `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="display:block;overflow:visible;color:${color};filter:${outline} ${depth};cursor:pointer">${resolve(category)}</svg>`;
+  if (!alert) return icon;
+  // Alerte (perdus / errants) : halo radial rouge doux derrière l'icône, non massif.
+  const halo = Math.round(size * 1.55);
+  return `<div style="position:relative;width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center">
+    <div style="position:absolute;width:${halo}px;height:${halo}px;border-radius:50%;background:radial-gradient(circle, rgba(220,38,38,0.30) 0%, rgba(220,38,38,0.12) 45%, transparent 68%);pointer-events:none"></div>
+    ${icon}
+  </div>`;
 }
