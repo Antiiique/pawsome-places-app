@@ -18,7 +18,7 @@ import type { FavoritePlace } from "@/hooks/useFavorites";
 import { detectCategoryFromTypes } from "@/hooks/useFavorites";
 import type { ItineraryMapData } from "./itinerary/types";
 import type { PickMode } from "./itinerary/ItineraryPanel";
-import { CategoryIcon, categoryIconSvg } from "@/lib/categoryIcons";
+import { CategoryIcon, categoryPinSvg } from "@/lib/categoryIcons";
 
 const MAPBOX_TOKEN = (import.meta.env.VITE_MAPBOX_TOKEN as string) || "pk.eyJ1IjoiZWx2aW5hZ2QiLCJhIjoiY21vNzlzaTZ5MDUxMTJxc2V1Ym5sZzVxNyJ9.QVzHhHQIH-DsrHzfi-STRA";
 const GOOGLE_API_KEY = (import.meta.env.VITE_GOOGLE_API_KEY as string) || "AIzaSyDP4zY29gT-tXDxcszWHBWSC8_14AEmiYg";
@@ -479,15 +479,14 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         const place = currentPlaces[cluster.properties.placeIndex];
         if (!place) return;
         const color = place.accepts_dogs ? (CATEGORY_COLORS[place.category] || "#6E9A55") : "#9A8F82";
-        const iconSvg = categoryIconSvg(place.category, { size: 21, color: "#fff" });
-        el.style.cssText = `display:flex;flex-direction:column;align-items:center;cursor:pointer;filter:drop-shadow(0 4px 12px ${color}88);`;
+        el.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;";
         const wrapper = document.createElement("div");
         wrapper.style.cssText = "display:flex;flex-direction:column;align-items:center;transform-origin:bottom center;position:relative;";
         if (!animatedMarkerIds.current.has(id)) {
           wrapper.style.animation = `markerPopIn 0.5s cubic-bezier(0.16,1,0.3,1) both`;
           animatedMarkerIds.current.add(id);
         }
-        wrapper.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:${color};border:2.5px solid white;display:flex;align-items:center;justify-content:center;line-height:1;transition:box-shadow 0.2s ease;">${iconSvg}</div><div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid ${color};margin-top:-1px;"></div>`;
+        wrapper.innerHTML = categoryPinSvg(place.category, color, 40);
         el.appendChild(wrapper);
         const circleEl = wrapper.firstElementChild as HTMLElement | null;
         if (circleEl) {
@@ -507,7 +506,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           markerClickedRef.current = true;
           setTimeout(() => { markerClickedRef.current = false; }, 300);
           const pulse = document.createElement("div");
-          pulse.style.cssText = `position:absolute;width:36px;height:36px;border-radius:50%;border:2.5px solid ${color};top:0;left:0;pointer-events:none;animation:markerPulse 0.65s ease-out forwards;`;
+          pulse.style.cssText = `position:absolute;width:34px;height:34px;border-radius:50%;border:2.5px solid ${color};top:-1px;left:3px;pointer-events:none;animation:markerPulse 0.65s ease-out forwards;`;
           wrapper.appendChild(pulse);
           setTimeout(() => pulse.remove(), 750);
           const rect = mapContainerRef.current?.getBoundingClientRect();
