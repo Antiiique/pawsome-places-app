@@ -679,6 +679,8 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       gmColors.forEach(([id, prop, value]) => { try { map.setPaintProperty(id, prop as any, value); } catch {} });
 
       setIsLoaded(true);
+      // Signale au splash (index.html) que la carte est prête → il peut se retirer
+      window.dispatchEvent(new Event("pawsome-ready"));
 
       // ── User location dot ──
       map.addSource("user-location", {

@@ -29,9 +29,55 @@
   <meta name="twitter:title" content="World Pet Friendly - Lieux accueillants pour animaux">
   <meta property="og:description" content="Découvrez les restaurants, hôtels, parcs et lieux de loisirs qui accueillent vos animaux de compagnie partout dans le monde.">
   <meta name="twitter:description" content="Découvrez les restaurants, hôtels, parcs et lieux de loisirs qui accueillent vos animaux de compagnie partout dans le monde.">
+
+  <!-- Écran de démarrage (splash) — s'affiche instantanément, se retire quand la carte est prête -->
+  <style>
+    #pw-splash{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#FFF8F3;transition:opacity .5s ease;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;padding-bottom:6vh}
+    #pw-splash.pw-hide{opacity:0;pointer-events:none}
+    #pw-splash .pw-logo{width:104px;height:104px;border-radius:26px;animation:pwPop .55s cubic-bezier(.16,1,.3,1) both,pwBreathe 2.4s ease-in-out .6s infinite}
+    #pw-splash .pw-name{font-size:19px;font-weight:800;color:#33302A;letter-spacing:-.01em}
+    #pw-splash .pw-bar{width:180px;height:6px;border-radius:99px;background:#F0E2D6;overflow:hidden;margin-top:4px}
+    #pw-splash .pw-bar>i{display:block;height:100%;width:6%;border-radius:99px;background:linear-gradient(90deg,#ED8862,#E07E56);transition:width .45s ease}
+    @keyframes pwPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+    @keyframes pwBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+    @media (prefers-reduced-motion:reduce){#pw-splash .pw-logo{animation:pwPop .4s ease both}}
+  </style>
 </head>
 
   <body>
+    <div id="pw-splash">
+      <img class="pw-logo" src="/android-chrome-192x192.png" alt="World Pet Friendly" />
+      <div class="pw-name">World Pet Friendly</div>
+      <div class="pw-bar"><i id="pw-bar"></i></div>
+    </div>
+    <script>
+      (function () {
+        var splash = document.getElementById('pw-splash');
+        var bar = document.getElementById('pw-bar');
+        if (!splash || !bar) return;
+        var start = Date.now(), MIN = 1400, MAX = 6000, done = false, p = 6;
+        var tick = setInterval(function () {
+          p += Math.random() * 11 + 4;
+          if (p > 90) p = 90;
+          bar.style.width = p + '%';
+        }, 230);
+        function finish() {
+          if (done) return; done = true;
+          clearInterval(tick);
+          bar.style.width = '100%';
+          setTimeout(function () {
+            splash.classList.add('pw-hide');
+            setTimeout(function () { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 550);
+          }, 280);
+        }
+        function ready() {
+          var el = Date.now() - start;
+          if (el < MIN) setTimeout(finish, MIN - el); else finish();
+        }
+        window.addEventListener('pawsome-ready', ready, { once: true });
+        setTimeout(ready, MAX); // filet de sécurité si l'événement n'arrive pas
+      })();
+    </script>
     <div id="root"></div>
     <script>
       window.addEventListener('error', function(e) {
