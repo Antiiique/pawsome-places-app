@@ -1402,7 +1402,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
       {/* Barre de chips catégories rapides — pleine largeur, fondu sur les côtés, jamais superposée */}
       <div
         className="absolute inset-x-0 z-40 pointer-events-none"
-        style={{ bottom: "calc(1.5rem + var(--safe-bottom, 0px))" }}
+        style={{ bottom: "calc(0.5rem + var(--safe-bottom, 0px))" }}
       >
         <div
           className="flex gap-2 overflow-x-auto scrollbar-hide px-4 py-1 pointer-events-auto"
