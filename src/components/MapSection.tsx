@@ -486,7 +486,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           wrapper.style.animation = `markerPopIn 0.5s cubic-bezier(0.16,1,0.3,1) both`;
           animatedMarkerIds.current.add(id);
         }
-        wrapper.innerHTML = categoryPinSvg(place.category, color, 40);
+        wrapper.innerHTML = categoryPinSvg(place.category, color, 34);
         el.appendChild(wrapper);
         const circleEl = wrapper.firstElementChild as HTMLElement | null;
         if (circleEl) {
@@ -506,7 +506,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           markerClickedRef.current = true;
           setTimeout(() => { markerClickedRef.current = false; }, 300);
           const pulse = document.createElement("div");
-          pulse.style.cssText = `position:absolute;width:34px;height:34px;border-radius:50%;border:2.5px solid ${color};top:3px;left:5px;pointer-events:none;animation:markerPulse 0.65s ease-out forwards;`;
+          pulse.style.cssText = `position:absolute;width:32px;height:32px;border-radius:50%;border:2.5px solid ${color};top:1px;left:1px;pointer-events:none;animation:markerPulse 0.65s ease-out forwards;`;
           wrapper.appendChild(pulse);
           setTimeout(() => pulse.remove(), 750);
           const rect = mapContainerRef.current?.getBoundingClientRect();
@@ -1128,7 +1128,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
     lostPets.forEach(pet => {
       if (!pet.last_seen_lat || !pet.last_seen_lng) return;
       const el = document.createElement("div");
-      el.innerHTML = `<div class="lost-pet-marker" style="background:#D97706;color:white;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid white;box-shadow:0 2px 8px rgba(217,119,6,.5);cursor:pointer">🆘</div>`;
+      el.innerHTML = categoryPinSvg("__lost__", "#DC2626", 40, { alert: true });
       const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
         .setLngLat([pet.last_seen_lng, pet.last_seen_lat])
         .addTo(map);
@@ -1162,7 +1162,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
 
     strayReports.forEach((report) => {
       const el = document.createElement("div");
-      el.innerHTML = `<div class="stray-marker" style="background:#DC2626;color:white;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:3px solid white;box-shadow:0 2px 8px rgba(220,38,38,.5);cursor:pointer">🐾</div>`;
+      el.innerHTML = categoryPinSvg("__strays__", "#DC2626", 38, { alert: true });
       const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
         .setLngLat([report.lng, report.lat])
         .addTo(map);

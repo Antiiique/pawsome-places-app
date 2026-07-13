@@ -87,42 +87,22 @@ export function categoryIconSvg(
   return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="color:${color}">${resolve(category)}</svg>`;
 }
 
-/** Éclaircit (amt>0) ou assombrit (amt<0) une couleur hex #RRGGBB. */
-function shade(hex: string, amt: number): string {
-  const n = parseInt(hex.replace("#", ""), 16);
-  let r = (n >> 16) & 255;
-  let g = (n >> 8) & 255;
-  let b = n & 255;
-  const target = amt < 0 ? 0 : 255;
-  const p = Math.abs(amt);
-  r = Math.round(r + (target - r) * p);
-  g = Math.round(g + (target - g) * p);
-  b = Math.round(b + (target - b) * p);
-  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-}
-
-// Silhouette "nuage" (viewBox 0 0 48 44). Ancrage au centre (pas de pointe).
-const CLOUD_PATH = "M12.5 39C6.7 39 2 34.3 2 28.5C2 23.2 5.9 18.8 11 18.1C11.8 11.8 17.3 7 24 7C29.9 7 35 10.9 36.6 16.4C42 16.8 46 21.3 46 26.8C46 33.5 40.5 39 33.8 39Z";
-
 /**
- * Pin "nuage" complet pour un marqueur Mapbox : dégradé, reflet doux (glow réduit),
- * ombre légère, contour blanc, icône Solar blanche à l'intérieur. Ids de gradient
- * dérivés de la couleur (anti-collision). Ancrage au centre du nuage.
+ * Marqueur de carte : l'icône Solar **nue** (pas de conteneur), dans sa couleur de
+ * catégorie, avec un contour blanc (lisibilité sur le fond de carte) et une ombre douce.
+ * `alert` ajoute un léger glow rouge (catégories perdus / errants). Ancrage au centre.
  */
-export function categoryPinSvg(category: CategoryKey, color: string, size = 44): string {
-  const light = shade(color, 0.16);
-  const dark = shade(color, -0.15);
-  const uid = color.replace("#", "");
-  const height = Math.round((size * 44) / 48);
-  return `<svg width="${size}" height="${height}" viewBox="0 0 48 44" fill="none" style="overflow:visible;display:block">
-    <defs>
-      <linearGradient id="g_${uid}" x1="24" y1="4" x2="24" y2="39" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${light}"/><stop offset="0.55" stop-color="${color}"/><stop offset="1" stop-color="${dark}"/></linearGradient>
-      <radialGradient id="h_${uid}" cx="0.36" cy="0.32" r="0.5"><stop offset="0" stop-color="#fff" stop-opacity="0.3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
-      <filter id="s_${uid}" x="-45%" y="-30%" width="190%" height="180%"><feDropShadow dx="0" dy="2" stdDeviation="1.9" flood-color="${dark}" flood-opacity="0.38"/></filter>
-    </defs>
-    <path d="${CLOUD_PATH}" fill="url(#g_${uid})" stroke="#fff" stroke-width="2" filter="url(#s_${uid})"/>
-    <path d="${CLOUD_PATH}" fill="url(#h_${uid})"/>
-    <ellipse cx="17" cy="17" rx="5" ry="3" fill="#fff" opacity="0.13" transform="rotate(-25 17 17)"/>
-    <g transform="translate(13.4,12) scale(0.9)" style="color:#fff"><svg viewBox="0 0 24 24" width="24" height="24">${resolve(category)}</svg></g>
-  </svg>`;
+export function categoryPinSvg(
+  category: CategoryKey,
+  color: string,
+  size = 34,
+  { alert = false }: { alert?: boolean } = {},
+): string {
+  const outline =
+    "drop-shadow(.7px 0 0 #fff) drop-shadow(-.7px 0 0 #fff) drop-shadow(0 .7px 0 #fff) drop-shadow(0 -.7px 0 #fff)";
+  const depth = "drop-shadow(0 1.4px 1.4px rgba(0,0,0,.32))";
+  const redGlow = alert
+    ? " drop-shadow(0 0 3px rgba(220,38,38,.95)) drop-shadow(0 0 6px rgba(220,38,38,.5))"
+    : "";
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="display:block;overflow:visible;color:${color};filter:${outline} ${depth}${redGlow};cursor:pointer">${resolve(category)}</svg>`;
 }
