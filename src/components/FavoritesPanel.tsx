@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useHandedness } from "@/contexts/HandednessContext";
+import { CategoryIcon } from "@/lib/categoryIcons";
 
 const CATEGORY_FILTERS = [
   { key: null,              label: "Tous",           emoji: "🐾" },
@@ -269,7 +270,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
                   {fav.photo_url ? (
                     <img src={fav.photo_url} alt={fav.name} className="w-16 h-16 rounded-lg object-cover shrink-0 border border-border" />
                   ) : (
-                    <div className="w-16 h-16 rounded-lg bg-muted shrink-0 border border-border flex items-center justify-center text-2xl">🐾</div>
+                    <div className="w-16 h-16 rounded-lg bg-muted shrink-0 border border-border flex items-center justify-center text-primary"><CategoryIcon category={fav.category} className="w-8 h-8" /></div>
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
@@ -326,7 +327,7 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
                     {place.photo_url ? (
                       <img src={place.photo_url} alt={place.name} className="w-16 h-16 rounded-lg object-cover shrink-0 border border-border" />
                     ) : (
-                      <div className="w-16 h-16 rounded-lg bg-muted shrink-0 border border-border flex items-center justify-center text-2xl">🐾</div>
+                      <div className="w-16 h-16 rounded-lg bg-muted shrink-0 border border-border flex items-center justify-center text-primary"><CategoryIcon category={place.category} className="w-8 h-8" /></div>
                     )}
                     <div className="flex-1 min-w-0 space-y-0.5">
                       <p className="font-semibold text-foreground text-sm leading-tight truncate">{place.name}</p>
@@ -367,11 +368,12 @@ export default function FavoritesPanel({ open, favorites, onClose, onRemove, onV
               <button
                 key={cf.label}
                 onClick={() => setCatFilter(cf.key)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors inline-flex items-center gap-1.5 ${
                   catFilter === cf.key ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                 }`}
               >
-                {cf.emoji} {cf.label}
+                <CategoryIcon category={cf.key} className="w-4 h-4" />
+                {cf.label}
               </button>
             ))}
           </div>

@@ -3,6 +3,7 @@ import { Search, X, Loader2, User, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useGlobalSearch, type SearchResult, type SearchFilters } from "@/hooks/useGlobalSearch";
 import { useHandedness } from "@/contexts/HandednessContext";
+import { CategoryIcon } from "@/lib/categoryIcons";
 
 /* ── Constants ─────────────────────────────────────────── */
 
@@ -325,7 +326,8 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
                       : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
                   }`}
                 >
-                  {c.emoji} {c.label}
+                  <CategoryIcon category={c.value} className="w-4 h-4" />
+                  {c.label}
                 </button>
               );
             })}
@@ -334,8 +336,8 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
           {activeCategory !== null && (
             <div className="flex items-center px-3 mt-2">
               <div className="inline-flex items-center gap-1.5 bg-primary/10 border border-primary/30 rounded-full px-3 py-1">
-                <span className="text-xs font-medium text-primary">
-                  {CATEGORY_FILTERS.find(c => c.value === activeCategory)?.emoji}{" "}
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
+                  <CategoryIcon category={activeCategory} className="w-3.5 h-3.5" />
                   {CATEGORY_FILTERS.find(c => c.value === activeCategory)?.label}
                 </span>
                 <button onClick={clearCategory} className="text-primary/70 hover:text-primary">
@@ -382,7 +384,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
                   <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden border border-border">
                     {r.photo_url
                       ? <img src={r.photo_url} className="w-full h-full object-cover" alt="" />
-                      : <span className="text-lg">{catIcon(r.category)}</span>}
+                      : <span className="text-primary"><CategoryIcon category={r.category} className="w-5 h-5" /></span>}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground truncate">{r.name}</p>
@@ -421,7 +423,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
               {strays.map(r => (
                 <button key={r.id} onClick={() => { if (chipScrolling.current) return; handleSearchResult(r); }}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/60 active:bg-muted/80 transition-colors text-left">
-                  <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0 text-xl">🚨</div>
+                  <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0 text-destructive"><CategoryIcon category="__strays__" className="w-5 h-5" /></div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground">Animal errant signalé</p>
                     {r.city && <p className="text-xs text-muted-foreground">{r.city}</p>}
@@ -484,7 +486,7 @@ export default function GlobalSearch({ mapRef, activeCategory, onCategoryChange 
                       <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden border border-border">
                         {p.photo_url
                           ? <img src={p.photo_url} className="w-full h-full object-cover" alt="" />
-                          : <span className="text-lg">{catIcon(p.category)}</span>}
+                          : <span className="text-primary"><CategoryIcon category={p.category} className="w-5 h-5" /></span>}
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-foreground truncate">{p.name}</p>

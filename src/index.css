@@ -29,83 +29,87 @@ html, body, #root {
 
 @layer base {
   :root {
-    /* Pêche & Lumière */
-    --background: 30 60% 98%;        /* #FDFAF7 — crème chaude */
-    --foreground: 218 23% 23%;       /* #2D3748 — gris ardoise */
+    /* Terracotta & Sauge */
+    --background: 38 50% 96%;        /* #FAF6EF — sable chaud */
+    --foreground: 34 16% 18%;        /* #38322A — brun ardoise */
 
-    --card: 20 100% 97%;             /* #FFF5F0 — pêche très doux */
-    --card-foreground: 218 23% 23%;
+    --card: 40 46% 98%;              /* blanc chaud pour surfaces élevées */
+    --card-foreground: 34 16% 18%;
 
-    --popover: 20 100% 97%;
-    --popover-foreground: 218 23% 23%;
+    --popover: 40 46% 98%;
+    --popover-foreground: 34 16% 18%;
 
-    --primary: 11 100% 68%;          /* #FF7A5C — pêche-corail */
-    --primary-foreground: 218 23% 23%; /* WCAG AA ~4.6:1 */
+    --primary: 14 60% 54%;           /* #CF6242 — terre cuite */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 20 60% 94%;         /* pêche secondaire */
-    --secondary-foreground: 218 23% 23%;
+    --secondary: 36 40% 90%;         /* sable secondaire */
+    --secondary-foreground: 34 16% 18%;
 
-    --muted: 20 60% 94%;
-    --muted-foreground: 218 15% 46%; /* slate moyen */
+    --muted: 36 38% 91%;
+    --muted-foreground: 34 12% 42%;  /* brun moyen */
 
-    --accent: 42 100% 70%;           /* #FFD166 — ambre */
-    --accent-foreground: 218 23% 23%; /* WCAG AAA ~8.1:1 */
+    --accent: 83 22% 47%;            /* #7E9160 — vert sauge */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 4 60% 44%;
+    --destructive: 4 62% 46%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 20 50% 90%;            /* bordure pêche douce */
-    --input: 20 50% 90%;
-    --ring: 11 100% 68%;
+    --border: 34 30% 85%;            /* bordure sable douce */
+    --input: 34 30% 85%;
+    --ring: 14 60% 54%;
 
-    --radius: 1rem;                  /* 16px — très arrondi */
+    --radius: 1rem;                  /* 16px — arrondi chaleureux */
 
-    --sidebar-background: 30 60% 98%;
-    --sidebar-foreground: 218 23% 23%;
-    --sidebar-primary: 11 100% 68%;
-    --sidebar-primary-foreground: 218 23% 23%;
-    --sidebar-accent: 20 60% 94%;
-    --sidebar-accent-foreground: 218 23% 23%;
-    --sidebar-border: 20 50% 90%;
-    --sidebar-ring: 11 100% 68%;
+    --sidebar-background: 38 50% 96%;
+    --sidebar-foreground: 34 16% 18%;
+    --sidebar-primary: 14 60% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 36 40% 90%;
+    --sidebar-accent-foreground: 34 16% 18%;
+    --sidebar-border: 34 30% 85%;
+    --sidebar-ring: 14 60% 54%;
 
-    --success: 142 36% 50%;
-    --warning: 42 100% 70%;
-    --danger: 4 60% 44%;
+    --success: 120 32% 42%;
+    --warning: 38 82% 55%;
+    --danger: 4 62% 46%;
 
-    --surface: 20 60% 94%;
-    --text-sub: 218 15% 46%;
+    --surface: 36 38% 91%;
+    --text-sub: 34 12% 42%;
 
-    --accent-hover: 11 100% 60%;     /* corail foncé */
-    --accent-soft: 11 100% 94%;      /* pêche très pâle */
-    --pet: 11 100% 68%;
+    --accent-hover: 14 62% 47%;      /* terre cuite foncée */
+    --accent-soft: 16 62% 92%;       /* terre cuite très pâle */
+    --sage: 83 22% 47%;              /* vert sauge — appui */
+    --sage-soft: 83 24% 90%;
+    --pet: 14 60% 54%;
   }
 
   .dark {
-    --background: 220 15% 10%;
-    --foreground: 32 20% 92%;
-    --card: 220 14% 14%;
-    --card-foreground: 32 20% 92%;
-    --popover: 220 14% 14%;
-    --popover-foreground: 32 20% 92%;
-    --primary: 205 22% 56%;
+    --background: 30 9% 10%;
+    --foreground: 36 22% 91%;
+    --card: 30 8% 14%;
+    --card-foreground: 36 22% 91%;
+    --popover: 30 8% 14%;
+    --popover-foreground: 36 22% 91%;
+    --primary: 14 62% 57%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 12% 12%;
-    --secondary-foreground: 32 20% 92%;
-    --muted: 220 12% 12%;
-    --muted-foreground: 32 10% 48%;
-    --accent: 22 32% 54%;
+    --secondary: 30 7% 16%;
+    --secondary-foreground: 36 22% 91%;
+    --muted: 30 7% 16%;
+    --muted-foreground: 34 10% 60%;
+    --accent: 83 20% 52%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 4 55% 44%;
+    --destructive: 4 58% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 12% 20%;
-    --input: 220 12% 20%;
-    --ring: 205 22% 56%;
-    --surface: 220 12% 12%;
-    --text-sub: 32 10% 50%;
-    --accent-hover: 205 22% 62%;
-    --accent-soft: 205 18% 18%;
-    --pet: 205 22% 56%;
+    --border: 30 8% 22%;
+    --input: 30 8% 22%;
+    --ring: 14 62% 57%;
+    --surface: 30 7% 16%;
+    --text-sub: 34 10% 60%;
+    --accent-hover: 14 64% 62%;
+    --accent-soft: 14 30% 20%;
+    --sage: 83 20% 52%;
+    --sage-soft: 83 16% 20%;
+    --pet: 14 62% 57%;
   }
 }
 
@@ -129,20 +133,20 @@ html, body, #root {
   .hero-gradient {
     background: linear-gradient(
       135deg,
-      hsla(11, 100%, 50%, 0.88) 0%,
-      hsla(11, 80%, 35%, 0.82) 50%,
-      hsla(20, 40%, 10%, 0.96) 100%
+      hsla(14, 62%, 48%, 0.90) 0%,
+      hsla(14, 55%, 32%, 0.84) 50%,
+      hsla(34, 30%, 10%, 0.96) 100%
     );
   }
   .category-shadow {
-    box-shadow: 0 4px 20px -4px hsla(11, 100%, 68%, 0.20);
+    box-shadow: 0 4px 20px -4px hsla(14, 55%, 45%, 0.18);
   }
   .card-hover {
     @apply transition-all duration-300;
   }
   .card-hover:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px -8px hsla(11, 100%, 68%, 0.22);
+    box-shadow: 0 12px 32px -8px hsla(14, 55%, 45%, 0.20);
   }
   .animate-slide-in-right {
     animation: slideInRight 0.3s ease-out;
@@ -161,16 +165,16 @@ html, body, #root {
 #map,
 .map-container,
 [class*="map-wrapper"] {
-  background: hsl(30 60% 98%) !important;
+  background: hsl(38 50% 96%) !important;
 }
 
 .gm-style .gm-style-iw-c,
 .gm-style .gm-style-iw-d {
-  background: hsl(30 30% 99%) !important;
-  color: hsl(20 15% 9%) !important;
+  background: hsl(40 46% 98%) !important;
+  color: hsl(34 16% 14%) !important;
 }
 .gm-style .gm-style-iw-tc::after {
-  background: hsl(30 30% 99%) !important;
+  background: hsl(40 46% 98%) !important;
 }
 
 @keyframes pulse {
