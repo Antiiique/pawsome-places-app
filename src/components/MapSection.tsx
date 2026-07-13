@@ -1397,12 +1397,18 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
         </div>
       )}
 
-      {/* Barre de chips catégories rapides — bas, centrée, sans chevaucher les autres éléments */}
+      {/* Barre de chips catégories rapides — pleine largeur, fondu sur les côtés, jamais superposée */}
       <div
-        className="absolute inset-x-0 z-40 flex justify-center px-16 pointer-events-none"
+        className="absolute inset-x-0 z-40 pointer-events-none"
         style={{ bottom: "calc(1.5rem + var(--safe-bottom, 0px))" }}
       >
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide max-w-full pointer-events-auto py-1">
+        <div
+          className="flex gap-2 overflow-x-auto scrollbar-hide px-4 py-1 pointer-events-auto"
+          style={{
+            WebkitMaskImage: "linear-gradient(to right, transparent 0, #000 26px, #000 calc(100% - 26px), transparent 100%)",
+            maskImage: "linear-gradient(to right, transparent 0, #000 26px, #000 calc(100% - 26px), transparent 100%)",
+          }}
+        >
           {([
             { key: null as string | null, label: "Tous" },
             { key: "veterinaire", label: "Vétos" },
@@ -1572,7 +1578,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           }));
         }}
         className={`absolute ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
-        style={{ bottom: "calc(14rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 2px 6px rgba(0,0,0,0.22), 0 6px 24px rgba(0,0,0,0.14)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
+        style={{ bottom: "calc(18rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 2px 6px rgba(0,0,0,0.22), 0 6px 24px rgba(0,0,0,0.14)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Ajouter un lieu"
       >
         <Plus className="w-5 h-5 text-primary" />
@@ -1585,7 +1591,7 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           setLostPetModal(true);
         }}
         className={`absolute ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
-        style={{ bottom: "calc(10rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 2px 6px rgba(0,0,0,0.22), 0 6px 24px rgba(0,0,0,0.14)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
+        style={{ bottom: "calc(14rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 2px 6px rgba(0,0,0,0.22), 0 6px 24px rgba(0,0,0,0.14)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal perdu"
       >
         <AlertCircle className="w-5 h-5 text-primary" />
@@ -1598,14 +1604,14 @@ const MapSection = ({ searchQuery, itineraryData, onStepClick, pickMode, isFavor
           setStrayModal(true);
         }}
         className={`absolute ${fabSide} z-30 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150`}
-        style={{ bottom: "calc(6rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 2px 6px rgba(0,0,0,0.22), 0 6px 24px rgba(0,0,0,0.14)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
+        style={{ bottom: "calc(10rem + var(--safe-bottom, 0px))", background: "color-mix(in srgb, var(--card) 92%, transparent)", border: "1.5px solid color-mix(in srgb, var(--border) 90%, transparent)", boxShadow: "0 2px 6px rgba(0,0,0,0.22), 0 6px 24px rgba(0,0,0,0.14)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", touchAction: "manipulation" } as React.CSSProperties}
         title="Signaler un animal errant"
       >
         <Camera className="w-5 h-5 text-primary" />
       </button>
 
       {/* Locate me — hidden when place detail panel is open */}
-      {!selectedPlace && <div className={`absolute ${fabSide} z-40`} style={{ bottom: "calc(2rem + var(--safe-bottom, 0px))" }}>
+      {!selectedPlace && <div className={`absolute ${fabSide} z-40`} style={{ bottom: "calc(6rem + var(--safe-bottom, 0px))" }}>
         {locating && (
           <span className="absolute inset-0 rounded-full animate-ping bg-primary/30" />
         )}
