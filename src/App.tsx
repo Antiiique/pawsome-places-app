@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuthContext } from "@/contexts/AuthContext";
 import { HandednessProvider } from "@/contexts/HandednessContext";
+import OfflineIndicator from "@/components/OfflineIndicator";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
@@ -72,6 +73,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <OfflineIndicator />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
